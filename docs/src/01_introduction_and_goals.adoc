@@ -1,7 +1,7 @@
 ifndef::imagesdir[:imagesdir: ../images]
 
 [[section-introduction-and-goals]]
-== Introduction and Goals
+== Introducción y objetivos
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -17,7 +17,9 @@ These include
 ****
 endif::arc42help[]
 
-=== Requirements Overview
+La aplicación YOVI tiene como objetivo desarrollar una plataforma web que permita jugar el juego Y y poder ser utilizada tanto por personas como por bots. Es accesible desde la Web y está pensada como base para futuras ampliaciones, como nuevas variantes del juego. 
+
+=== Resumen de requisitos
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -45,7 +47,15 @@ See https://docs.arc42.org/section-1/[Introduction and Goals] in the arc42 docum
 ****
 endif::arc42help[]
 
-=== Quality Goals
+* Implementar la versión clásica del juego Y con tamaño de tablero variable.
+* El juego contra el ordenados deberá de implementar más de una estrategia que el usuario podrá elegir.
+* Los usuarios podrán registrarse en el sistema.
+* Los usuarios registrados podrán consultar el histórico de sus partidas.
+* La aplicación tendrá una API que permita a los bots interactuar con ella.
+* La API permitirá que in bot juegue contra la aplicación.
+* ...
+
+=== Objetivos de calidad
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -68,6 +78,16 @@ If you as an architect do not know how the quality of your work will be judged..
 A table with quality goals and concrete scenarios, ordered by priorities
 ****
 endif::arc42help[]
+
+[options="header",cols="1,2,2"]
+|===
+|Prioridad|Objetivos de calidad|Escenarios
+| _1_ | _Usabilidad_ | _La aplicación debe ser intuitiva y fácil de usar para usuarios nuevos y experimentados._
+| _2_ | _Rendimiento_ | _El sistema debe responder en menos de 4 segundos a las solicitudes de los usuarios. Tambien debe soportar al menos 50 usuarios concurrentes._
+| _3_ | _Seguridad_ | _La aplicación debe cifrar los datos de los usuarios para proteger su privacidad. El sistema debe poder protegerse de ataques de seguridad como SQL injection._
+| _4_ | _Fiabilidad_ | _xxxx_
+| _5_ | _Mantnibilidad_ | _xxxx_
+|===
 
 === Stakeholders
 
@@ -96,6 +116,8 @@ endif::arc42help[]
 [options="header",cols="1,2,2"]
 |===
 |Role/Name|Contact|Expectations
-| _<Role-1>_ | _<Contact-1>_ | _<Expectation-1>_
-| _<Role-2>_ | _<Contact-2>_ | _<Expectation-2>_
+| _Micrait_ | _<Contact>_ | _<Expectation-1>_
+| _Jugadores/usuarios finales_ | _-_ | _<Expectation-2>_
+| _Profesores de la asignatura_ | _Contact_ | _<Expectation-2>_
+| _Desarrolladores_ | _https://github.com/danigpt https://github.com/claudiaRFS https://github.com/josemzuvi_ https://github.com/uo288285| _<Expectation-2>_
 |===
