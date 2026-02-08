@@ -1,7 +1,7 @@
 ifndef::imagesdir[:imagesdir: ../images]
 
 [[section-solution-strategy]]
-== Solution Strategy
+== Estrategia de solución
 
 
 ifdef::arc42help[]
@@ -32,3 +32,34 @@ See https://docs.arc42.org/section-4/[Solution Strategy] in the arc42 documentat
 
 ****
 endif::arc42help[]
+
+=== Decisiones tecnológicas
+
+* Backend: 
+** NodeJS con Express 
+** Rust
+
+* Frontend:
+** Vite
+** React
+
+* Base de datos:
+** MongoDB
+
+* Documentación:
+** AsciiDoc
+** arc42
+
+* Github:
+
+* Docker:
+
+* Despliegue CON....
+
+=== Descomposición de alto nivel
+
+=== Decisiones para alcanzar objetivos de calidad
+
+=== Deciciones organizativas relevantes
+
+
