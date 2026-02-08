@@ -48,7 +48,7 @@ See https://docs.arc42.org/section-1/[Introduction and Goals] in the arc42 docum
 endif::arc42help[]
 
 * Implementar la versión clásica del juego Y con tamaño de tablero variable.
-* El juego contra el ordenados deberá de implementar más de una estrategia que el usuario podrá elegir.
+* El juego contra el ordenador deberá de implementar más de una estrategia que el usuario podrá elegir.
 * Los usuarios podrán registrarse en el sistema.
 * Los usuarios registrados podrán consultar el histórico de sus partidas.
 * La aplicación tendrá una API que permita a los bots interactuar con ella.
