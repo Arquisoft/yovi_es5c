@@ -4,7 +4,32 @@ ifndef::imagesdir[:imagesdir: ../images]
 == Contexto y alcance
 
 === Contexto de negocio
+[mermaid, "business-context", png]
+----
+flowchart LR
+    Jugador["Jugador"] -- Datos inicio sesión --> YOVI(("YOVI"))
+    Jugador -- Acciones de juego --> YOVI
+    Bot["Bot Externo"] -- Movimientos via API --> YOVI
+    
+    YOVI -- Acceso permitido/denegado --> Jugador
+    YOVI -- Estado del juego --> Jugador
+    YOVI -- Resultado partida --> Jugador
+    YOVI -- Estado partida via API --> Bot
+----
 
+[cols="1,3"]
+|===
+|Elemento |Descripción
+
+|Jugador
+|Usuario humano que interactúa con el sistema YOVI a través de la aplicación web para jugar partidas del juego Y. Se autentica en el sistema y realiza movimientos dentro de partidas iniciadas a través de la aplicación. Después de hacer movimientos recibirá el resultado que eso produce en la partida.
+
+|Bot Externo
+|Bot automatizado que utiliza un API para conectarse a YOVI para jugar partidas sin necesidad de interacción humana directa.
+
+| YOVI
+|Sistema completo de juegos tipo Y. Engloba la aplicación web en TypeScript y el módulo de validación en Rust. Gestiona autenticación de usuarios, lógica de juego, validación de partidas y sugerencias de movimientos.
+|===
 
 === Contexto técnico
 
