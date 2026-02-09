@@ -36,30 +36,30 @@ endif::arc42help[]
 === Decisiones tecnológicas
 
 * Backend: 
-** NodeJS con Express 
-** Rust
+** [.underline]#NodeJS + Express#: Debido a su popularidad, facilidad de uso y amplia comunidad, lo que facilita el desarrollo rápido y la integración con otras tecnologías.
+** [.underline]#Rust#: Para el desarrollo del juego, debido a su alto rendimiento, capacidad para manejar tareas concurrentes, lo que es esencial para una experiencia de juego fluida.
 
 * Frontend:
-** Vite
-** React
+** [.underline]#Vite#: Por su velocidad de arranque, y hot-reload instantáneo, permitiendo un desarrollo rápido y eficiente.
+** [.underline]#React:# Por su facilidad de uso, modularidad y amplia comunidad y capacidad de crear interfaces de usuario dinámicas y responsivas.
 
 * Base de datos:
-** MongoDB
+** [.underline]#MongoDB:# Debido a su flexibilidad para manejar datos no estructurados, lo que es ideal para almacenar información de usuarios, partidas y estadísticas de juego.
 
-* Documentación:
-** AsciiDoc
-** arc42
+* [.underline]#Github:# Lo hemos elegido como plataforma de control de versiones al estar mas familiarizados con él, y su capacidad para gestionar proyectos de software.
 
-* Github:
+* [.underline]#Docker:# Por su capacidad para crear, desplegar y ejecutar aplicaciones en contenedores de manera intuituva.
 
-* Docker:
-
-* Despliegue CON....
+* [.underline]#Azure:# Debido a que ya estabamos habituados a su uso, su accesibilidad mediante una IP pública y la facilidad de apertura de puertos.
 
 === Descomposición de alto nivel
 
 === Decisiones para alcanzar objetivos de calidad
 
 === Deciciones organizativas relevantes
+
+Cada tarea o incidencia se registrará como un Issue en GitHub, y se utilizará GitHub Projects para mantener organizada la gestión de las tareas. No habrá una separación estricta entre front-end y back-end, permitiendo que todos los miembros trabajen en ambas áreas. Para cada tarea se creará una rama específica y, una vez finalizada, los cambios se integrarán en la rama develop mediante pull requests. Cuando la funcionalidad esté completamente probada, se fusionará la rama develop con master, garantizando un flujo de desarrollo ordenado y controlado.
+
+Por otro lado, se realizará mínimo una reunión semanal para revisar el avance del proyecto. Sin embargo, adicionalmente, se realizarán las reuniones que sean necesarias para resolver dudas o problemas que puedan surgir durante el desarrollo.
 
 
