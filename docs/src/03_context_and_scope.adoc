@@ -1,80 +1,53 @@
 ifndef::imagesdir[:imagesdir: ../images]
 
 [[section-context-and-scope]]
-== Context and Scope
+== Contexto y alcance
+
+=== Contexto de negocio
 
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contents
-Context and scope - as the name suggests - delimits your system (i.e. your scope) from all its communication partners
-(neighboring systems and users, i.e. the context of your system). It thereby specifies the external interfaces.
+=== Contexto técnico
 
-If necessary, differentiate the business context (domain specific inputs and outputs) from the technical context (channels, protocols, hardware).
+[mermaid, "technical-context", png]
+----
+flowchart LR
+  U[Usuario]
+  W[Aplicación Web]
+  US[Servicio de Usuarios]
+  G[Motor de Juego]
+  DB[(Base de datos)]
 
-.Motivation
-The domain interfaces and technical interfaces to communication partners are among your system's most critical aspects. Make sure that you completely understand them.
+  U -->|HTTP mediante navegador| W
+  W -->|REST / JSON| US
+  US -->|persistencia de datos| DB
+  W -->|REST / JSON| G
+  G -->|estado y resultados| W
+----
 
-.Form
-Various options:
+En este contexto, el usuario interactúa con el sistema mediante una aplicación web.
+La aplicación web actúa como punto de entrada al sistema y se comunica con los servicios internos a través de APIs REST.
+El servicio de usuarios gestiona la información de registro y autenticación, mientras que el motor de juego se encarga
+de la lógica de las partidas. La persistencia de datos se realiza mediante una base de datos.
 
-* Context diagrams
-* Lists of communication partners and their interfaces.
+==== Mapeo de entradas y salidas a canales
 
+[cols="1,2,2", options="header"]
+|===
+|Entrada / Salida |Canal |Descripción
 
-.Further Information
+|Datos de registro
+|HTTP (REST / JSON)
+|Envío de datos del usuario desde la aplicación web al servicio de usuarios
 
-See https://docs.arc42.org/section-3/[Context and Scope] in the arc42 documentation.
+|Datos de usuario
+|Conexión con base de datos
+|Almacenamiento y recuperación de información de usuarios
 
-****
-endif::arc42help[]
+|Acciones de juego
+|HTTP (REST / JSON)
+|Envío de jugadas desde la aplicación web al motor de juego
 
-=== Business Context
-
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contents
-Specification of *all* communication partners (users, IT-systems, ...) with explanations of domain specific inputs and outputs or interfaces.
-Optionally you can add domain specific formats or communication protocols.
-
-.Motivation
-All stakeholders should understand which data are exchanged with the environment of the system.
-
-.Form
-All kinds of diagrams that show the system as a black box and specify the domain interfaces to communication partners.
-
-Alternatively (or additionally) you can use a table.
-The title of the table is the name of your system, the three columns contain the name of the communication partner, the inputs, and the outputs.
-
-****
-endif::arc42help[]
-
-**<Diagram or Table>**
-
-**<optionally: Explanation of external domain interfaces>**
-
-=== Technical Context
-
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contents
-Technical interfaces (channels and transmission media) linking your system to its environment. In addition a mapping of domain specific input/output to the channels, i.e. an explanation which I/O uses which channel.
-
-.Motivation
-Many stakeholders make architectural decision based on the technical interfaces between the system and its context. Especially infrastructure or hardware designers decide these technical interfaces.
-
-.Form
-E.g. UML deployment diagram describing channels to neighboring systems,
-together with a mapping table showing the relationships between channels and input/output.
-
-****
-endif::arc42help[]
-
-**<Diagram or Table>**
-
-**<optionally: Explanation of technical interfaces>**
-
-**<Mapping Input/Output to Channels>**
+|Estado y resultados de la partida
+|HTTP (REST / JSON)
+|Respuesta del motor de juego a la aplicación web para su visualización al usuario
+|===
