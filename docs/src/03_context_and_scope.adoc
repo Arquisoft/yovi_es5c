@@ -37,22 +37,44 @@ flowchart LR
 ----
 flowchart LR
   U[Usuario]
-  W[Aplicación Web]
-  US[Servicio de Usuarios]
-  G[Motor de Juego]
-  DB[(Base de datos)]
+  W[Aplicación Web / Yovi]
+  API[API externa para bots]
+  B[Bot / cliente externo]
+  G[Servicio de juego / Rust]
+  DB[(Base de datos / MongoDB)]
 
-  U -->|HTTP mediante navegador| W
-  W -->|REST / JSON| US
-  US -->|persistencia de datos| DB
-  W -->|REST / JSON| G
-  G -->|estado y resultados| W
+  U -->|HTTP/HTTPS | W
+  B -->|HTTP/HTTPS | API
+  W -->|REST / JSON| API
+
+  W -->|REST / JSON | G
+  G -->|REST / JSON | W
+
+  W -->|REST / JSON| DB
 ----
 
-En este contexto, el usuario interactúa con el sistema mediante una aplicación web.
-La aplicación web actúa como punto de entrada al sistema y se comunica con los servicios internos a través de APIs REST.
-El servicio de usuarios gestiona la información de registro y autenticación, mientras que el motor de juego se encarga
-de la lógica de las partidas. La persistencia de datos se realiza mediante una base de datos.
+[cols="1,3", options="header"]
+|===
+|Nodo |Descripción
+
+|Usuario
+|Persona que accede a Yovi mediante un navegador web para registrarse, iniciar sesión y jugar partidas del juego Y.
+
+|Aplicación Web / Yovi
+|Aplicación accesible vía web que ofrece la interfaz de usuario, coordina la lógica del sistema y actúa como punto de entrada a los servicios internos y al API para bots.
+
+|API externa para bots
+|Interfaz pública expuesta por la aplicación que permite a clientes externos interactuar con el sistema para consultar información y jugar partidas de forma automatizada.
+
+|Bot / cliente externo
+|Cliente automatizado externo que consume el API para interactuar con el sistema, incluyendo la ejecución de partidas contra la aplicación.
+
+|Servicio de juego / Rust
+|Módulo encargado de validar el estado de las partidas y de sugerir el siguiente movimiento según las reglas del juego Y.
+
+|Base de datos / MongoDB
+|Sistema de persistencia que almacena la información de usuarios, partidas, estadísticas e histórico de participación.
+|===
 
 ==== Mapeo de entradas y salidas a canales
 
@@ -60,19 +82,27 @@ de la lógica de las partidas. La persistencia de datos se realiza mediante una 
 |===
 |Entrada / Salida |Canal |Descripción
 
-|Datos de registro
-|HTTP (REST / JSON)
-|Envío de datos del usuario desde la aplicación web al servicio de usuarios
+|Registro/login
+|Usuario → Aplicación Web (HTTP/HTTPS)
+|El usuario crea cuenta e inicia sesión desde el navegador.
 
-|Datos de usuario
-|Conexión con base de datos
-|Almacenamiento y recuperación de información de usuarios
+|Consulta de histórico/estadísticas
+|Usuario → Aplicación Web (HTTP/HTTPS)
+|El usuario consulta partidas jugadas, ganadas/perdidas, etc.
 
-|Acciones de juego
-|HTTP (REST / JSON)
-|Envío de jugadas desde la aplicación web al motor de juego
+|Jugada del usuario
+|Usuario → Aplicación Web (HTTP/HTTPS)
+|El usuario realiza un movimiento desde la UI.
 
-|Estado y resultados de la partida
-|HTTP (REST / JSON)
-|Respuesta del motor de juego a la aplicación web para su visualización al usuario
+|Play (bot)
+|Bot → API externa (HTTP/HTTPS)
+|El bot envía `position` en notación YEN y recibe el siguiente movimiento.
+
+|Siguiente movimiento / validación
+|Aplicación Web ↔ Servicio Rust (REST + JSON/YEN)
+|La app delega en Rust el cálculo/validación y recibe respuesta.
+
+|Persistencia
+|Aplicación Web → Base de datos
+|Guardar/leer usuarios, partidas y estadísticas.
 |===
