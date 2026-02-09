@@ -1,7 +1,7 @@
 ifndef::imagesdir[:imagesdir: ../images]
 
 [[section-architecture-constraints]]
-== Architecture Constraints
+== Restricciones de la Arquitectura
 
 
 ifdef::arc42help[]
@@ -27,3 +27,32 @@ See https://docs.arc42.org/section-2/[Architecture Constraints] in the arc42 doc
 
 ****
 endif::arc42help[]
+
+=== Restricciones Técnicas
+[cols="1,3" options="header"]
+|===
+| Denominación| Descripción breve
+| Frontend | La aplicación web accesible para los jugadores deberá estar escrita en TypeScript
+| Motor del juego / Backend | El módulo que controla la lógica del juego deberá estar escrito en Rust
+| Comunicación entre módulos | La comunicación entre los módulos anteriormente mencionados debe realizarse mediante JSON
+| Formato de datos | Debe utilizarse la notación YEN de JSON
+| Interfaz de la lógica | El módulo Rust debe disponer de una interfaz de servicio web básica accesible por la aplicación web
+| Despliegue | El juego debe ser desplegado y accesible vía web
+| API | El módulo Rust dispondrá de una API externa que será utilizada por bots para jugar.
+|===
+
+=== Restricciones Organizativas
+[cols="1,3" options="header"]
+|===
+| Denominación | Descripción breve
+|===
+
+//Revisar si tiene cabida
+=== Restricciones Políticas y Legales
+[cols="1,3" options="header"]
+|===
+| Denominación | Descripción breve
+| Normas académicas | El proyecto debe estar en línea con las políticas de la Universidad de Oviedo
+con respecto a plagio y honestidad académica.
+| Privacidad y Protección de Datos | Los datos de los usuarios registrados (aún siendo en un entorno de pruebas) deben ser protegidos y evitar ser expuestos, acorde a la Ley de Protección de Datos.
+|===
