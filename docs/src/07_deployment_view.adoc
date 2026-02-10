@@ -74,7 +74,7 @@ Mapping of Building Blocks to Infrastructure::
 _<description of the mapping>_
 
 
-=== Infraestructura Nivel 2
+=== Infraestructura Nivel 2  PONER PUERTO MONGODB
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -87,16 +87,29 @@ endif::arc42help[]
 
 image:07-Vista-de-despliegue-L2.png["Diagrama 7.2: Infraestructura Nivel 2"]
 
-==== _<Infrastructure Element 1>_
+==== _Contenedores_
 
-_<diagram + explanation>_
+Este grupo representa los servicios principales de la aplicación que se ejecutan dentro del entorno de Docker. Se dividen en tres servicios:
 
-==== _<Infrastructure Element 2>_
+* **Puerto 4000 (Gamey)**: Este servicio es el núcleo de la aplicación, encargado de gestionar la lógica del juego y las interacciones entre los jugadores. 
 
-_<diagram + explanation>_
+* **Puerto 3000 (Users)**: Es el encargado de la gestión de usuarios.
 
-...
+* **Puerto 80 (Web)**: Es el punto de entrada web. Existe una relación directa entre este contenedor y el de Users, ya que depende de la gestión de usuarios para autenticar y autorizar a los jugadores.
 
-==== _<Infrastructure Element n>_
+==== _Monitoreo_
 
-_<diagram + explanation>_
+Este grupo incluye los servicios relacionados con el monitoreo y la gestión de la infraestructura. Se compone de dos servicios:
+
+* **Puerto 9090 (Prometheus)**: Responsable de recopilar métricas y datos de los otros contenedores y del entorno Docker.
+
+* **Puerto 3001 (Grafana)**: Se utiliza para la visualización de datos conectandose a Prometheus para mostrar las métricas recopiladas en paneles gráficos.
+
+==== _Docker_
+
+Actúa como el entorno de ejecución para los contenedores de aplicación y monitoreo. 
+
+==== _MongoDB_
+
+Para soportar el almacenamiento de datos de forma escalable y no relacional, se integra un nodo de base de datos.
+
