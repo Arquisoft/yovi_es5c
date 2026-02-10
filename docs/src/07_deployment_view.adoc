@@ -3,7 +3,7 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-deployment-view]]
 
 
-== Deployment View
+== Vista de Despliegue 
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -74,7 +74,7 @@ Mapping of Building Blocks to Infrastructure::
 _<description of the mapping>_
 
 
-=== Infrastructure Level 2
+=== Infraestructura Nivel 2
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -84,6 +84,8 @@ Here you can include the internal structure of (some) infrastructure elements fr
 Please copy the structure from level 1 for each selected element.
 ****
 endif::arc42help[]
+
+image:07-Vista-de-despliegue-L2.png["Diagrama 7.2: Infraestructura Nivel 2"]
 
 ==== _<Infrastructure Element 1>_
 
