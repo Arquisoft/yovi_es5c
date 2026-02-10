@@ -6,6 +6,16 @@
 
 This project is a template with some basic functionality for the ASW labs.
 
+## Contributors:
+
+| Contributor | Profile |
+| ------------- | ------------- |
+| Rodríguez Fuertes, Claudia  | <a href="https://github.com/claudiaRFS"><img src="https://img.shields.io/badge/uo288406-Claudia Rodríguez-purple"></a>  |
+| Martínez de Zuvillaga, José   | <a href="https://github.com/josemzuvi"><img src="https://img.shields.io/badge/uo294061-José Martínez de Zuvillaga-blue"></a>  |
+| Trelles Riestra, Mario   | <a href="https://github.com/uo294254"><img src="https://img.shields.io/badge/uo294254-Mario Trelles-green"></a>  |
+| González Pérez, Daniel  | <a href="https://github.com/danigpt"><img src="https://img.shields.io/badge/uo288047- Daniel González-red"></a>  |
+| Arias Guerrero, Miguel | <a href="https://github.com/uo288285"><img src="https://img.shields.io/badge/uo288285- Miguel Arias-yellow"></a>  |
+
 ## Project Structure
 
 The project is divided into three main components, each in its own directory:
