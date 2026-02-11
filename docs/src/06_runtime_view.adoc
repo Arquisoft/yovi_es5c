@@ -102,8 +102,47 @@ sequenceDiagram
     Main-->>U: fin del programa
 ----
 
-=== <Runtime Scenario 2>
+=== <Registro de un usuario>
+
+[mermaid,"Sequence diagram",png]
+----
+sequenceDiagram
+    participant User as Usuario (Jugador)
+    participant API as Users Service (Express/Node.js)
+    participant Auth as Middleware/Validación
+    participant DB as BDD (MongoDB)
+
+    Note over User, API: Intento de Registro (/createuser)
+    
+    User->>API: POST /createuser
+    activate API
+    
+    API->>Auth: Validación de datos (formato, longitud, contraseña, etc.)
+    
+    alt Datos Inválidos
+        Auth-->>API: Error de Validación
+        API-->>User: 400 Bad Request (Datos inválidos)
+    else Datos Correctos
+        Auth-->>API: Validación Exitosa
+        
+        API->>DB: Verificar si el usuario ya existe
+        activate DB
+        DB-->>API: No existe
+        deactivate DB
+        
+        Note right of API: Hashing de contraseña (Seguridad)
+        
+        API->>DB: Guardar nuevo usuario
+        activate DB
+        DB-->>API: Usuario guardado (Success)
+        deactivate DB
+        
+        API-->>User: 201 Created (User Object / Token)
+    end
+    
+    deactivate API
+
+----
 
 === ...
 
-=== <Runtime Scenario n>
