@@ -183,21 +183,21 @@ Tabla 4. Bloques de construcción contenidos (Core del juego)
 |Bloque |Descripción
 
 |Topología / Coordenadas
-|Funciones y utilidades para coordenadas y vecinos del tablero (src/core/coord.rs). No guarda estado.
+|Funciones y utilidades para coordenadas y vecinos del tablero). No guarda estado.
 
 |Estado de la partida
-|Estructura central que mantiene posiciones, turno y dimensiones; contiene la lógica de consulta del estado (src/core/game.rs).
+|Estructura central que mantiene posiciones, turno y dimensiones; contiene la lógica de consulta del estado.
 
 |Validador / Movimiento
-|Validación de intenciones de movimiento y aplicación de mutaciones sobre el estado (src/core/movement.rs, src/core/action.rs).
+|Validación de intenciones de movimiento y aplicación de mutaciones sobre el estado.
 
 |Detector de victoria
-|Algoritmos que analizan conexiones en el tablero para decidir condiciones de victoria (implementado en funciones vinculadas a src/core/game.rs).
+|Algoritmos que analizan conexiones en el tablero para decidir condiciones de victoria.
 
 |Gestión de jugadores
-|Modela jugadores y conjuntos de jugadores, APIs para añadir/consultar participantes (src/core/player.rs, src/core/player_set.rs).
+|Modela jugadores y conjuntos de jugadores, APIs para añadir/consultar participantes.
 
 |Representación / Opciones
-|Opciones de render y serialización del estado para salida/IO (src/core/render_options.rs).
+|Opciones de render y serialización del estado para salida/IO.
 |===
 
