@@ -60,3 +60,13 @@ endif::arc42help[]
 con respecto a plagio y honestidad académica.
 | Privacidad y Protección de Datos | Los datos de los usuarios registrados (aún siendo en un entorno de pruebas) deben ser protegidos y evitar ser expuestos, acorde a la Ley de Protección de Datos.
 |===
+
+=== Convenciones del Equipo
+[cols="1,3" options="header"]
+|===
+| Tipo | Convención
+| Idioma | La documentación y el código fuente deben seguir las pautas de idioma establecidas previamente por el equipo (Documentación en Español y Codigo en Inglés).
+| Gestión de ramas | Se seguirá el flujo "Git Flow" simplificado: desarrollo en `develop`, `master` solo para entregas estables, y ramas adicionales para contextos variados como `documentacion`.
+| Revisión de código | Ningún Pull Request se fusionará sin la aprobación de al menos otro miembro del equipo.
+| Consistencia de actas | Se crearan las actas sobre los temas y decisiones correspondientes a los hablados durante las reuniones siguiendo la plantilla disponible en el repositorio online(https://github.com/Arquisoft/yovi_es5c/wiki/Plantilla[Plantilla]).
+|===
