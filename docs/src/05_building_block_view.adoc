@@ -1,225 +1,203 @@
 ifndef::imagesdir[:imagesdir: ../images]
 
 [[section-building-block-view]]
+== Vista de Bloques
 
+=== Sistema General (Nivel 1)
 
-== Building Block View
+[mermaid, "bb-level1-yovi", png]
+----
+flowchart LR
+  U((Usuario))
+  B((Bot))
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Content
-The building block view shows the static decomposition of the system into building blocks (modules, components, subsystems, classes, interfaces, packages, libraries, frameworks, layers, partitions, tiers, functions, macros, operations, data structures, ...) as well as their dependencies (relationships, associations, ...)
+  subgraph Y[Yovi]
+    W[Aplicación Web]
+    US[Servicio de Usuarios]
+    G[Servicio de Juego Y / Rust]
+    DB[(Base de datos)]
+  end
 
-This view is mandatory for every architecture documentation.
-In analogy to a house this is the _floor plan_.
+  U -->|Interacción de Usuario| W
+  B -->|HTTP API| W
 
-.Motivation
-Maintain an overview of your source code by making its structure understandable through
-abstraction.
+  W -->|JSON| US
+  W -->|JSON| G
+  US -->|MQL| DB
+----
 
-This allows you to communicate with your stakeholder on an abstract level without disclosing implementation details.
+Tabla 1. Bloques de construcción contenidos (Nivel 1)
 
-.Form
-The building block view is a hierarchical collection of black boxes and white boxes
-(see figure below) and their descriptions.
-
-image::05_building_blocks-EN.png["Hierarchy of building blocks"]
-
-*Level 1* is the white box description of the overall system together with black
-box descriptions of all contained building blocks.
-
-*Level 2* zooms into some building blocks of level 1.
-Thus it contains the white box description of selected building blocks of level 1, together with black box descriptions of their internal building blocks.
-
-*Level 3* zooms into selected building blocks of level 2, and so on.
-
-
-.Further Information
-
-See https://docs.arc42.org/section-5/[Building Block View] in the arc42 documentation.
-
-****
-endif::arc42help[]
-
-=== Whitebox Overall System
-
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Here you describe the decomposition of the overall system using the following white box template. It contains
-
- * an overview diagram
- * a motivation for the decomposition
- * black box descriptions of the contained building blocks. For these we offer you alternatives:
-
-   ** use _one_ table for a short and pragmatic overview of all contained building blocks and their interfaces
-   ** use a list of black box descriptions of the building blocks according to the black box template (see below).
-   Depending on your choice of tool this list could be sub-chapters (in text files), sub-pages (in a Wiki) or nested elements (in a modeling tool).
-
-
- * (optional:) important interfaces, that are not explained in the black box templates of a building block, but are very important for understanding the white box.
-Since there are so many ways to specify interfaces why do not provide a specific template for them.
- In the worst case you have to specify and describe syntax, semantics, protocols, error handling,
- restrictions, versions, qualities, necessary compatibilities and many things more.
-In the best case you will get away with examples or simple signatures.
-
-****
-endif::arc42help[]
-
-_**<Overview Diagram>**_
-
-Motivation::
-
-_<text explanation>_
-
-
-Contained Building Blocks::
-_<Description of contained building block (black boxes)>_
-
-Important Interfaces::
-_<Description of important interfaces>_
-
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Insert your explanations of black boxes from level 1:
-
-If you use tabular form you will only describe your black boxes with name and
-responsibility according to the following schema:
-
-[cols="1,2" options="header"]
+[cols="1,3", options="header"]
 |===
-| **Name** | **Responsibility**
-| _<black box 1>_ | _<Text>_
-| _<black box 2>_ | _<Text>_
+|Bloque |Descripción
+
+|Stakeholder: Usuario
+|Persona que accede a Yovi desde un navegador para registrarse y jugar partidas.
+
+|Stakeholder: Bot
+|Cliente externo que interactúa con el sistema mediante el API expuesto para bots.
+
+|Aplicación Web
+|Punto de entrada del sistema. Ofrece la UI y expone el API para bots. Orquesta llamadas al servicio de usuarios y al servicio de juego.
+
+|Servicio de Usuarios
+|Gestiona registro/autenticación y almacenamiento de información de usuarios y estadísticas/histórico.
+
+|Servicio de Juego (Rust)
+|Implementa la lógica del juego Y: Plataforma de juego automatizada y cálculo del siguiente movimiento según estrategias.
+
+|Base de datos
+|Persistencia de usuarios, resultados de partidas e información estadística/histórico.
 |===
 
 
+=== Nivel 2
 
-If you use a list of black box descriptions then you fill in a separate black box template for every important building block .
-Its headline is the name of the black box.
-****
-endif::arc42help[]
+==== Whitebox: Aplicación Web
 
-==== <Name black box 1>
+[mermaid, "bb-level2-webapp", png]
+----
+flowchart LR
+  U[Stakeholder: Usuario]
+  B[Stakeholder: Bot]
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Here you describe <black box 1>
-according the the following black box template:
+  subgraph W[Aplicación Web]
+    UI[UI / Vistas]
+    APIEXT[API externa para bots]
+    CTRL[Controladores / Orquestación]
+    CL[Clientes REST internos]
+  end
 
-* Purpose/Responsibility
-* Interface(s), when they are not extracted as separate paragraphs. This interfaces may include qualities and performance characteristics.
-* (Optional) Quality-/Performance characteristics of the black box, e.g.availability, run time behavior, ....
-* (Optional) directory/file location
-* (Optional) Fulfilled requirements (if you need traceability to requirements).
-* (Optional) Open issues/problems/risks
+  U -->|interactúa| UI
+  B -->|peticiones| APIEXT
 
-****
-endif::arc42help[]
+  UI --> CTRL
+  APIEXT --> CTRL
+  CTRL --> CL
+----
 
-_<Purpose/Responsibility>_
+Tabla 2. Bloques de construcción contenidos (Aplicación Web)
 
-_<Interface(s)>_
+[cols="1,3", options="header"]
+|===
+|Bloque |Descripción
 
-_<(Optional) Quality/Performance Characteristics>_
+|UI / Vistas
+|Pantallas y componentes que permiten al usuario registrarse, iniciar partidas y jugar.
 
-_<(Optional) Directory/File Location>_
+|API externa para bots
+|Endpoints públicos para que bots consulten/gestionen información permitida y ejecuten el método `play`.
 
-_<(Optional) Fulfilled Requirements>_
+|Controladores / Orquestación
+|Lógica que valida peticiones, aplica reglas de aplicación y coordina llamadas a servicios.
 
-_<(optional) Open Issues/Problems/Risks>_
-
-
-
-
-==== <Name black box 2>
-
-_<black box template>_
-
-==== <Name black box n>
-
-_<black box template>_
+|Clientes REST internos
+|Capa encargada de invocar al Servicio de Usuarios y al Servicio de Juego mediante REST/JSON.
+|===
 
 
-==== <Name interface 1>
+==== Whitebox: Servicio de Juego Y (Rust)
 
-...
+[mermaid, "bb-level2-gamey", png]
+----
+flowchart LR
+  subgraph Gamey
+    CLI["Interfaz Web/CLI Usuario"]
+    Engine["Motor de juego\n(estado y reglas)"]
+    Server["API de servidor de bots"]
+    Manager["Gestor de bots\n(registro y selección)"]
+    Bots["Bots\n(implementaciones)"]
+    Notation["Notación y I/O"]
+    Errors["Manejo de errores"]
+  end
 
-==== <Name interface m>
+  CLI --> Engine
+  Server --> Engine
+  Server --> Manager
+  Manager --> Bots
+  Bots --> Engine
+  Engine --> Notation
+  Engine --> Errors
+----
 
+Tabla 3. Bloques de construcción contenidos (Servicio de Juego)
 
+[cols="1,3", options="header"]
+|===
+|Bloque |Descripción
 
-=== Level 2
+|Interfaz Web/CLI Usuario
+|Expone operaciones del servicio para comunicarse con el Usuario de la aplicación (actualmente por línea de comandos, API Web en el futuro).
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Here you can specify the inner structure of (some) building blocks from level 1 as white boxes.
+|Motor de juego
+|Modelo de estado, reglas, validación y aplicación de acciones.
 
-You have to decide which building blocks of your system are important enough to justify such a detailed description.
-Please prefer relevance over completeness. Specify important, surprising, risky, complex or volatile building blocks.
-Leave out normal, simple, boring or standardized parts of your system
-****
-endif::arc42help[]
+|API de servidor de bots
+|Punto de entrada para bots remotos; expone estado, recibe y valida elecciones.
 
-==== White Box _<building block 1>_
+|Gestor de bots
+|Registro, creación y selección de instancias de bots y políticas de elección.
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-...describes the internal structure of _building block 1_.
-****
-endif::arc42help[]
+|Bots
+|Implementaciones de estrategias (aleatorio, heurístico, etc.) que proponen acciones.
 
-_<white box template>_
+|Notación y I/O
+|Serialización/deserialización y representación textual del estado/jugadas.
 
-==== White Box _<building block 2>_
-
-
-_<white box template>_
-
-...
-
-==== White Box _<building block m>_
-
-
-_<white box template>_
-
-
-
-=== Level 3
-
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Here you can specify the inner structure of (some) building blocks from level 2 as white boxes.
-
-When you need more detailed levels of your architecture please copy this
-part of arc42 for additional levels.
-****
-endif::arc42help[]
-
-==== White Box <_building block x.1_>
-
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Specifies the internal structure of _building block x.1_.
-****
-endif::arc42help[]
-
-_<white box template>_
+|Manejo de errores
+|Tipos y propagación de errores compartidos por los componentes.
+|===
 
 
-==== White Box <_building block x.2_>
+=== Nivel 3
 
-_<white box template>_
+==== Whitebox: Core del juego
 
+[mermaid, "bb-level3-core", png]
+----
+flowchart TB
+  subgraph Engine [Motor de juego]
+    Coord[Topologia / Coordenadas]
+    State[Estado de la partida]
+    Validator[Validador / Movimiento]
+    Victory[Detector de victoria]
+    Players[Gestión de jugadores]
+    Render[Representación / Opciones]
+  end
 
+  Coord -->|define vecindad y conversiones| State
+  Coord -->|vecindad| Validator
+  State -->|consulta| Validator
+  State -->|analiza conexiones| Victory
+  Validator -->|aplica mutaciones| State
+  Players -->|consulta/actualiza| State
+  State -->|serialización/representación| Render
+----
 
-==== White Box <_building block y.1_>
+Tabla 4. Bloques de construcción contenidos (Core del juego)
 
-_<white box template>_
+[cols="1,3", options="header"]
+[cols="1,3", options="header"]
+|===
+|Bloque |Descripción
+
+|Topología / Coordenadas
+|Funciones y utilidades para coordenadas y vecinos del tablero). No guarda estado.
+
+|Estado de la partida
+|Estructura central que mantiene posiciones, turno y dimensiones; contiene la lógica de consulta del estado.
+
+|Validador / Movimiento
+|Validación de intenciones de movimiento y aplicación de mutaciones sobre el estado.
+
+|Detector de victoria
+|Algoritmos que analizan conexiones en el tablero para decidir condiciones de victoria.
+
+|Gestión de jugadores
+|Modela jugadores y conjuntos de jugadores, APIs para añadir/consultar participantes.
+
+|Representación / Opciones
+|Opciones de render y serialización del estado para salida/IO.
+|===
+
