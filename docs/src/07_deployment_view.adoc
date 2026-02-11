@@ -96,40 +96,6 @@ Una arquitectura basada en contenedores permite:
 | Gestión de dependencias declaradas (ej. `depends_on`) para asegurar un orden de inicio correcto entre servicios.
 |===
 
-.Mapeo de Bloques de Construcción a Infraestructura
-[cols="1,1,1", options="header"]
-|===
-| Bloque de Construcción | Componente de Infraestructura | Punto de Mapeo
-
-| **Servidor Gamey**
-| Contenedor (imagen: `gamey`)
-| Expone el puerto 4000. 
-
-| **Servicio de Usuarios**
-| Contenedor (imagen: `users`)
-| Puerto 3000 expuesto internamente.
-
-| **Aplicación Web**
-| Contenedor (imagen: `webapp`)
-| Puerto 80. Puerta de entrada al sistema;
-
-| **Base de Datos (MongoDB)**
-| Contenedor (puerto 27017)
-| Puerto 27017.
-
-| **Prometheus**
-| Contenedor (puerto 9090)
-| Realiza el *scrape* de los endpoints instrumentados de cada servicio.
-
-| **Grafana**
-| Contenedor (puerto 9091)
-| Conectado a Prometheus para la visualización de dashboards.
-
-| **Red Docker**
-| Red interna (bridge/overlay)
-| Conecta todos los contenedores.
-|===
-
 Para entornos:
 * Desarrollo: despliegue en un único host con contenedores o mediante npm sin replicado y datos locales.
 * Staging: configuración similar a producción pero con tamaños menores y datos de prueba.
