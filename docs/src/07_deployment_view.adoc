@@ -150,7 +150,7 @@ Este grupo representa los servicios principales de la aplicación que se ejecuta
 
 * **Puerto 3000 (Users)**: Es el encargado de la gestión de usuarios.
 
-* **Puerto 80 (Web)**: Es el punto de entrada web. Existe una relación directa entre este contenedor y el de Users, ya que depende de la gestión de usuarios para autenticar y autorizar a los jugadores.
+* **Puerto 80 (WebApp)**: Es el punto de entrada web. Existe una relación directa entre este contenedor y el de Users, ya que depende de la gestión de usuarios para autenticar y autorizar a los jugadores.
 
 ==== _Monitoreo_
 
