@@ -52,7 +52,7 @@ endif::arc42help[]
 * Los usuarios podrán registrarse en el sistema.
 * Los usuarios registrados podrán consultar el histórico de sus partidas.
 * La aplicación tendrá una API que permita a los bots interactuar con ella.
-* La API permitirá que in bot juegue contra la aplicación.
+* La API permitirá que un bot juegue contra la aplicación.
 
 
 === Objetivos de calidad
