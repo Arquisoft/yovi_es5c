@@ -58,6 +58,18 @@ La solución se basará en una arquitectura de servicios desacoplados, por un la
 
 === Decisiones para alcanzar objetivos de calidad
 
+En vistas a cumplir los atributos de calidad requeridos en cualquier sistema moderno, se toman las siguientes decisiones, asociadas a metas u objetivos específicos:
+
+*Rendimiento y Eficiencia*: La lógica de cálculo intensivo (validación de movimientos y fin de partida) se delega íntegramente al módulo de Rust. Esto garantiza tiempos de respuesta mínimos incluso en tableros de gran tamaño, aprovechando la gestión de memoria eficiente y la velocidad de ejecución de un lenguaje de sistemas.
+
+*Mantenibilidad y Desacoplamiento*: Se adopta una separación clara de responsabilidades mediante servicios independientes. Al utilizar JSON y la notación YEN como único contrato de comunicación, es posible modificar la interfaz web o el motor de IA de forma aislada sin afectar al otro componente, facilitando la evolución del código.
+
+*Escalabilidad y Flexibilidad de Datos*: La elección de MongoDB permite una escalabilidad horizontal sencilla y una gestión de datos flexible. Esto asegura que el sistema pueda crecer en volumen de usuarios y tipos de juegos sin necesidad de complejas migraciones de esquemas que comprometan la disponibilidad del servicio.
+
+*Portabilidad y Despliegue:* El uso de contenedores Docker garantiza que el sistema se comporte de manera idéntica en el entorno de desarrollo de los estudiantes, en los servidores de la universidad y en la web final, eliminando el problema de "en mi máquina funciona".
+
+*Documentación:* Apostar por una documentación formalizada en Arc42, que refleje con claridad y concisión las decisiones tanto técnicas como organizativas tomadas ayudará a comprender mejor cómo ha sido el proceso de desarrollo, lo que facilita el mantenimiento y uso del proyecto a otros desarrolladores.
+    
 
 === Deciciones organizativas relevantes
 
