@@ -85,7 +85,62 @@ Please copy the structure from level 1 for each selected element.
 ****
 endif::arc42help[]
 
-image:07-Vista-de-despliegue-L2.png["Diagrama 7.2: Infraestructura Nivel 2"]
+=== Contexto de negocio
+[mermaid, "business-context", png]
+----
+---
+config:
+  layout: fixed
+---
+flowchart TB
+ subgraph Software["Bloques de Construcción"]
+        GameyServer["Gamey Server<br>"]
+        UsersService["Users Service<br>"]
+        WebApp["Web App<br>"]
+  end
+ subgraph Containers["Contenedores Docker"]
+        GameyContainer["Puerto 4000"]
+        UsersContainer["Puerto 3000"]
+        WebAppContainer["Puerto 80"]
+  end
+ subgraph Monitoring["Monitoreo"]
+        PrometheusContainer["Contenedor prometheus<br>Puerto 9090"]
+        GrafanaContainer["Contenedor grafana<br>Puerto 9091"]
+  end
+ subgraph Infrastructure["Elementos de Infraestructura"]
+        DockerNet["Docker<br>"]
+        MongoDB["MongoDB<br>Puerto"]
+        Containers
+        Monitoring
+  end
+    GameyServer --> GameyContainer
+    WebApp --> WebAppContainer
+    GameyContainer --> DockerNet
+    UsersContainer --> DockerNet
+    WebAppContainer --> DockerNet
+    PrometheusContainer --> DockerNet
+    GrafanaContainer --> DockerNet
+    MongoDB --> DockerNet
+    WebAppContainer -- depends_on --> UsersContainer
+    UsersService --> UsersContainer
+    UsersContainer -- uses --> MongoDB
+
+     GameyServer:::software
+     UsersService:::software
+     WebApp:::software
+     GameyContainer:::container
+     UsersContainer:::container
+     WebAppContainer:::container
+     PrometheusContainer:::monitoring
+     GrafanaContainer:::monitoring
+     DockerNet:::network
+     MongoDB:::database
+    classDef software fill:#e1f5ff,stroke:#01579b,stroke-width:2px,color:#000
+    classDef container fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef monitoring fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
+    classDef database fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef network fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+----
 
 ==== _Contenedores_
 
