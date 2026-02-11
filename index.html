@@ -475,10 +475,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_runtime_scenario_n">6.4. &lt;Runtime Scenario n&gt;</a></li>
 </ul>
 </li>
-<li><a href="#section-deployment-view">7. Deployment View</a>
+<li><a href="#section-deployment-view">7. Vista de Despliegue</a>
 <ul class="sectlevel2">
 <li><a href="#_infrastructure_level_1">7.1. Infrastructure Level 1</a></li>
-<li><a href="#_infrastructure_level_2">7.2. Infrastructure Level 2</a></li>
+<li><a href="#_infraestructura_nivel_2">7.2. Infraestructura Nivel 2</a></li>
+<li><a href="#_contexto_de_negocio">7.3. Contexto de negocio</a></li>
 </ul>
 </li>
 <li><a href="#section-concepts">8. Cross-cutting Concepts</a>
@@ -1290,7 +1291,7 @@ building block instances depicted in this diagram.&gt;</em></p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="section-deployment-view">7. Deployment View</h2>
+<h2 id="section-deployment-view">7. Vista de Despliegue</h2>
 <div class="sectionbody">
 <div class="sidebarblock arc42help">
 <div class="content">
@@ -1375,27 +1376,135 @@ when your infrastructure is more complex.</p>
 </div>
 </div>
 <div class="paragraph">
-<p><em><strong>&lt;Overview Diagram&gt;</strong></em></p>
+<p><em><strong>Diagrama de Despliegue (resumen)</strong></em></p>
+</div>
+<div class="paragraph">
+<p>Se utiliza el diagrama de la sección "Contexto de negocio" para representar, a alto nivel, los contenedores Docker, la red interna, la base de datos y la pila de monitoreo. El diagrama muestra cómo los bloques de software (Gamey Server, Users Service, Web App) se despliegan en contenedores separados y cómo estos consumen servicios infraestructurales (MongoDB, red Docker, Prometheus, Grafana).</p>
 </div>
 <div class="dlist">
 <dl>
-<dt class="hdlist1">Motivation</dt>
+<dt class="hdlist1">Motivación</dt>
 <dd>
-<p><em>&lt;explanation in text form&gt;</em></p>
-</dd>
-<dt class="hdlist1">Quality and/or Performance Features</dt>
-<dd>
-<p><em>&lt;explanation in text form&gt;</em></p>
-</dd>
-<dt class="hdlist1">Mapping of Building Blocks to Infrastructure</dt>
-<dd>
-<p><em>&lt;description of the mapping&gt;</em></p>
+<p>Una arquitectura basada en contenedores permite:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Aislar responsabilidades (lógica de juego, gestión de usuarios, interfaz web).</p>
+</li>
+<li>
+<p>Facilitar despliegues y escalado independientes por servicio.</p>
+</li>
+<li>
+<p>Simplificar integración de monitoring y gestión de logs.</p>
+</li>
+<li>
+<p>Permitir replicación y orquestación en entornos distintos (desarrollo, staging, producción).</p>
+</li>
+</ul>
+</div>
 </dd>
 </dl>
 </div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. Características de Calidad y Rendimiento</caption>
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 66.6667%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Característica</th>
+<th class="tableblock halign-left valign-top">Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Escalabilidad</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Escalado horizontal de servicios (réplicas de Gamey y Users) para soportar picos de carga.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Alta Disponibilidad</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MongoDB configurado con persistencia en volúmenes para garantizar la persistencia de datos.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Monitoreo y Diagnóstico</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Uso de Prometheus para la recolección de métricas (scrape targets) y Grafana para la visualización de alertas.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Optimización de Red</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Redes Docker que proporcionan aislamiento y latencias bajas entre contenedores.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Gestión de Recursos</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Definición de límites de CPU/memoria y controles de estado (readiness/healthchecks) para recuperación automática.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Control de Despliegue</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gestión de dependencias declaradas (ej. <code>depends_on</code>) para asegurar un orden de inicio correcto entre servicios.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 2. Mapeo de Bloques de Construcción a Infraestructura</caption>
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Bloque de Construcción</th>
+<th class="tableblock halign-left valign-top">Componente de Infraestructura</th>
+<th class="tableblock halign-left valign-top">Punto de Mapeo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Servidor Gamey</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contenedor (imagen: <code>gamey</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Expone el puerto 4000.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Servicio de Usuarios</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contenedor (imagen: <code>users</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Puerto 3000 expuesto internamente.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Aplicación Web</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contenedor (imagen: <code>webapp</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Puerto 80. Puerta de entrada al sistema;</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Base de Datos (MongoDB)</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contenedor (puerto 27017)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Puerto 27017.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Prometheus</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contenedor (puerto 9090)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Realiza el <strong>scrape</strong> de los endpoints instrumentados de cada servicio.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Grafana</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contenedor (puerto 9091)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Conectado a Prometheus para la visualización de dashboards.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Red Docker</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Red interna (bridge/overlay)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Conecta todos los contenedores.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Para entornos:
+* Desarrollo: despliegue en un único host con contenedores o mediante npm sin replicado y datos locales.
+* Staging: configuración similar a producción pero con tamaños menores y datos de prueba.
+* Producción: orquestador con réplicas, balanceadores y políticas de actualización.</p>
+</div>
 </div>
 <div class="sect2">
-<h3 id="_infrastructure_level_2">7.2. Infrastructure Level 2</h3>
+<h3 id="_infraestructura_nivel_2">7.2. Infraestructura Nivel 2</h3>
 <div class="sidebarblock arc42help">
 <div class="content">
 <div class="paragraph">
@@ -1406,25 +1515,62 @@ when your infrastructure is more complex.</p>
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_infrastructure_element_1">7.2.1. <em>&lt;Infrastructure Element 1&gt;</em></h4>
-<div class="paragraph">
-<p><em>&lt;diagram + explanation&gt;</em></p>
+</div>
+<div class="sect2">
+<h3 id="_contexto_de_negocio">7.3. Contexto de negocio</h3>
+<div class="imageblock">
+<div class="content">
+<img src="./images/business-context.png" alt="business context" width="784" height="525">
 </div>
 </div>
 <div class="sect3">
-<h4 id="_infrastructure_element_2">7.2.2. <em>&lt;Infrastructure Element 2&gt;</em></h4>
+<h4 id="_contenedores">7.3.1. <em>Contenedores</em></h4>
 <div class="paragraph">
-<p><em>&lt;diagram + explanation&gt;</em></p>
+<p>Este grupo representa los servicios principales de la aplicación que se ejecutan dentro del entorno de Docker. Se dividen en tres servicios:</p>
 </div>
-<div class="paragraph">
-<p>&#8230;&#8203;</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Puerto 4000 (Gamey)</strong>: Este servicio es el núcleo de la aplicación, encargado de gestionar la lógica del juego y las interacciones entre los jugadores. Incluye volumen para logs y variables de entorno (<code>DB_URI</code>, <code>REDIS_URI</code>).</p>
+</li>
+<li>
+<p><strong>Puerto 3000 (Users)</strong>: Es el encargado de la gestión de usuarios. Conexión directa a MongoDB.</p>
+</li>
+<li>
+<p><strong>Puerto 80 (WebApp)</strong>: Es el punto de entrada web. Existe una relación directa entre este contenedor y el de Users, ya que depende de la gestión de usuarios para autenticar y autorizar a los jugadores.</p>
+</li>
+<li>
+<p><strong>Puerto 27017 (MongoDB)</strong>: Es la base de datos de la aplicación. Esta interrelacionado con casi todos los conteneder ya que necesita almacenar y proveer de tanto los datos de identificación de los usuarios como de los resultados de sus partidas y sus estadísticas. Cuenta con un volumen persistente para trasladar datos en caso de ser necesario.</p>
+</li>
+</ul>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_infrastructure_element_n">7.2.3. <em>&lt;Infrastructure Element n&gt;</em></h4>
+<h4 id="_monitoreo">7.3.2. <em>Monitoreo</em></h4>
 <div class="paragraph">
-<p><em>&lt;diagram + explanation&gt;</em></p>
+<p>Este grupo incluye los servicios relacionados con el monitoreo y la gestión de la infraestructura. Se compone de dos servicios:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Puerto 9090 (Prometheus)</strong>: Responsable de recopilar métricas y datos de los otros contenedores y del entorno Docker.</p>
+</li>
+<li>
+<p><strong>Puerto 3001 (Grafana)</strong>: Se utiliza para la visualización de datos conectandose a Prometheus para mostrar las métricas recopiladas en paneles gráficos.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_docker">7.3.3. <em>Docker</em></h4>
+<div class="paragraph">
+<p>Actúa como el entorno de ejecución controla la visibilidad y las listas de control de acceso (ACL) para los contenedores de aplicación y monitoreo.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_mongodb">7.3.4. <em>MongoDB</em></h4>
+<div class="paragraph">
+<p>Para soportar el almacenamiento de datos de forma escalable y no relacional, se integra un nodo de base de datos.</p>
 </div>
 <div style="page-break-after: always;"></div>
 </div>
@@ -1804,7 +1950,7 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 <div id="footer">
 <div id="footer-text">
 Version 8.2 EN<br>
-Last updated 2026-01-29 10:57:49 +0100
+Last updated 2026-02-11 12:12:17 +0100
 </div>
 </div>
 </body>
