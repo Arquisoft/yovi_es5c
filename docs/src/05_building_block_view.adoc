@@ -3,34 +3,28 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-building-block-view]]
 == Vista de Bloques
 
-=== Sistema General (Whitebox)
+=== Sistema General (Nivel 1)
 
 [mermaid, "bb-level1-yovi", png]
 ----
 flowchart LR
-  U[Stakeholder: Usuario]
-  B[Stakeholder: Bot]
+  U((Usuario))
+  B((Bot))
 
   subgraph Y[Yovi]
     W[Aplicación Web]
     US[Servicio de Usuarios]
-    G[Servicio de Juego / Rust]
+    G[Servicio de Juego Y / Rust]
     DB[(Base de datos)]
   end
 
-  U -->|interactúa| W
-  B -->|consume API externa| W
+  U -->|Interacción de Usuario| W
+  B -->|HTTP API| W
 
-  W -->|gestión de usuarios| US
-  W -->|lógica del juego| G
-  US -->|persistencia| DB
+  W -->|JSON| US
+  W -->|JSON| G
+  US -->|MQL| DB
 ----
-
-Motivación::
-La descomposición general separa el sistema en bloques con responsabilidades claras:
-la Aplicación Web como punto de entrada y coordinador, el Servicio de Usuarios para registro/autenticación y estadísticas,
-el Servicio de Juego para la lógica del juego Y y estrategias, y una Base de datos para persistencia.
-Esto facilita mantenibilidad, pruebas y evolución independiente del motor de juego.
 
 Tabla 1. Bloques de construcción contenidos (Nivel 1)
 
@@ -51,17 +45,14 @@ Tabla 1. Bloques de construcción contenidos (Nivel 1)
 |Gestiona registro/autenticación y almacenamiento de información de usuarios y estadísticas/histórico.
 
 |Servicio de Juego (Rust)
-|Implementa la lógica del juego Y: validación de estado, detección de victoria y cálculo del siguiente movimiento según estrategias.
+|Implementa la lógica del juego Y: Plataforma de juego automatizada y cálculo del siguiente movimiento según estrategias.
 
 |Base de datos
-|Persistencia de usuarios, partidas e información estadística/histórico.
+|Persistencia de usuarios, resultados de partidas e información estadística/histórico.
 |===
 
 
 === Nivel 2
-
-El Nivel 2 muestra el funcionamiento interno del sistema descomponiendo los bloques más relevantes del Nivel 1.
-Se priorizan los bloques con mayor complejidad y riesgo: Aplicación Web y Servicio de Juego (Rust).
 
 ==== Whitebox: Aplicación Web
 
@@ -86,10 +77,6 @@ flowchart LR
   CTRL --> CL
 ----
 
-Motivación::
-Esta descomposición separa claramente la presentación (UI) de la lógica de orquestación y del acceso a servicios.
-Además, distingue el acceso humano (UI) del acceso automatizado (API externa para bots), aunque ambos comparten lógica de aplicación.
-
 Tabla 2. Bloques de construcción contenidos (Aplicación Web)
 
 [cols="1,3", options="header"]
@@ -110,27 +97,29 @@ Tabla 2. Bloques de construcción contenidos (Aplicación Web)
 |===
 
 
-==== Whitebox: Servicio de Juego (Rust)
+==== Whitebox: Servicio de Juego Y (Rust)
 
 [mermaid, "bb-level2-gamey", png]
 ----
-flowchart TB
-  subgraph G[Servicio de Juego / Rust]
-    API[Interfaz Web / API REST]
-    N[Notación YEN]
-    CORE[Core del juego]
-    STRAT[Estrategias / Bots]
+flowchart LR
+  subgraph Gamey
+    CLI["Interfaz Web/CLI Usuario"]
+    Engine["Motor de juego\n(estado y reglas)"]
+    Server["API de servidor de bots"]
+    Manager["Gestor de bots\n(registro y selección)"]
+    Bots["Bots\n(implementaciones)"]
+    Notation["Notación y I/O"]
+    Errors["Manejo de errores"]
   end
 
-  API --> N
-  API --> CORE
-  CORE --> STRAT
+  CLI --> Engine
+  Server --> Engine
+  Server --> Manager
+  Manager --> Bots
+  Bots --> Engine
+  Engine --> Notation
+  Engine --> Errors
 ----
-
-Motivación::
-El Servicio de Juego se separa en módulos internos para aislar responsabilidades:
-la interfaz REST recibe peticiones, el módulo de notación interpreta/serializa posiciones en YEN,
-el core valida el estado y detecta victoria, y el módulo de estrategias calcula el siguiente movimiento con distintas tácticas y niveles de dificultad.
 
 Tabla 3. Bloques de construcción contenidos (Servicio de Juego)
 
@@ -138,63 +127,77 @@ Tabla 3. Bloques de construcción contenidos (Servicio de Juego)
 |===
 |Bloque |Descripción
 
-|Interfaz Web / API REST
-|Expone operaciones del servicio para validar estados y solicitar el siguiente movimiento.
+|Interfaz Web/CLI Usuario
+|Expone operaciones del servicio para comunicarse con el Usuario de la aplicación (actualmente por línea de comandos, API Web en el futuro).
 
-|Notación (YEN)
-|Interpreta y genera representaciones de partida en formato YEN (JSON).
+|Motor de juego
+|Modelo de estado, reglas, validación y aplicación de acciones.
 
-|Core del juego
-|Implementa reglas del juego Y: acciones válidas, estado de la partida y condición de victoria.
+|API de servidor de bots
+|Punto de entrada para bots remotos; expone estado, recibe y valida elecciones.
 
-|Estrategias / Bots
-|Implementa estrategias de juego (y/o niveles de dificultad) para sugerir el siguiente movimiento.
+|Gestor de bots
+|Registro, creación y selección de instancias de bots y políticas de elección.
+
+|Bots
+|Implementaciones de estrategias (aleatorio, heurístico, etc.) que proponen acciones.
+
+|Notación y I/O
+|Serialización/deserialización y representación textual del estado/jugadas.
+
+|Manejo de errores
+|Tipos y propagación de errores compartidos por los componentes.
 |===
 
 
 === Nivel 3
-
-En el Nivel 3 se detalla un bloque del Nivel 2 que es especialmente relevante: el Servicio de Juego (Rust),
-ya que concentra la lógica del juego y las estrategias.
 
 ==== Whitebox: Core del juego
 
 [mermaid, "bb-level3-core", png]
 ----
 flowchart TB
-  subgraph CORE[Core del juego]
-    STATE[Estado de partida]
-    RULES[Reglas / Movimientos válidos]
-    WIN[Detección de victoria]
-    COORD[Coordenadas / Tablero]
+  subgraph Engine [Motor de juego]
+    Coord[Topologia / Coordenadas]
+    State[Estado de la partida]
+    Validator[Validador / Movimiento]
+    Victory[Detector de victoria]
+    Players[Gestión de jugadores]
+    Render[Representación / Opciones]
   end
 
-  RULES --> STATE
-  COORD --> RULES
-  STATE --> WIN
+  Coord -->|define vecindad y conversiones| State
+  Coord -->|vecindad| Validator
+  State -->|consulta| Validator
+  State -->|analiza conexiones| Victory
+  Validator -->|aplica mutaciones| State
+  Players -->|consulta/actualiza| State
+  State -->|serialización/representación| Render
 ----
-
-Motivación::
-Este nivel separa los conceptos principales del dominio del juego Y:
-representación de tablero/coordendas, reglas de movimientos, estado de partida y detección de victoria.
-Esta separación facilita pruebas unitarias y evita acoplar reglas con estrategias.
 
 Tabla 4. Bloques de construcción contenidos (Core del juego)
 
 [cols="1,3", options="header"]
+[cols="1,3", options="header"]
 |===
 |Bloque |Descripción
 
-|Estado de partida
-|Estructuras de datos que representan la situación actual del juego (turno, piezas, tamaño, etc.).
+|Topología / Coordenadas
+|Funciones y utilidades para coordenadas y vecinos del tablero (src/core/coord.rs). No guarda estado.
 
-|Reglas / Movimientos válidos
-|Lógica que determina si una acción es válida y cómo afecta al estado.
+|Estado de la partida
+|Estructura central que mantiene posiciones, turno y dimensiones; contiene la lógica de consulta del estado (src/core/game.rs).
 
-|Detección de victoria
-|Algoritmos para determinar si una partida ha sido ganada según las reglas del juego Y.
+|Validador / Movimiento
+|Validación de intenciones de movimiento y aplicación de mutaciones sobre el estado (src/core/movement.rs, src/core/action.rs).
 
-|Coordenadas / Tablero
-|Representación de posiciones del tablero (p.ej. coordenadas baricéntricas o índices).
+|Detector de victoria
+|Algoritmos que analizan conexiones en el tablero para decidir condiciones de victoria (implementado en funciones vinculadas a src/core/game.rs).
+
+|Gestión de jugadores
+|Modela jugadores y conjuntos de jugadores, APIs para añadir/consultar participantes (src/core/player.rs, src/core/player_set.rs).
+
+|Representación / Opciones
+|Opciones de render y serialización del estado para salida/IO (src/core/render_options.rs).
 |===
 
