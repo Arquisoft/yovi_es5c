@@ -60,21 +60,83 @@ For multiple environments or alternative deployments please copy and adapt this 
 ****
 endif::arc42help[]
 
-_**<Overview Diagram>**_
+_**Diagrama de Despliegue (resumen)**_
 
-Motivation::
+Se utiliza el diagrama de la sección "Contexto de negocio" para representar, a alto nivel, los contenedores Docker, la red interna, la base de datos y la pila de monitoreo. El diagrama muestra cómo los bloques de software (Gamey Server, Users Service, Web App) se despliegan en contenedores separados y cómo estos consumen servicios infraestructurales (MongoDB, red Docker, Prometheus, Grafana).
 
-_<explanation in text form>_
+Motivación::
 
-Quality and/or Performance Features::
+Una arquitectura basada en contenedores permite:
+* Aislar responsabilidades (lógica de juego, gestión de usuarios, interfaz web).
+* Facilitar despliegues y escalado independientes por servicio.
+* Simplificar integración de monitoring y gestión de logs.
+* Permitir replicación y orquestación en entornos distintos (desarrollo, staging, producción).
 
-_<explanation in text form>_
+.Características de Calidad y Rendimiento
+[cols="1,2", options="header"]
+|===
+| Característica | Descripción
 
-Mapping of Building Blocks to Infrastructure::
-_<description of the mapping>_
+| **Escalabilidad**
+| Escalado horizontal de servicios (réplicas de Gamey y Users) para soportar picos de carga.
+
+| **Alta Disponibilidad**
+| MongoDB configurado con persistencia en volúmenes para garantizar la persistencia de datos.
+
+| **Monitoreo y Diagnóstico**
+| Uso de Prometheus para la recolección de métricas (scrape targets) y Grafana para la visualización de alertas.
+
+| **Optimización de Red**
+| Redes Docker que proporcionan aislamiento y latencias bajas entre contenedores.
+
+| **Gestión de Recursos**
+| Definición de límites de CPU/memoria y controles de estado (readiness/healthchecks) para recuperación automática.
+
+| **Control de Despliegue**
+| Gestión de dependencias declaradas (ej. `depends_on`) para asegurar un orden de inicio correcto entre servicios.
+|===
+
+.Mapeo de Bloques de Construcción a Infraestructura
+[cols="1,1,2", options="header"]
+|===
+| Bloque de Construcción | Componente de Infraestructura | Detalles de Configuración
+
+| **Servidor Gamey**
+| Contenedor (imagen: `gamey`)
+| Expone el puerto 4000. Incluye volumen para logs y variables de entorno (`DB_URI`, `REDIS_URI`).
+
+| **Servicio de Usuarios**
+| Contenedor (imagen: `users`)
+| Puerto 3000 expuesto internamente. Conexión directa a MongoDB.
+
+| **Aplicación Web**
+| Contenedor (imagen: `webapp`)
+| Puerto 80. Puerta de entrada al sistema; comunica con Usuarios mediante la red Docker.
+
+| **Base de Datos (MongoDB)**
+| Contenedor (puerto 27017) o Servicio Online
+| Puerto 27017 con volumen persistente. En producción: configuración de replicaset y backups.
+
+| **Prometheus**
+| Contenedor (puerto 9090)
+| Realiza el *scrape* de los endpoints instrumentados de cada servicio.
+
+| **Grafana**
+| Contenedor (puerto 9091)
+| Conectado a Prometheus para la visualización de dashboards.
+
+| **Red Docker**
+| Red interna (bridge/overlay)
+| Conecta todos los contenedores y controla la visibilidad y las listas de control de acceso (ACL).
+|===
+
+Para entornos:
+* Desarrollo: despliegue en un único host con contenedores o mediante npm sin replicado y datos locales.
+* Staging: configuración similar a producción pero con tamaños menores y datos de prueba.
+* Producción: orquestador con réplicas, balanceadores y políticas de actualización.
 
 
-=== Infraestructura Nivel 2  PONER PUERTO MONGODB
+=== Infraestructura Nivel 2
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -109,7 +171,7 @@ flowchart TB
   end
  subgraph Infrastructure["Elementos de Infraestructura"]
         DockerNet["Docker<br>"]
-        MongoDB["MongoDB<br>Puerto"]
+        MongoDB["MongoDB<br>Puerto 27017"]
         Containers
         Monitoring
   end
@@ -151,6 +213,8 @@ Este grupo representa los servicios principales de la aplicación que se ejecuta
 * **Puerto 3000 (Users)**: Es el encargado de la gestión de usuarios.
 
 * **Puerto 80 (WebApp)**: Es el punto de entrada web. Existe una relación directa entre este contenedor y el de Users, ya que depende de la gestión de usuarios para autenticar y autorizar a los jugadores.
+
+* **Puerto 27017 (MongoDB)**: Es la base de datos de la aplicación. Esta interrelacionado con casi todos los conteneder ya que necesita almacenar y proveer de tanto los datos de identificación de los usuarios como de los resultados de sus partidas y sus estadísticas.
 
 ==== _Monitoreo_
 
