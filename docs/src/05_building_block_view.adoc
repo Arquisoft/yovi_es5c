@@ -3,7 +3,7 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-building-block-view]]
 == Vista de Bloques
 
-=== 5.1 Sistema General (Whitebox)
+=== Sistema General (Whitebox)
 
 [mermaid, "bb-level1-yovi", png]
 ----
@@ -58,12 +58,12 @@ Tabla 1. Bloques de construcción contenidos (Nivel 1)
 |===
 
 
-=== 5.2 Nivel 2
+=== Nivel 2
 
 El Nivel 2 muestra el funcionamiento interno del sistema descomponiendo los bloques más relevantes del Nivel 1.
 Se priorizan los bloques con mayor complejidad y riesgo: Aplicación Web y Servicio de Juego (Rust).
 
-==== 5.2.1 Whitebox: Aplicación Web
+==== Whitebox: Aplicación Web
 
 [mermaid, "bb-level2-webapp", png]
 ----
@@ -110,7 +110,7 @@ Tabla 2. Bloques de construcción contenidos (Aplicación Web)
 |===
 
 
-==== 5.2.2 Whitebox: Servicio de Juego (Rust)
+==== Whitebox: Servicio de Juego (Rust)
 
 [mermaid, "bb-level2-gamey", png]
 ----
@@ -152,12 +152,12 @@ Tabla 3. Bloques de construcción contenidos (Servicio de Juego)
 |===
 
 
-=== 5.3 Nivel 3
+=== Nivel 3
 
 En el Nivel 3 se detalla un bloque del Nivel 2 que es especialmente relevante: el Servicio de Juego (Rust),
 ya que concentra la lógica del juego y las estrategias.
 
-==== 5.3.1 Whitebox: Core del juego
+==== Whitebox: Core del juego
 
 [mermaid, "bb-level3-core", png]
 ----
