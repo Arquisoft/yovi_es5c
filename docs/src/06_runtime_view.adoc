@@ -102,8 +102,57 @@ sequenceDiagram
     Main-->>U: fin del programa
 ----
 
-=== <Runtime Scenario 2>
+=== <Registro de un usuario>
 
-=== ...
+En este otro diagrama observamos el proceso de registro de un nuevo usuario en el sistema, donde participan el usuario, la API REST, el middleware de validación y la base de datos.
 
-=== <Runtime Scenario n>
+El proceso es el siguiente:
+
+* El nuevo usuario envía a la API por el endpoint /createuser sus datos 
+(correo, username, contraseña...)
+* Los datos son validados (formato del correo, nombre de usuario, formato de la contraseña...)
+* Si los datos no son válidos la API devuelve un error con código HTTP 400
+* Si los datos son válidos se comprueba si el usuario no está ya creado en la base de datos
+* En este caso, se hashea la contraseña introducida por el usuario, y se guardan los datos en la BDD, devolviendo un código exitoso 200 y el JSON con los datos del usuario o token de sesión
+
+[mermaid,"Sequence diagram",png]
+----
+sequenceDiagram
+    participant User as Usuario (Jugador)
+    participant API as Users Service (Express/Node.js)
+    participant Auth as Middleware/Validación
+    participant DB as BDD (MongoDB)
+
+    Note over User, API: Intento de Registro (/createuser)
+    
+    User->>API: POST /createuser
+    activate API
+    
+    API->>Auth: Validación de datos (formato, longitud, contraseña, etc.)
+    
+    alt Datos Inválidos
+        Auth-->>API: Error de Validación
+        API-->>User: 400 Bad Request (Datos inválidos)
+    else Datos Correctos
+        Auth-->>API: Validación Exitosa
+        
+        API->>DB: Verificar si el usuario ya existe
+        activate DB
+        DB-->>API: No existe
+        deactivate DB
+        
+        Note right of API: Hashing de contraseña (Seguridad)
+        
+        API->>DB: Guardar nuevo usuario
+        activate DB
+        DB-->>API: Usuario guardado (Success)
+        deactivate DB
+        
+        API-->>User: 201 Created (User Object / Token)
+    end
+    
+    deactivate API
+
+----
+
+
