@@ -164,6 +164,7 @@ flowchart TB
         GameyContainer["Puerto 4000"]
         UsersContainer["Puerto 3000"]
         WebAppContainer["Puerto 80"]
+        MongoDB["MongoDB<br>Puerto 27017"]
   end
  subgraph Monitoring["Monitoreo"]
         PrometheusContainer["Contenedor prometheus<br>Puerto 9090"]
@@ -171,7 +172,6 @@ flowchart TB
   end
  subgraph Infrastructure["Elementos de Infraestructura"]
         DockerNet["Docker<br>"]
-        MongoDB["MongoDB<br>Puerto 27017"]
         Containers
         Monitoring
   end
@@ -228,7 +228,4 @@ Este grupo incluye los servicios relacionados con el monitoreo y la gestión de 
 
 Actúa como el entorno de ejecución controla la visibilidad y las listas de control de acceso (ACL) para los contenedores de aplicación y monitoreo.
 
-==== _MongoDB_
-
-Para soportar el almacenamiento de datos de forma escalable y no relacional, se integra un nodo de base de datos.
 
