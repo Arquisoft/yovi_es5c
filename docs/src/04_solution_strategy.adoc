@@ -54,7 +54,10 @@ endif::arc42help[]
 
 === Descomposición de alto nivel
 
+La solución se basará en una arquitectura de servicios desacoplados, por un lado contamos con un módulo centrado en el rendimiento que gestionará la lógica del juego, escrito en Rust, e independiente a este trabajaremos con la gestión de usuarios y API en módulos TypeScript, buscando la agilidad de desarrollo web. La cohesión del sistema se hará por medio del estándar YEN sobre protocolos HTTP/JSON. Se tendrá también en cuenta la relevancia del despliegue continuo acompañado de diversos tipos de pruebas que garanticen la calidad y mantenibilidad del código.
+
 === Decisiones para alcanzar objetivos de calidad
+
 
 === Deciciones organizativas relevantes
 
