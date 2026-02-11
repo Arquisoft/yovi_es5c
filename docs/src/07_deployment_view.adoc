@@ -60,21 +60,49 @@ For multiple environments or alternative deployments please copy and adapt this 
 ****
 endif::arc42help[]
 
-_**<Overview Diagram>**_
+_**Diagrama de Despliegue (resumen)**_
 
-Motivation::
+Se utiliza el diagrama de la sección "Contexto de negocio" para representar, a alto nivel, los contenedores Docker, la red interna, la base de datos y la pila de monitoreo. El diagrama muestra cómo los bloques de software (Gamey Server, Users Service, Web App) se despliegan en contenedores separados y cómo estos consumen servicios infraestructurales (MongoDB, red Docker, Prometheus, Grafana).
 
-_<explanation in text form>_
+Motivación::
 
-Quality and/or Performance Features::
+Una arquitectura basada en contenedores permite:
+* Aislar responsabilidades (lógica de juego, gestión de usuarios, interfaz web).
+* Facilitar despliegues y escalado independientes por servicio.
+* Simplificar integración de monitoring y gestión de logs.
+* Permitir replicación y orquestación en entornos distintos (desarrollo, staging, producción).
 
-_<explanation in text form>_
+.Características de Calidad y Rendimiento
+[cols="1,2", options="header"]
+|===
+| Característica | Descripción
 
-Mapping of Building Blocks to Infrastructure::
-_<description of the mapping>_
+| **Escalabilidad**
+| Escalado horizontal de servicios (réplicas de Gamey y Users) para soportar picos de carga.
+
+| **Alta Disponibilidad**
+| MongoDB configurado con persistencia en volúmenes para garantizar la persistencia de datos.
+
+| **Monitoreo y Diagnóstico**
+| Uso de Prometheus para la recolección de métricas (scrape targets) y Grafana para la visualización de alertas.
+
+| **Optimización de Red**
+| Redes Docker que proporcionan aislamiento y latencias bajas entre contenedores.
+
+| **Gestión de Recursos**
+| Definición de límites de CPU/memoria y controles de estado (readiness/healthchecks) para recuperación automática.
+
+| **Control de Despliegue**
+| Gestión de dependencias declaradas (ej. `depends_on`) para asegurar un orden de inicio correcto entre servicios.
+|===
+
+Para entornos:
+* Desarrollo: despliegue en un único host con contenedores o mediante npm sin replicado y datos locales.
+* Staging: configuración similar a producción pero con tamaños menores y datos de prueba.
+* Producción: orquestador con réplicas, balanceadores y políticas de actualización.
 
 
-=== Infraestructura Nivel 2  PONER PUERTO MONGODB
+=== Infraestructura Nivel 2
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -102,6 +130,7 @@ flowchart TB
         GameyContainer["Puerto 4000"]
         UsersContainer["Puerto 3000"]
         WebAppContainer["Puerto 80"]
+        MongoDB["MongoDB<br>Puerto 27017"]
   end
  subgraph Monitoring["Monitoreo"]
         PrometheusContainer["Contenedor prometheus<br>Puerto 9090"]
@@ -109,7 +138,6 @@ flowchart TB
   end
  subgraph Infrastructure["Elementos de Infraestructura"]
         DockerNet["Docker<br>"]
-        MongoDB["MongoDB<br>Puerto"]
         Containers
         Monitoring
   end
@@ -146,11 +174,13 @@ flowchart TB
 
 Este grupo representa los servicios principales de la aplicación que se ejecutan dentro del entorno de Docker. Se dividen en tres servicios:
 
-* **Puerto 4000 (Gamey)**: Este servicio es el núcleo de la aplicación, encargado de gestionar la lógica del juego y las interacciones entre los jugadores. 
+* **Puerto 4000 (Gamey)**: Este servicio es el núcleo de la aplicación, encargado de gestionar la lógica del juego y las interacciones entre los jugadores. Incluye volumen para logs y variables de entorno (`DB_URI`, `REDIS_URI`).
 
-* **Puerto 3000 (Users)**: Es el encargado de la gestión de usuarios.
+* **Puerto 3000 (Users)**: Es el encargado de la gestión de usuarios. Conexión directa a MongoDB.
 
 * **Puerto 80 (WebApp)**: Es el punto de entrada web. Existe una relación directa entre este contenedor y el de Users, ya que depende de la gestión de usuarios para autenticar y autorizar a los jugadores.
+
+* **Puerto 27017 (MongoDB)**: Es la base de datos de la aplicación. Esta interrelacionado con casi todos los conteneder ya que necesita almacenar y proveer de tanto los datos de identificación de los usuarios como de los resultados de sus partidas y sus estadísticas. Cuenta con un volumen persistente para trasladar datos en caso de ser necesario.
 
 ==== _Monitoreo_
 
@@ -162,9 +192,6 @@ Este grupo incluye los servicios relacionados con el monitoreo y la gestión de 
 
 ==== _Docker_
 
-Actúa como el entorno de ejecución para los contenedores de aplicación y monitoreo. 
+Actúa como el entorno de ejecución controla la visibilidad y las listas de control de acceso (ACL) para los contenedores de aplicación y monitoreo.
 
-==== _MongoDB_
-
-Para soportar el almacenamiento de datos de forma escalable y no relacional, se integra un nodo de base de datos.
 
