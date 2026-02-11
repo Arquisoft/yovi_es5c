@@ -97,25 +97,25 @@ Una arquitectura basada en contenedores permite:
 |===
 
 .Mapeo de Bloques de Construcción a Infraestructura
-[cols="1,1,2", options="header"]
+[cols="1,1,1", options="header"]
 |===
-| Bloque de Construcción | Componente de Infraestructura | Detalles de Configuración
+| Bloque de Construcción | Componente de Infraestructura | Punto de Mapeo
 
 | **Servidor Gamey**
 | Contenedor (imagen: `gamey`)
-| Expone el puerto 4000. Incluye volumen para logs y variables de entorno (`DB_URI`, `REDIS_URI`).
+| Expone el puerto 4000. 
 
 | **Servicio de Usuarios**
 | Contenedor (imagen: `users`)
-| Puerto 3000 expuesto internamente. Conexión directa a MongoDB.
+| Puerto 3000 expuesto internamente.
 
 | **Aplicación Web**
 | Contenedor (imagen: `webapp`)
-| Puerto 80. Puerta de entrada al sistema; comunica con Usuarios mediante la red Docker.
+| Puerto 80. Puerta de entrada al sistema;
 
 | **Base de Datos (MongoDB)**
-| Contenedor (puerto 27017) o Servicio Online
-| Puerto 27017 con volumen persistente. En producción: configuración de replicaset y backups.
+| Contenedor (puerto 27017)
+| Puerto 27017.
 
 | **Prometheus**
 | Contenedor (puerto 9090)
@@ -127,7 +127,7 @@ Una arquitectura basada en contenedores permite:
 
 | **Red Docker**
 | Red interna (bridge/overlay)
-| Conecta todos los contenedores y controla la visibilidad y las listas de control de acceso (ACL).
+| Conecta todos los contenedores.
 |===
 
 Para entornos:
@@ -208,13 +208,13 @@ flowchart TB
 
 Este grupo representa los servicios principales de la aplicación que se ejecutan dentro del entorno de Docker. Se dividen en tres servicios:
 
-* **Puerto 4000 (Gamey)**: Este servicio es el núcleo de la aplicación, encargado de gestionar la lógica del juego y las interacciones entre los jugadores. 
+* **Puerto 4000 (Gamey)**: Este servicio es el núcleo de la aplicación, encargado de gestionar la lógica del juego y las interacciones entre los jugadores. Incluye volumen para logs y variables de entorno (`DB_URI`, `REDIS_URI`).
 
-* **Puerto 3000 (Users)**: Es el encargado de la gestión de usuarios.
+* **Puerto 3000 (Users)**: Es el encargado de la gestión de usuarios. Conexión directa a MongoDB.
 
 * **Puerto 80 (WebApp)**: Es el punto de entrada web. Existe una relación directa entre este contenedor y el de Users, ya que depende de la gestión de usuarios para autenticar y autorizar a los jugadores.
 
-* **Puerto 27017 (MongoDB)**: Es la base de datos de la aplicación. Esta interrelacionado con casi todos los conteneder ya que necesita almacenar y proveer de tanto los datos de identificación de los usuarios como de los resultados de sus partidas y sus estadísticas.
+* **Puerto 27017 (MongoDB)**: Es la base de datos de la aplicación. Esta interrelacionado con casi todos los conteneder ya que necesita almacenar y proveer de tanto los datos de identificación de los usuarios como de los resultados de sus partidas y sus estadísticas. Cuenta con un volumen persistente para trasladar datos en caso de ser necesario.
 
 ==== _Monitoreo_
 
@@ -226,7 +226,7 @@ Este grupo incluye los servicios relacionados con el monitoreo y la gestión de 
 
 ==== _Docker_
 
-Actúa como el entorno de ejecución para los contenedores de aplicación y monitoreo. 
+Actúa como el entorno de ejecución controla la visibilidad y las listas de control de acceso (ACL) para los contenedores de aplicación y monitoreo.
 
 ==== _MongoDB_
 
