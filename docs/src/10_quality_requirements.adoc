@@ -1,7 +1,7 @@
 ifndef::imagesdir[:imagesdir: ../images]
 
 [[section-quality-scenarios]]
-== Quality Requirements
+== Requisitos de Calidad
 
 
 ifdef::arc42help[]
@@ -27,7 +27,7 @@ See https://docs.arc42.org/section-10/[Quality Requirements] in the arc42 docume
 ****
 endif::arc42help[]
 
-=== Quality Tree
+=== Árbol de Calidad
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -46,11 +46,46 @@ The quality tree is a high-level overview of the quality goals and requirements:
 
 In any case the tree should include links to the scenarios of the following section.
 
-
 ****
 endif::arc42help[]
 
-=== Quality Scenarios
+[mermaid, "business-context", png]
+----
+flowchart LR
+    A{{"Objetivos de Calidad"}} --> nE("Exactitud")
+    A --> nM("Mantenibilidad")
+    A --> nU("Usabilidad")
+    A --> nR("Robustez")
+    A --> nP("Rendimiento")
+    A --> nS("Seguridad")
+    A --> nD("Disponibilidad")
+
+    nE --> e1(["Validar movimientos correctos e incorrectos"])
+    nE --> e2(["Detectar victorias y empates correctamente"])
+
+    nM --> m1(["Arquitectura modular"])
+    nM --> m2(["Documentación clara"])
+    nM --> m3(["Facilidad para agregar nuevas variantes"])
+
+    nU --> u1(["Interfaz intuitiva"])
+    nU --> u2(["Usuarios completan tareas sin ayuda"])
+
+    nR --> r1(["Manejo de errores y fallos de comunicación"])
+    nR --> r2(["No hay pérdida de datos de partidas"])
+
+    nP --> p1(["Tiempo de respuesta <4s"])
+    nP --> p2(["Soporte ≥50 usuarios concurrentes"])
+
+    nS --> s1(["Cifrado de datos"])
+    s1 --> s2(["Protección contra SQL injection y accesos no autorizados"])
+
+    nD --> d1(["Disponibilidad ≥90%"])
+    d1 --> d2(["Partidas activas no se pierden durante mantenimiento"])
+
+----
+
+
+=== Escenarios de Calidad
 
 ifdef::arc42help[]
 [role="arc42help"]
