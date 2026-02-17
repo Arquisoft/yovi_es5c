@@ -174,7 +174,7 @@ flowchart TB
 
 Este grupo representa los servicios principales de la aplicación que se ejecutan dentro del entorno de Docker. Se dividen en tres servicios:
 
-* **Puerto 4000 (Gamey)**: Este servicio es el núcleo de la aplicación, encargado de gestionar la lógica del juego y las interacciones entre los jugadores. Incluye volumen para logs y variables de entorno (`DB_URI`, `REDIS_URI`).
+* **Puerto 4000 (Gamey)**: Este servicio es el núcleo de la aplicación, encargado de gestionar la lógica del juego y las interacciones entre los jugadores.
 
 * **Puerto 3000 (Users)**: Es el encargado de la gestión de usuarios. Conexión directa a MongoDB.
 
