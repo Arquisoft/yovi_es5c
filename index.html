@@ -502,10 +502,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </li>
 <li><a href="#section-design-decisions">9. Architecture Decisions</a></li>
-<li><a href="#section-quality-scenarios">10. Quality Requirements</a>
+<li><a href="#section-quality-scenarios">10. Requisitos de Calidad</a>
 <ul class="sectlevel2">
-<li><a href="#_quality_tree">10.1. Quality Tree</a></li>
-<li><a href="#_quality_scenarios">10.2. Quality Scenarios</a></li>
+<li><a href="#_árbol_de_calidad">10.1. Árbol de Calidad</a></li>
+<li><a href="#_escenarios_de_calidad">10.2. Escenarios de Calidad</a></li>
 </ul>
 </li>
 <li><a href="#section-technical-risks">11. Risks and Technical Debts</a></li>
@@ -982,7 +982,7 @@ con respecto a plagio y honestidad académica.</p></td>
 <h3 id="_contexto_de_negocio">3.1. Contexto de negocio</h3>
 <div class="imageblock">
 <div class="content">
-<img src="./images/business-context.png" alt="business context" width="784" height="214">
+<img src="./images/business-context.png" alt="business context" width="782" height="240">
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -1016,7 +1016,7 @@ con respecto a plagio y honestidad académica.</p></td>
 <h3 id="_contexto_técnico">3.2. Contexto técnico</h3>
 <div class="imageblock">
 <div class="content">
-<img src="./images/technical-context.png" alt="technical context" width="784" height="299">
+<img src="./images/technical-context.png" alt="technical context" width="784" height="302">
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -1253,7 +1253,7 @@ Refer to details in the following sections.</p>
 <h3 id="_sistema_general_nivel_1">5.1. Sistema General (Nivel 1)</h3>
 <div class="imageblock">
 <div class="content">
-<img src="./images/bb-level1-yovi.png" alt="bb level1 yovi" width="784" height="189">
+<img src="./images/bb-level1-yovi.png" alt="bb level1 yovi" width="784" height="192">
 </div>
 </div>
 <div class="paragraph">
@@ -1345,7 +1345,7 @@ Refer to details in the following sections.</p>
 <h4 id="_whitebox_servicio_de_juego_y_rust">5.2.2. Whitebox: Servicio de Juego Y (Rust)</h4>
 <div class="imageblock">
 <div class="content">
-<img src="./images/bb-level2-gamey.png" alt="bb level2 gamey" width="661" height="709">
+<img src="./images/bb-level2-gamey.png" alt="bb level2 gamey" width="662" height="709">
 </div>
 </div>
 <div class="paragraph">
@@ -1401,7 +1401,7 @@ Refer to details in the following sections.</p>
 <h4 id="_whitebox_core_del_juego">5.3.1. Whitebox: Core del juego</h4>
 <div class="imageblock">
 <div class="content">
-<img src="./images/bb-level3-core.png" alt="bb level3 core" width="784" height="211">
+<img src="./images/bb-level3-core.png" alt="bb level3 core" width="784" height="209">
 </div>
 </div>
 <div class="paragraph">
@@ -1533,7 +1533,7 @@ El diagrama muestra:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/Sequence%20diagram.png" alt="Sequence diagram" width="784" height="1157">
+<img src="./images/Sequence%20diagram.png" alt="Sequence diagram" width="784" height="1138">
 </div>
 </div>
 </div>
@@ -1567,7 +1567,7 @@ El diagrama muestra:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/Sequence%20diagram.png" alt="Sequence diagram" width="784" height="541">
+<img src="./images/Sequence%20diagram.png" alt="Sequence diagram" width="784" height="536">
 </div>
 </div>
 <div style="page-break-after: always;"></div>
@@ -1752,7 +1752,7 @@ when your infrastructure is more complex.</p>
 <h3 id="_contexto_de_negocio_2">7.3. Contexto de negocio</h3>
 <div class="imageblock">
 <div class="content">
-<img src="./images/business-context.png" alt="business context" width="784" height="459">
+<img src="./images/business-context.png" alt="business context" width="784" height="462">
 </div>
 </div>
 <div class="sect3">
@@ -1763,7 +1763,7 @@ when your infrastructure is more complex.</p>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Puerto 4000 (Gamey)</strong>: Este servicio es el núcleo de la aplicación, encargado de gestionar la lógica del juego y las interacciones entre los jugadores. Incluye volumen para logs y variables de entorno (<code>DB_URI</code>, <code>REDIS_URI</code>).</p>
+<p><strong>Puerto 4000 (Gamey)</strong>: Este servicio es el núcleo de la aplicación, encargado de gestionar la lógica del juego y las interacciones entre los jugadores.</p>
 </li>
 <li>
 <p><strong>Puerto 3000 (Users)</strong>: Es el encargado de la gestión de usuarios. Conexión directa a MongoDB.</p>
@@ -1980,7 +1980,7 @@ There you will find links and examples about ADR.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="section-quality-scenarios">10. Quality Requirements</h2>
+<h2 id="section-quality-scenarios">10. Requisitos de Calidad</h2>
 <div class="sectionbody">
 <div class="sidebarblock arc42help">
 <div class="content">
@@ -2005,7 +2005,7 @@ concrete and measurable.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_quality_tree">10.1. Quality Tree</h3>
+<h3 id="_árbol_de_calidad">10.1. Árbol de Calidad</h3>
 <div class="sidebarblock arc42help">
 <div class="content">
 <div class="paragraph">
@@ -2035,48 +2035,63 @@ concrete and measurable.</p>
 </div>
 </div>
 </div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/business-context.png" alt="business context" width="784" height="1085">
+</div>
+</div>
 </div>
 <div class="sect2">
-<h3 id="_quality_scenarios">10.2. Quality Scenarios</h3>
-<div class="sidebarblock arc42help">
+<h3 id="_escenarios_de_calidad">10.2. Escenarios de Calidad</h3>
+<div class="sect3">
+<h4 id="_escenario_1_exactitud_en_movimientos">10.2.1. Escenario 1: Exactitud en Movimientos</h4>
+<div class="imageblock">
 <div class="content">
-<div class="paragraph">
-<div class="title">Contents</div>
-<p>Concretization of (sometimes vague or implicit) quality requirements using (quality) scenarios.</p>
+<img src="./images/escenarioCalidadExactitud1.png" alt="escenarioCalidadExactitud1" width="784" height="104">
 </div>
-<div class="paragraph">
-<p>These scenarios describe what should happen when a stimulus arrives at the system.</p>
 </div>
-<div class="paragraph">
-<p>For architects, two kinds of scenarios are important:</p>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p>Usage scenarios (also called application scenarios or use case scenarios) describe the system’s runtime reaction to a certain stimulus. This also includes scenarios that describe the system’s efficiency or performance. Example: The system reacts to a user’s request within one second.</p>
-</li>
-<li>
-<p>Change scenarios describe a modification of the system or of its immediate environment. Example: Additional functionality is implemented or requirements for a quality attribute change.</p>
-</li>
-</ul>
+<div class="sect3">
+<h4 id="_escenario_2_exactitud_en_estado_de_la_partida">10.2.2. Escenario 2: Exactitud en estado de la partida</h4>
+<div class="imageblock">
+<div class="content">
+<img src="./images/escenarioCalidadExactitud2.png" alt="escenarioCalidadExactitud2" width="784" height="149">
 </div>
-<div class="paragraph">
-<div class="title">Motivation</div>
-<p>Scenarios make quality requirements concrete and allow to
-more easily measure or decide whether they are fulfilled.</p>
 </div>
-<div class="paragraph">
-<p>Especially when you want to assess your architecture using methods like
-ATAM you need to describe your quality goals (from section 1.2)
-more precisely down to a level of scenarios that can be discussed and evaluated.</p>
 </div>
-<div class="paragraph">
-<div class="title">Form</div>
-<p>Tabular or free form text.</p>
+<div class="sect3">
+<h4 id="_escenario_3_usabilidad_de_la_aplicación">10.2.3. Escenario 3: Usabilidad de la aplicación</h4>
+<div class="imageblock">
+<div class="content">
+<img src="./images/escenarioCalidadUsabilidad1.png" alt="escenarioCalidadUsabilidad1" width="784" height="130">
 </div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_escenario_4_rendimiento_en_tiempos_de_respuesta">10.2.4. Escenario 4: Rendimiento en tiempos de respuesta</h4>
+<div class="imageblock">
+<div class="content">
+<img src="./images/escenarioCalidadRendimiento1.png" alt="escenarioCalidadRendimiento1" width="784" height="149">
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_escenario_5_protección_contra_inyecciones_sql">10.2.5. Escenario 5: Protección contra inyecciones SQL</h4>
+<div class="imageblock">
+<div class="content">
+<img src="./images/escenarioCalidadSeguridad1.png" alt="escenarioCalidadSeguridad1" width="784" height="119">
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_escenario_6_disponibilidad_de_la_aplicación_en_mantenimientos">10.2.6. Escenario 6: Disponibilidad de la aplicación en mantenimientos</h4>
+<div class="imageblock">
+<div class="content">
+<img src="./images/escenarioCalidadDisponibilidad1.png" alt="escenarioCalidadDisponibilidad1" width="784" height="206">
 </div>
 </div>
 <div style="page-break-after: always;"></div>
+</div>
 </div>
 </div>
 </div>
@@ -2176,7 +2191,7 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 <div id="footer">
 <div id="footer-text">
 Version 8.2 EN<br>
-Last updated 2026-02-11 12:12:17 +0100
+Last updated 2026-02-04 18:03:09 +0100
 </div>
 </div>
 </body>
