@@ -5,7 +5,7 @@ function App() {
   const [status, setStatus] = useState("Checking server...");
 
   useEffect(() => {
-    fetch("http://localhost:4000/status")
+    fetch(`${import.meta.env.VITE_GAMEY_URL}/status`)
       .then(response => {
         if (!response.ok) {
           throw new Error("Server error");
