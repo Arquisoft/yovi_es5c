@@ -1,4 +1,4 @@
-/*import { setWorldConstructor, Before, After, setDefaultTimeout } from '@cucumber/cucumber'
+import { setWorldConstructor, Before, After, setDefaultTimeout } from '@cucumber/cucumber'
 import { chromium } from 'playwright'
 
 setDefaultTimeout(60_000)
@@ -23,4 +23,4 @@ Before(async function () {
 After(async function () {
   if (this.page) await this.page.close()
   if (this.browser) await this.browser.close()
-})*/
+})
