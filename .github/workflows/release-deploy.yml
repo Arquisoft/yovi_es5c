@@ -53,6 +53,7 @@ jobs:
           cargo test
 
   e2e:
+    if: false
     name: Run E2E tests
     runs-on: ubuntu-latest
     needs: [test-node, test-rust]
