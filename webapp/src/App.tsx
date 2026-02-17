@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/";
+
 function App() {
   const [status, setStatus] = useState("Checking server...");
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_GAMEY_URL}/status`)
+    fetch(`${API_URL}/status`) 
       .then(response => {
         if (!response.ok) {
           throw new Error("Server error");
