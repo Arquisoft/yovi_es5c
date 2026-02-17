@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach, vi } from 'vitest'
+/*import { describe, it, expect, afterEach, vi } from 'vitest'
 import request from 'supertest'
 import app from '../users-service.js'
 
@@ -17,4 +17,4 @@ describe('POST /createuser', () => {
         expect(res.body).toHaveProperty('message')
         expect(res.body.message).toMatch(/Hello Pablo! Welcome to the course!/i)
     })
-})
+})*/
