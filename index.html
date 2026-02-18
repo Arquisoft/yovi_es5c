@@ -493,11 +493,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_infraestructura_nivel_2">7.2. Infraestructura Nivel 2</a></li>
 </ul>
 </li>
-<li><a href="#section-concepts">8. Cross-cutting Concepts</a>
+<li><a href="#section-concepts">8. Conceptos transversales</a>
 <ul class="sectlevel2">
-<li><a href="#_concept_1">8.1. <em>&lt;Concept 1&gt;</em></a></li>
-<li><a href="#_concept_2">8.2. <em>&lt;Concept 2&gt;</em></a></li>
-<li><a href="#_concept_n">8.3. <em>&lt;Concept n&gt;</em></a></li>
+<li><a href="#_modelo_de_dominio">8.1. Modelo de dominio</a></li>
+<li><a href="#_arquitectura_y_patrones_de_diseño">8.2. Arquitectura y patrones de diseño</a></li>
+<li><a href="#_persistencia_de_datos">8.3. Persistencia de datos</a></li>
+<li><a href="#_conceptos_de_desarrollo">8.4. Conceptos de desarrollo</a></li>
+<li><a href="#_seguridad">8.5. Seguridad</a></li>
 </ul>
 </li>
 <li><a href="#section-design-decisions">9. Architecture Decisions</a></li>
@@ -1800,7 +1802,7 @@ when your infrastructure is more complex.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="section-concepts">8. Cross-cutting Concepts</h2>
+<h2 id="section-concepts">8. Conceptos transversales</h2>
 <div class="sectionbody">
 <div class="sidebarblock arc42help">
 <div class="content">
@@ -1902,24 +1904,130 @@ on this list.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_concept_1">8.1. <em>&lt;Concept 1&gt;</em></h3>
+<h3 id="_modelo_de_dominio">8.1. Modelo de dominio</h3>
 <div class="paragraph">
-<p><em>&lt;explanation&gt;</em></p>
+<p>Los principales conceptos de dominio son:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Usuario: jugador registrado en el sistema.</p>
+</li>
+<li>
+<p>Partida: instancia de una partida en entre dos jugadores.</p>
+</li>
+<li>
+<p>Movimiento: acción realizada por un jugador en una casilla válida.</p>
+</li>
+<li>
+<p>Estado de partida: representación del tablero en un instante dado.</p>
+</li>
+<li>
+<p>Estrategia: algoritmo utilizado por el sistema para calcular el siguiente movimiento.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>El estado del juego se representa mediante la notación YEN, que permite serializar una partida en formato JSON.
+Esta notación es utilizada tanto en la comunicación entre servicios como en el API para bots, garantizando coherencia en todo el sistema.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_concept_2">8.2. <em>&lt;Concept 2&gt;</em></h3>
+<h3 id="_arquitectura_y_patrones_de_diseño">8.2. Arquitectura y patrones de diseño</h3>
 <div class="paragraph">
-<p><em>&lt;explanation&gt;</em></p>
+<p>La arquitectura del sistema sigue una separación clara de responsabilidades entre los distintos bloques principales:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Arquitectura basada en servicios: separación entre aplicación web, servicio de usuarios y servicio de juego.</p>
+</li>
+<li>
+<p>Separación por capas: diferenciación entre capa de presentación, lógica de negocio y persistencia.</p>
+</li>
+<li>
+<p>Patrón Strategy: utilizado en el motor del juego para implementar distintas estrategias y niveles de dificultad.</p>
+</li>
+<li>
+<p>Arquitectura cliente-servidor: el frontend actúa como cliente y los servicios backend como servidores.</p>
+</li>
+<li>
+<p>Comunicación REST: intercambio de información mediante HTTP y JSON entre los distintos servicios.</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>&#8230;&#8203;</p>
+<p>Esta organización favorece la mantenibilidad, escalabilidad y testabilidad del sistema.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_concept_n">8.3. <em>&lt;Concept n&gt;</em></h3>
+<h3 id="_persistencia_de_datos">8.3. Persistencia de datos</h3>
 <div class="paragraph">
-<p><em>&lt;explanation&gt;</em></p>
+<p>La persistencia del sistema se gestiona mediante MongoDB:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Usuarios: almacenamiento de credenciales y datos de perfil.</p>
+</li>
+<li>
+<p>Estadísticas: registro de partidas jugadas, ganadas y perdidas.</p>
+</li>
+<li>
+<p>Historial de partidas: almacenamiento de resultados relevantes.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>MongoDB utiliza un modelo orientado a documentos, lo que permite adaptarse fácilmente a cambios en la estructura de datos.
+La base de datos no se expone directamente al exterior y solo es accesible desde los servicios internos.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_conceptos_de_desarrollo">8.4. Conceptos de desarrollo</h3>
+<div class="paragraph">
+<p>El desarrollo del sistema sigue prácticas modernas de ingeniería de software:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Integración continua: uso de GitHub Actions para ejecutar pruebas y análisis de calidad en cada Pull Request.</p>
+</li>
+<li>
+<p>Control de versiones por ramas: uso de ramas master, develop y ramas de funcionalidad.</p>
+</li>
+<li>
+<p>Revisión de código: todas las modificaciones se integran mediante Pull Requests revisadas por el equipo.</p>
+</li>
+<li>
+<p>Testing multinivel: pruebas unitarias y de integración.</p>
+</li>
+<li>
+<p>Uso de docker: uso de contenedores para asegurar entornos consistentes entre desarrollo y producción.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_seguridad">8.5. Seguridad</h3>
+<div class="paragraph">
+<p>La seguridad es un aspecto transversal del sistema.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Almacenamiento seguro: las contraseñas se almacenan utilizando algoritmos seguros.</p>
+</li>
+<li>
+<p>Validación de entradas: se verifican todos los datos recibidos para evitar ataques.</p>
+</li>
+<li>
+<p>Control de acceso: los usuarios deben autenticarse para acceder a funcionalidades protegidas.</p>
+</li>
+<li>
+<p>Protección frente a fuerza bruta: limitación de intentos de inicio de sesión.</p>
+</li>
+</ul>
 </div>
 <div style="page-break-after: always;"></div>
 </div>
