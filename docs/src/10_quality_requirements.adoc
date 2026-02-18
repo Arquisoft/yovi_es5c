@@ -49,7 +49,7 @@ In any case the tree should include links to the scenarios of the following sect
 ****
 endif::arc42help[]
 
-[mermaid, "business-context", png]
+[mermaid, "qualityTree", png]
 ----
 flowchart LR
     A{{"Objetivos de Calidad"}} --> nE("Exactitud")
