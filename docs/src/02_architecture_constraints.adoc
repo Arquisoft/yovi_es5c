@@ -1,7 +1,7 @@
 ifndef::imagesdir[:imagesdir: ../images]
 
 [[section-architecture-constraints]]
-== Architecture Constraints
+== Restricciones de la Arquitectura
 
 
 ifdef::arc42help[]
@@ -27,3 +27,45 @@ See https://docs.arc42.org/section-2/[Architecture Constraints] in the arc42 doc
 
 ****
 endif::arc42help[]
+
+=== Restricciones Técnicas
+[cols="1,3" options="header"]
+|===
+| Denominación| Descripción breve
+| Frontend | La aplicación web accesible para los jugadores deberá estar escrita en TypeScript
+| Motor del juego / Backend | El módulo que controla la lógica del juego deberá estar escrito en Rust
+| Comunicación entre módulos | La comunicación entre los módulos anteriormente mencionados debe realizarse mediante JSON
+| Formato de datos | Debe utilizarse la notación YEN de JSON
+| Interfaz de la lógica | El módulo Rust debe disponer de una interfaz de servicio web básica accesible por la aplicación web
+| Despliegue | El juego debe ser desplegado y accesible vía web
+| API | El módulo Rust dispondrá de una API externa que será utilizada por bots para jugar.
+|===
+
+=== Restricciones Organizativas
+[cols="1,3" options="header"]
+|===
+| Denominación | Descripción breve
+| Equipo | El equipo de desarrollo está formado por estudiantes de la asignatura, quienes deben colaborar y gestionar el proyecto conjuntamente, repartiendo roles y trabajo.
+| Calendario y Plazos | El desarrollo del proyecto debe ajustarse a las fechas de entrega establecidas por los profesores.
+| Metodología de Trabajo | Todos los miembros del equipo han de realizar su trabajo de manera semanal e incremental respecto a versiones previas del proyecto.  
+| Control de Versiones | Es obligatorio el uso de un sistema de control de versiones (Git) alojado en un repositorio remoto (GitHub) de acceso publico asociado a la organización (https://github.com/Arquisoft[Arquisoft]).
+|===
+
+=== Convenciones del Equipo
+[cols="1,3" options="header"]
+|===
+| Tipo | Convención
+| Idioma | La documentación y el código fuente deben seguir las pautas de idioma establecidas previamente por el equipo (Documentación en Español y Codigo en Inglés).
+| Gestión de ramas | Se seguirá el flujo "Git Flow" simplificado: desarrollo en `develop`, `master` solo para entregas estables, y ramas adicionales para contextos variados como `documentacion`.
+| Revisión de código | Ningún Pull Request se fusionará sin la aprobación de al menos otro miembro del equipo.
+| Consistencia de actas | Se crearan las actas sobre los temas y decisiones correspondientes a los hablados durante las reuniones siguiendo la plantilla disponible en el repositorio online(https://github.com/Arquisoft/yovi_es5c/wiki/Plantilla[Plantilla]).
+|===
+
+=== Restricciones Políticas y Legales
+[cols="1,3" options="header"]
+|===
+| Denominación | Descripción breve
+| Normas académicas | El proyecto debe estar en línea con las políticas de la Universidad de Oviedo
+con respecto a plagio y honestidad académica.
+| Privacidad y Protección de Datos | Los datos de los usuarios registrados (aún siendo en un entorno de pruebas) deben ser protegidos y evitar ser expuestos, acorde a la Ley de Protección de Datos.
+|===

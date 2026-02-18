@@ -1,7 +1,7 @@
 ifndef::imagesdir[:imagesdir: ../images]
 
 [[section-concepts]]
-== Cross-cutting Concepts
+== Conceptos transversales
 
 
 ifdef::arc42help[]
@@ -57,18 +57,58 @@ See https://docs.arc42.org/section-8/[Concepts] in the arc42 documentation.
 ****
 endif::arc42help[]
 
-=== _<Concept 1>_
+=== Modelo de dominio
 
-_<explanation>_
+Los principales conceptos de dominio son:
 
+* Usuario: jugador registrado en el sistema.
+* Partida: instancia de una partida en entre dos jugadores.
+* Movimiento: acción realizada por un jugador en una casilla válida.
+* Estado de partida: representación del tablero en un instante dado.
+* Estrategia: algoritmo utilizado por el sistema para calcular el siguiente movimiento.
 
+El estado del juego se representa mediante la notación YEN, que permite serializar una partida en formato JSON.
+Esta notación es utilizada tanto en la comunicación entre servicios como en el API para bots, garantizando coherencia en todo el sistema.
 
-=== _<Concept 2>_
+=== Arquitectura y patrones de diseño
 
-_<explanation>_
+La arquitectura del sistema sigue una separación clara de responsabilidades entre los distintos bloques principales:
 
-...
+* Arquitectura basada en servicios: separación entre aplicación web, servicio de usuarios y servicio de juego.
+* Separación por capas: diferenciación entre capa de presentación, lógica de negocio y persistencia.
+* Patrón Strategy: utilizado en el motor del juego para implementar distintas estrategias y niveles de dificultad.
+* Arquitectura cliente-servidor: el frontend actúa como cliente y los servicios backend como servidores.
+* Comunicación REST: intercambio de información mediante HTTP y JSON entre los distintos servicios.
 
-=== _<Concept n>_
+Esta organización favorece la mantenibilidad, escalabilidad y testabilidad del sistema.
 
-_<explanation>_
+=== Persistencia de datos
+
+La persistencia del sistema se gestiona mediante MongoDB:
+
+* Usuarios: almacenamiento de credenciales y datos de perfil.
+* Estadísticas: registro de partidas jugadas, ganadas y perdidas.
+* Historial de partidas: almacenamiento de resultados relevantes.
+
+MongoDB utiliza un modelo orientado a documentos, lo que permite adaptarse fácilmente a cambios en la estructura de datos.
+La base de datos no se expone directamente al exterior y solo es accesible desde los servicios internos.
+
+=== Conceptos de desarrollo
+
+El desarrollo del sistema sigue prácticas modernas de ingeniería de software:
+
+* Integración continua: uso de GitHub Actions para ejecutar pruebas y análisis de calidad en cada Pull Request.
+* Control de versiones por ramas: uso de ramas master, develop y ramas de funcionalidad.
+* Revisión de código: todas las modificaciones se integran mediante Pull Requests revisadas por el equipo.
+* Testing multinivel: pruebas unitarias y de integración.
+* Uso de docker: uso de contenedores para asegurar entornos consistentes entre desarrollo y producción.
+
+=== Seguridad
+
+La seguridad es un aspecto transversal del sistema.
+
+* Almacenamiento seguro: las contraseñas se almacenan utilizando algoritmos seguros.
+* Validación de entradas: se verifican todos los datos recibidos para evitar ataques.
+* Control de acceso: los usuarios deben autenticarse para acceder a funcionalidades protegidas.
+* Protección frente a fuerza bruta: limitación de intentos de inicio de sesión.
+
