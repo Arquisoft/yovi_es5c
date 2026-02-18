@@ -57,19 +57,58 @@ See https://docs.arc42.org/section-8/[Concepts] in the arc42 documentation.
 ****
 endif::arc42help[]
 
-=== Experiencia de usuario 
+=== Modelo de dominio
 
-La aplicación deberá ser accesible tanto a jugadores nuevos como veteranos
-dando una buena impresión en todo momento. Será sencillo tanto registrarse como la forma de iniciar partidas. Dentro de una partida se mostrará claramente el jugador que posee el turno, se podrá deshacer movimientos antes de confirmarlos y se diferenciarán las piezas de los usuarios. Los usuarios podrán salir de una partida cuando lo deseen y podrán asignar atajos de teclado si quieren. En caso de que se implemente un chat este ocupará un espacio secundario dentro de la pantalla de forma que el tablero del juego sea siempre lo principal. Además, la aplicación buscará ser accesible consiguiendo un buen contraste de colores.
+Los principales conceptos de dominio son:
 
+* Usuario: jugador registrado en el sistema.
+* Partida: instancia de una partida en entre dos jugadores.
+* Movimiento: acción realizada por un jugador en una casilla válida.
+* Estado de partida: representación del tablero en un instante dado.
+* Estrategia: algoritmo utilizado por el sistema para calcular el siguiente movimiento.
 
+El estado del juego se representa mediante la notación YEN, que permite serializar una partida en formato JSON.
+Esta notación es utilizada tanto en la comunicación entre servicios como en el API para bots, garantizando coherencia en todo el sistema.
+
+=== Arquitectura y patrones de diseño
+
+La arquitectura del sistema sigue una separación clara de responsabilidades entre los distintos bloques principales:
+
+* Arquitectura basada en servicios: separación entre aplicación web, servicio de usuarios y servicio de juego.
+* Separación por capas: diferenciación entre capa de presentación, lógica de negocio y persistencia.
+* Patrón Strategy: utilizado en el motor del juego para implementar distintas estrategias y niveles de dificultad.
+* Arquitectura cliente-servidor: el frontend actúa como cliente y los servicios backend como servidores.
+* Comunicación REST: intercambio de información mediante HTTP y JSON entre los distintos servicios.
+
+Esta organización favorece la mantenibilidad, escalabilidad y testabilidad del sistema.
+
+=== Persistencia de datos
+
+La persistencia del sistema se gestiona mediante MongoDB:
+
+* Usuarios: almacenamiento de credenciales y datos de perfil.
+* Estadísticas: registro de partidas jugadas, ganadas y perdidas.
+* Historial de partidas: almacenamiento de resultados relevantes.
+
+MongoDB utiliza un modelo orientado a documentos, lo que permite adaptarse fácilmente a cambios en la estructura de datos.
+La base de datos no se expone directamente al exterior y solo es accesible desde los servicios internos.
+
+=== Conceptos de desarrollo
+
+El desarrollo del sistema sigue prácticas modernas de ingeniería de software:
+
+* Integración continua: uso de GitHub Actions para ejecutar pruebas y análisis de calidad en cada Pull Request.
+* Control de versiones por ramas: uso de ramas master, develop y ramas de funcionalidad.
+* Revisión de código: todas las modificaciones se integran mediante Pull Requests revisadas por el equipo.
+* Testing multinivel: pruebas unitarias y de integración.
+* Uso de docker: uso de contenedores para asegurar entornos consistentes entre desarrollo y producción.
 
 === Seguridad
 
-La aplicación almacenerá información que puede ser o no sensible de los usuarios, deberemos cifrar datos de los usuarios y protegernos contra ataques (inyección de SQL por ejemplo). Se tomarán medidas como por ejemplo no enumerar la existencia o no de usuarios a la hora de iniciar sesión o el no permiso de acceso al historial de partidas de otros usuarios sin su consentimiento. Además se pondrá un límite de intentos para iniciar sesión con el objetivo de evitar ataques de fuerza bruta contra los usuarios.
+La seguridad es un aspecto transversal del sistema.
 
-...
+* Almacenamiento seguro: las contraseñas se almacenan utilizando algoritmos seguros.
+* Validación de entradas: se verifican todos los datos recibidos para evitar ataques.
+* Control de acceso: los usuarios deben autenticarse para acceder a funcionalidades protegidas.
+* Protección frente a fuerza bruta: limitación de intentos de inicio de sesión.
 
-=== _<Concept n>_
-
-_<explanation>_
