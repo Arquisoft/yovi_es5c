@@ -3,7 +3,7 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-deployment-view]]
 
 
-== Deployment View
+== Vista de Despliegue 
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -60,21 +60,49 @@ For multiple environments or alternative deployments please copy and adapt this 
 ****
 endif::arc42help[]
 
-_**<Overview Diagram>**_
+_**Diagrama de Despliegue (resumen)**_
 
-Motivation::
+Se utiliza el diagrama de la sección "Contexto de negocio" para representar, a alto nivel, los contenedores Docker, la red interna, la base de datos y la pila de monitoreo. El diagrama muestra cómo los bloques de software (Gamey Server, Users Service, Web App) se despliegan en contenedores separados y cómo estos consumen servicios infraestructurales (MongoDB, red Docker, Prometheus, Grafana).
 
-_<explanation in text form>_
+Motivación::
 
-Quality and/or Performance Features::
+Una arquitectura basada en contenedores permite:
+* Aislar responsabilidades (lógica de juego, gestión de usuarios, interfaz web).
+* Facilitar despliegues y escalado independientes por servicio.
+* Simplificar integración de monitoring y gestión de logs.
+* Permitir replicación y orquestación en entornos distintos (desarrollo, staging, producción).
 
-_<explanation in text form>_
+.Características de Calidad y Rendimiento
+[cols="1,2", options="header"]
+|===
+| Característica | Descripción
 
-Mapping of Building Blocks to Infrastructure::
-_<description of the mapping>_
+| **Escalabilidad**
+| Escalado horizontal de servicios (réplicas de Gamey y Users) para soportar picos de carga.
+
+| **Alta Disponibilidad**
+| MongoDB configurado con persistencia en volúmenes para garantizar la persistencia de datos.
+
+| **Monitoreo y Diagnóstico**
+| Uso de Prometheus para la recolección de métricas (scrape targets) y Grafana para la visualización de alertas.
+
+| **Optimización de Red**
+| Redes Docker que proporcionan aislamiento y latencias bajas entre contenedores.
+
+| **Gestión de Recursos**
+| Definición de límites de CPU/memoria y controles de estado (readiness/healthchecks) para recuperación automática.
+
+| **Control de Despliegue**
+| Gestión de dependencias declaradas (ej. `depends_on`) para asegurar un orden de inicio correcto entre servicios.
+|===
+
+Para entornos:
+* Desarrollo: despliegue en un único host con contenedores o mediante npm sin replicado y datos locales.
+* Staging: configuración similar a producción pero con tamaños menores y datos de prueba.
+* Producción: orquestador con réplicas, balanceadores y políticas de actualización.
 
 
-=== Infrastructure Level 2
+=== Infraestructura Nivel 2
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -85,16 +113,85 @@ Please copy the structure from level 1 for each selected element.
 ****
 endif::arc42help[]
 
-==== _<Infrastructure Element 1>_
+=== Contexto de negocio
+[mermaid, "business-context", png]
+----
+---
+config:
+  layout: fixed
+---
+flowchart TB
+ subgraph Software["Bloques de Construcción"]
+        GameyServer["Gamey Server<br>"]
+        UsersService["Users Service<br>"]
+        WebApp["Web App<br>"]
+  end
+ subgraph Containers["Contenedores Docker"]
+        GameyContainer["Puerto 4000"]
+        UsersContainer["Puerto 3000"]
+        WebAppContainer["Puerto 80"]
+        MongoDB["MongoDB<br>Puerto 27017"]
+  end
+ subgraph Monitoring["Monitoreo"]
+        PrometheusContainer["Contenedor prometheus<br>Puerto 9090"]
+        GrafanaContainer["Contenedor grafana<br>Puerto 9091"]
+  end
+ subgraph Infrastructure["Elementos de Infraestructura"]
+        DockerNet["Docker<br>"]
+        Containers
+        Monitoring
+  end
+    GameyServer --> GameyContainer
+    WebApp --> WebAppContainer
+    GameyContainer --> DockerNet
+    UsersContainer --> DockerNet
+    WebAppContainer --> DockerNet
+    PrometheusContainer --> DockerNet
+    GrafanaContainer --> DockerNet
+    MongoDB --> DockerNet
+    WebAppContainer -- depends_on --> UsersContainer
+    UsersService --> UsersContainer
+    UsersContainer -- uses --> MongoDB
 
-_<diagram + explanation>_
+     GameyServer:::software
+     UsersService:::software
+     WebApp:::software
+     GameyContainer:::container
+     UsersContainer:::container
+     WebAppContainer:::container
+     PrometheusContainer:::monitoring
+     GrafanaContainer:::monitoring
+     DockerNet:::network
+     MongoDB:::database
+    classDef software fill:#e1f5ff,stroke:#01579b,stroke-width:2px,color:#000
+    classDef container fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef monitoring fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
+    classDef database fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef network fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+----
 
-==== _<Infrastructure Element 2>_
+==== _Contenedores_
 
-_<diagram + explanation>_
+Este grupo representa los servicios principales de la aplicación que se ejecutan dentro del entorno de Docker. Se dividen en tres servicios:
 
-...
+* **Puerto 4000 (Gamey)**: Este servicio es el núcleo de la aplicación, encargado de gestionar la lógica del juego y las interacciones entre los jugadores.
 
-==== _<Infrastructure Element n>_
+* **Puerto 3000 (Users)**: Es el encargado de la gestión de usuarios. Conexión directa a MongoDB.
 
-_<diagram + explanation>_
+* **Puerto 80 (WebApp)**: Es el punto de entrada web. Existe una relación directa entre este contenedor y el de Users, ya que depende de la gestión de usuarios para autenticar y autorizar a los jugadores.
+
+* **Puerto 27017 (MongoDB)**: Es la base de datos de la aplicación. Esta interrelacionado con casi todos los conteneder ya que necesita almacenar y proveer de tanto los datos de identificación de los usuarios como de los resultados de sus partidas y sus estadísticas. Cuenta con un volumen persistente para trasladar datos en caso de ser necesario.
+
+==== _Monitoreo_
+
+Este grupo incluye los servicios relacionados con el monitoreo y la gestión de la infraestructura. Se compone de dos servicios:
+
+* **Puerto 9090 (Prometheus)**: Responsable de recopilar métricas y datos de los otros contenedores y del entorno Docker.
+
+* **Puerto 3001 (Grafana)**: Se utiliza para la visualización de datos conectandose a Prometheus para mostrar las métricas recopiladas en paneles gráficos.
+
+==== _Docker_
+
+Actúa como el entorno de ejecución controla la visibilidad y las listas de control de acceso (ACL) para los contenedores de aplicación y monitoreo.
+
+
