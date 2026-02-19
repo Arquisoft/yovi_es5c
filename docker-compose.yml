@@ -3,6 +3,8 @@ services:
     build: ./users
     container_name: users
     image: ghcr.io/arquisoft/yovi_es5c-users:latest
+    depends_on:
+      - mongodb
     ports:
       - "3000:3000"
     networks:
@@ -16,7 +18,8 @@ services:
     build:
       context: ./webapp
       args:
-        - VITE_API_URL=http://localhost:3000
+        - VITE_API_URL=http://users:3000
+        - VITE_GAMEY_URL=http://gamey:4000
     container_name: webapp
     image: ghcr.io/arquisoft/yovi_es5c-webapp:latest
     ports:

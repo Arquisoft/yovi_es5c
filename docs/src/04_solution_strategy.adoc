@@ -1,7 +1,7 @@
 ifndef::imagesdir[:imagesdir: ../images]
 
 [[section-solution-strategy]]
-== Solution Strategy
+== Estrategia de solución
 
 
 ifdef::arc42help[]
@@ -32,3 +32,47 @@ See https://docs.arc42.org/section-4/[Solution Strategy] in the arc42 documentat
 
 ****
 endif::arc42help[]
+
+=== Decisiones tecnológicas
+
+* Backend: 
+** [.underline]#NodeJS + Express#: Debido a su popularidad, facilidad de uso y amplia comunidad, lo que facilita el desarrollo rápido y la integración con otras tecnologías.
+** [.underline]#Rust#: Para el desarrollo del juego, debido a su alto rendimiento, capacidad para manejar tareas concurrentes, lo que es esencial para una experiencia de juego fluida.
+
+* Frontend:
+** [.underline]#Vite#: Por su velocidad de arranque, y hot-reload instantáneo, permitiendo un desarrollo rápido y eficiente.
+** [.underline]#React:# Por su facilidad de uso, modularidad y amplia comunidad y capacidad de crear interfaces de usuario dinámicas y responsivas.
+
+* Base de datos:
+** [.underline]#MongoDB:# Debido a su flexibilidad para manejar datos no estructurados, lo que es ideal para almacenar información de usuarios, partidas y estadísticas de juego.
+
+* [.underline]#Github:# Lo hemos elegido como plataforma de control de versiones al estar mas familiarizados con él, y su capacidad para gestionar proyectos de software.
+
+* [.underline]#Docker:# Por su capacidad para crear, desplegar y ejecutar aplicaciones en contenedores de manera intuituva.
+
+* [.underline]#Azure:# Debido a que ya estabamos habituados a su uso, su accesibilidad mediante una IP pública y la facilidad de apertura de puertos.
+
+=== Descomposición de alto nivel
+
+La solución se basará en una arquitectura de servicios desacoplados, por un lado contamos con un módulo centrado en el rendimiento que gestionará la lógica del juego, escrito en Rust, e independiente a este trabajaremos con la gestión de usuarios y API en módulos TypeScript, buscando la agilidad de desarrollo web. La cohesión del sistema se hará por medio del estándar YEN sobre protocolos HTTP/JSON. Se tendrá también en cuenta la relevancia del despliegue continuo acompañado de diversos tipos de pruebas que garanticen la calidad y mantenibilidad del código.
+
+=== Decisiones para alcanzar objetivos de calidad
+
+En vistas a garantizar los atributos de calidad requeridos en cualquier sistema moderno, se toman las siguientes decisiones, asociadas a metas u objetivos específicos:
+
+
+* *Mantenibilidad y Desacoplamiento*: Se adopta una separación clara de responsabilidades mediante servicios independientes. Al utilizar JSON y la notación YEN como único contrato de comunicación, es posible modificar la interfaz web o el motor de IA de forma aislada sin afectar al otro componente, facilitando la evolución del código.
+
+* *Escalabilidad y Flexibilidad de Datos*: La elección de MongoDB permite una escalabilidad horizontal sencilla y una gestión de datos flexible. Esto asegura que el sistema pueda crecer en volumen de usuarios y tipos de juegos sin necesidad de complejas migraciones de esquemas que comprometan la disponibilidad del servicio.
+
+* *Portabilidad y Despliegue:* El uso de contenedores Docker garantiza que el sistema se comporte de manera idéntica en el entorno de desarrollo de los estudiantes, en los servidores de la universidad y en la web final, eliminando el problema de "en mi máquina funciona".
+
+* *Documentación:* Apostar por una documentación formalizada en Arc42, que refleje con claridad y concisión las decisiones tanto técnicas como organizativas tomadas ayudará a comprender mejor cómo ha sido el proceso de desarrollo, lo que facilita el mantenimiento y uso del proyecto a otros desarrolladores.
+
+=== Deciciones organizativas relevantes
+
+Cada tarea o incidencia se registrará como un Issue en GitHub, y se utilizará GitHub Projects para mantener organizada la gestión de las tareas. No habrá una separación estricta entre front-end y back-end, permitiendo que todos los miembros trabajen en ambas áreas. Para cada tarea se creará una rama específica y, una vez finalizada, los cambios se integrarán en la rama develop mediante pull requests. Cuando la funcionalidad esté completamente probada, se fusionará la rama develop con master, garantizando un flujo de desarrollo ordenado y controlado.
+
+Por otro lado, se realizará mínimo una reunión semanal para revisar el avance del proyecto. Sin embargo, adicionalmente, se realizarán las reuniones que sean necesarias para resolver dudas o problemas que puedan surgir durante el desarrollo.
+
+
