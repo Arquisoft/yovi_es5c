@@ -3,8 +3,6 @@ services:
     build: ./users
     container_name: users
     image: ghcr.io/arquisoft/yovi_es5c-users:latest
-    depends_on:
-      - mongodb
     ports:
       - "3000:3000"
     networks:
