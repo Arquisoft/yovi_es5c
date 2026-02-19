@@ -3,10 +3,14 @@ services:
     build: ./users
     container_name: users
     image: ghcr.io/arquisoft/yovi_es5c-users:latest
+    depends_on:
+      - mongodb
     ports:
       - "3000:3000"
     networks:
       - monitor-net
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/userdb
 
   webapp:
     build:
