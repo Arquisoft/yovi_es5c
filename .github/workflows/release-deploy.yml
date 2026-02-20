@@ -15,6 +15,11 @@ jobs:
   test-node:
     name: Run node unit tests
     runs-on: ubuntu-latest
+    services: 
+      mongodb:
+        image: mongo
+        ports:
+          - 27017:27017
     strategy:
       matrix:
         service: [webapp, users]
@@ -158,6 +163,6 @@ jobs:
           user: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
           command: |
-            wget https://raw.githubusercontent.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/develop/docker-compose.yml -O docker-compose.yml
+            wget https://raw.githubusercontent.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/mongodb_clau2/docker-compose.yml -O docker-compose.yml
             docker compose down
             docker compose up -d --pull always

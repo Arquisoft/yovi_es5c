@@ -5,6 +5,9 @@ const swaggerUi = require('swagger-ui-express');
 const fs = require('node:fs');
 const YAML = require('js-yaml');
 const promBundle = require('express-prom-bundle');
+const mongoose = require('mongoose');
+
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/userdb';
 
 const metricsMiddleware = promBundle({includeMethod: true});
 app.use(metricsMiddleware);
@@ -25,25 +28,42 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
+// Mongoose user model
+const userSchema = new mongoose.Schema({
+  username: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+const User = mongoose.model('User', userSchema);
 
 app.post('/createuser', async (req, res) => {
   const username = req.body && req.body.username;
+  if (!username || !String(username).trim()) return res.status(400).json({ error: 'username is required' });
   try {
-    // Simulate a 1 second delay to mimic processing/network latency
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    const message = `Hello ${username}! welcome to the course!`;
-    res.json({ message });
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const user = new User({ username: String(username).trim() });
+    const saved = await user.save();
+    res.json({ message: `User created: ${saved.username}`, id: saved._id });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error('Error creating user:', err);
+    res.status(500).json({ error: err.message || 'failed to create user' });
   }
 });
 
-
 if (require.main === module) {
-  app.listen(port, () => {
-    console.log(`User Service listening at http://localhost:${port}`)
-  })
+  mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => {
+      console.log('Connected to MongoDB');
+      app.listen(port, () => {
+        console.log(`User Service listening at http://localhost:${port}`)
+      })
+    })
+    .catch((err) => {
+      console.error('MongoDB connection error:', err);
+      console.log('Starting server without DB connection (endpoints will fail on DB ops)');
+      app.listen(port, () => {
+        console.log(`User Service listening at http://localhost:${port}`)
+      })
+    })
 }
 
 module.exports = app

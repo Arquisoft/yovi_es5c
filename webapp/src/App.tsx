@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import './App.css'
+import RegisterForm from './RegisterForm'
 
 const API_URL = import.meta.env.VITE_GAMEY_URL || "http://localhost:4000";
 
@@ -28,7 +29,7 @@ function App() {
       <h2>Welcome to the Software Architecture 2025-2026 course</h2>
       <h2>GameY coming soon</h2>
       <h3>Rust Server status: {status}</h3>
-
+      <RegisterForm />
     </div>
   );
 }
