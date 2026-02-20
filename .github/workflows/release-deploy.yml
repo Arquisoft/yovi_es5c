@@ -15,6 +15,11 @@ jobs:
   test-node:
     name: Run node unit tests
     runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
     strategy:
       matrix:
         service: [webapp, users]
