@@ -119,17 +119,15 @@ jobs:
       - name: Publish to Registry (webapp)
         uses: elgohr/Publish-Docker-Github-Action@v5
         env:
-          VITE_API_URL: http://${{ secrets.DEPLOY_HOST }}:3000
-          VITE_GAMEY_URL: http://${{ secrets.DEPLOY_HOST }}:4000
+          VITE_API_URL: http://${{ secrets.DEPLOY_HOST }}:8000
         with:
           name: ${{ github.repository_owner }}/${{ github.event.repository.name }}-webapp
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: ghcr.io
           workdir: webapp
-          buildargs: | 
-                     VITE_API_URL
-                     VITE_GAMEY_URL
+          buildargs: VITE_API_URL
+
   docker-push-gamey:
     name: Publish gamey image
     runs-on: ubuntu-latest
