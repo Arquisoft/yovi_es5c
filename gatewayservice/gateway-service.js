@@ -7,6 +7,8 @@ const rateLimit = require('express-rate-limit')
 const port = process.env.PORT || 8000
 
 const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3000';
+const gameyServiceUrl = process.env.GAMEY_SERVICE_URL || 'http://localhost:4000';
+
 
 const app = express()
 app.use(helmet())
