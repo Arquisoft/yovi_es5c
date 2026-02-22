@@ -7,14 +7,13 @@ ifndef::imagesdir[:imagesdir: ../images]
 [mermaid, "business-context", png]
 ----
 flowchart LR
-    Jugador["Jugador"] -- Datos inicio sesión --> YOVI(("YOVI"))
-    Jugador -- Acciones de juego --> YOVI
-    Bot["Bot Externo"] -- Movimientos via API --> YOVI
+    Jugador["Jugador"] ----> YOVI(("YOVI"))
     
-    YOVI -- Acceso permitido/denegado --> Jugador
-    YOVI -- Estado del juego --> Jugador
-    YOVI -- Resultado partida --> Jugador
-    YOVI -- Estado partida via API --> Bot
+    Bot["Bot Externo"] ----> YOVI
+    
+    YOVI ----> Jugador
+
+    YOVI ----> Bot
 ----
 
 [cols="1,3"]
