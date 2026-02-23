@@ -42,8 +42,8 @@ const RegisterForm = () => {
     }));
 
     if (name === "username") setUsernameError(null);
-    if (name === "email") setEmailError(null);
     if (name === "surname") setSurnameError(null);
+    if (name === "email") setEmailError(null);
     if (name === "password") setPasswordError(null);
     if (name === "confirmPassword") setConfirmPasswordError(null);
   };
@@ -99,6 +99,20 @@ const RegisterForm = () => {
             helperText={usernameError || ""}
           />
         </Grid>
+        
+        {/* Surname */}
+        <Grid size={12}>
+          <TextField
+            required
+            fullWidth
+            label="Surname"
+            name="surname"
+            value={formData.surname}
+            onChange={handleChange}
+            error={!!surnameError}
+            helperText={surnameError || ""}
+          />
+        </Grid>
 
         {/* Email */}
         <Grid size={12}>
@@ -112,20 +126,6 @@ const RegisterForm = () => {
             onChange={handleChange}
             error={!!emailError}
             helperText={emailError || ""}
-          />
-        </Grid>
-
-        {/* Surname */}
-        <Grid size={12}>
-          <TextField
-            required
-            fullWidth
-            label="Surname"
-            name="surname"
-            value={formData.surname}
-            onChange={handleChange}
-            error={!!surnameError}
-            helperText={surnameError || ""}
           />
         </Grid>
 
