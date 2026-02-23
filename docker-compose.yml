@@ -7,6 +7,10 @@ services:
       - "3000:3000"
     networks:
       - monitor-net
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/userdb
+    depends_on:
+      - mongodb
 
   gatewayservice:
     build: ./gatewayservice
@@ -66,6 +70,19 @@ services:
     networks:
       - monitor-net
 
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - monitor-net
+
 networks:
   monitor-net:
     driver: bridge
+
+volumes:
+  mongodb_data:

@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const app = express();
 const port = 3000;
 const swaggerUi = require('swagger-ui-express');
@@ -7,6 +8,17 @@ const YAML = require('js-yaml');
 const promBundle = require('express-prom-bundle');
 const bcrypt = require('bcrypt');
 const User = require('./model/user-model');
+
+// Temporal: Conexión a MongoDB usando la variable de entorno del docker-compose
+const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/userdb';
+mongoose.connect(mongoUri);
+
+// Temporal: Definición del esquema de usuario
+const UserSchema = new mongoose.Schema({
+  username: String,
+  createdAt: { type: Date, default: Date.now }
+});
+const User = mongoose.model('User', UserSchema);
 
 const metricsMiddleware = promBundle({includeMethod: true});
 app.use(metricsMiddleware);
