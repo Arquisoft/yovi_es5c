@@ -9,7 +9,7 @@ const port = process.env.PORT || 8000
 const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3000';
 const gameyServiceUrl = process.env.GAMEY_SERVICE_URL || 'http://localhost:4000';
 
-
+const axios = require('axios');
 const app = express()
 app.use(helmet())
 app.use(cors())
@@ -19,23 +19,30 @@ app.use(morgan('combined'))
 const limiter = rateLimit({ windowMs: 60 * 1000, max: 100 })
 app.use(limiter)
 
+const handleErrors = (res, error) => {
+  if (error.response && error.response.status) {
+    res.status(error.response.status).json({ error: error.response.data.error });
+  } else if (error.message) {
+    res.status(500).json({ error: error.message });
+  } else {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
 // Health
 app.get('/health', (req, res) => res.json({ ok: true, service: 'gateway' }))
 
-// Direct endpoint proxy example for legacy routes
-app.post('/createuser', createProxyMiddleware({
-  target: userServiceUrl,
-  changeOrigin: true,
-  pathRewrite: { '^/createuser': '/createuser' },
-  onProxyReq: (proxyReq, req) => {
-    if (req.body && Object.keys(req.body).length) {
-      const bodyData = JSON.stringify(req.body)
-      proxyReq.setHeader('Content-Type', 'application/json')
-      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData))
-      proxyReq.write(bodyData)
-    }
-  }
-}))
+// ----- User Service Endpoints -----
 
+// Register a new user
+app.post('/user', async (req, res) => {
+  try {
+    const userUrl = new URL(`/user/`, userServiceUrl);
+    const userResponse = await axios.post(userUrl.href, req.body);
+    res.json(userResponse.data);
+  } catch (error) {
+    handleErrors(res, error);
+  }
+});
 
 app.listen(port, () => console.log(`Gateway listening on ${port}`))
