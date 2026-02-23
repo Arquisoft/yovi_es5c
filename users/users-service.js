@@ -5,6 +5,8 @@ const swaggerUi = require('swagger-ui-express');
 const fs = require('node:fs');
 const YAML = require('js-yaml');
 const promBundle = require('express-prom-bundle');
+const bcrypt = require('bcrypt');
+const User = require('./model/user-model');
 
 const metricsMiddleware = promBundle({includeMethod: true});
 app.use(metricsMiddleware);
@@ -53,7 +55,7 @@ app.post('/user', async (req, res) => {
             surname: req.body.surname,
         });
 
-        await newUser.save().select('-password'); 
+        await newUser.save(); 
         res.json(newUser);
     } catch (error) {
         res.status(400).json({ error: error.message }); 

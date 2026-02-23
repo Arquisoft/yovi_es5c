@@ -8,16 +8,18 @@ import {
 } from "@mui/material";
 
 interface FormData {
-  name: string;
+  username: string;
   email: string;
+  surname: string;
   password: string;
   confirmPassword: string;
 }
 
 const RegisterForm = () => {
   const [formData, setFormData] = useState<FormData>({
-    name: "",
+    username: "",
     email: "",
+    surname: "",
     password: "",
     confirmPassword: "",
   });
@@ -25,32 +27,25 @@ const RegisterForm = () => {
   const [error, setError] = useState<string | null>(null);
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
+  const [surnameError, setSurnameError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
-  
-  //ELIMINAR AL UNIR CON BACKEND
-  const existingUsers = ["admin", "testuser", "maria"];
-
-  const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_-])[A-Za-z\d@$!%*?&.#_-]{8,}$/;
-
-  const isPasswordValid = passwordRegex.test(formData.password); 
-
-  const isConfirmPasswordValid =
-    formData.confirmPassword === "" || formData.confirmPassword === formData.password;
+  const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
 
-    // Limpiar errores cuando el usuario escribe
-    if (e.target.name === "name") setUsernameError(null);
-    if (e.target.name === "email") setEmailError(null);
-    if (e.target.name === "password") setPasswordError(null);
-    
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    if (name === "username") setUsernameError(null);
+    if (name === "email") setEmailError(null);
+    if (name === "surname") setSurnameError(null);
+    if (name === "password") setPasswordError(null);
+    if (name === "confirmPassword") setConfirmPasswordError(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -58,72 +53,54 @@ const RegisterForm = () => {
 
     let hasError = false;
 
-    // Validar campos vacíos y formato básico
-    if (formData.name.trim() === "") {
-      setUsernameError("Campo obligatorio");
+    if (!formData.username.trim()) {
+      setUsernameError("Required field");
       hasError = true;
     }
 
-    // Validar email
-    const trimmedEmail = formData.email.trim();
-    if (trimmedEmail === "") {
-        setEmailError("Campo obligatorio");
-        hasError = true;
-    } else if (!trimmedEmail.includes("@")) {
-        setEmailError("Email inválido");
-        hasError = true;
-    }
-
-    if (formData.password.trim() === "") {
-      setPasswordError("Campo obligatorio");
+    if (!formData.email.trim()) {
+      setEmailError("Required field");
       hasError = true;
     }
 
+    if (!formData.surname.trim()) {
+      setSurnameError("Required field");
+      hasError = true;
+    }
+
+    if (!formData.password.trim()) {
+      setPasswordError("Required field");
+      hasError = true;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setConfirmPasswordError("Passwords do not match");
+      hasError = true;
+    }
 
     if (hasError) return;
 
-    //ELIMINAR AL UNIR CON BACKEND
-    // Validar usuario duplicado
-    if (existingUsers.includes(formData.name.toLowerCase())) {
-      setUsernameError("El nombre de usuario ya está en uso");
-      setFormData({ ...formData, name: "" });
-      return;
-    }
-
-    // Validar contraseña fuerte
-    if (!isPasswordValid) {
-      setError(
-        "La contraseña debe tener mínimo 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial"
-      );
-      return;
-    }
-
-    // Validar que coincidan
-    if (!isConfirmPasswordValid) {
-      setError("Las contraseñas no coinciden");
-      return;
-    }
-
-    setError(null);
-    console.log("Usuario registrado:", formData);
+    console.log("Send to backend:", formData);
   };
 
   return (
     <Box component="form" onSubmit={handleSubmit} noValidate>
       <Grid container spacing={2}>
+        {/* Username */}
         <Grid size={12}>
           <TextField
             required
             fullWidth
-            label="Nombre"
-            name="name"
-            value={formData.name}
+            label="Username"
+            name="username"
+            value={formData.username}
             onChange={handleChange}
             error={!!usernameError}
             helperText={usernameError || ""}
           />
         </Grid>
 
+        {/* Email */}
         <Grid size={12}>
           <TextField
             required
@@ -138,40 +115,47 @@ const RegisterForm = () => {
           />
         </Grid>
 
+        {/* Surname */}
         <Grid size={12}>
           <TextField
             required
             fullWidth
-            label="Contraseña"
+            label="Surname"
+            name="surname"
+            value={formData.surname}
+            onChange={handleChange}
+            error={!!surnameError}
+            helperText={surnameError || ""}
+          />
+        </Grid>
+
+        {/* Password */}
+        <Grid size={12}>
+          <TextField
+            required
+            fullWidth
+            label="Password"
             name="password"
             type="password"
             value={formData.password}
             onChange={handleChange}
-            error={!!passwordError || (formData.password !== "" && !isPasswordValid)}
-            helperText={
-              passwordError
-                ? passwordError
-                : formData.password !== "" && !isPasswordValid
-                ? "Debe tener 8 caracteres, mayúscula, minúscula, número y símbolo"
-                : ""
-            }
+            error={!!passwordError}
+            helperText={passwordError || ""}
           />
         </Grid>
 
+        {/* Confirm Password */}
         <Grid size={12}>
           <TextField
             required
             fullWidth
-            label="Confirmar Contraseña"
+            label="Confirm Password"
             name="confirmPassword"
             type="password"
             value={formData.confirmPassword}
             onChange={handleChange}
-            error={ !isConfirmPasswordValid}
-            helperText={ !isConfirmPasswordValid
-                ? "Las contraseñas no coinciden"
-                : ""
-            }
+            error={!!confirmPasswordError}
+            helperText={confirmPasswordError || ""}
           />
         </Grid>
       </Grid>
@@ -188,7 +172,7 @@ const RegisterForm = () => {
         variant="contained"
         sx={{ mt: 3 }}
       >
-        Registrarse
+        Register
       </Button>
     </Box>
   );

@@ -37,7 +37,7 @@ app.get('/health', (req, res) => res.json({ ok: true, service: 'gateway' }))
 // Register a new user
 app.post('/user', async (req, res) => {
   try {
-    const userUrl = new URL(`/user/`, userServiceUrl);
+    const userUrl = new URL(`/user`, userServiceUrl);
     const userResponse = await axios.post(userUrl.href, req.body);
     res.json(userResponse.data);
   } catch (error) {
