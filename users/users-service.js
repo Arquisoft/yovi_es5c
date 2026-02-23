@@ -13,13 +13,6 @@ const User = require('./model/user-model');
 const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/userdb';
 mongoose.connect(mongoUri);
 
-// Temporal: Definición del esquema de usuario
-const UserSchema = new mongoose.Schema({
-  username: String,
-  createdAt: { type: Date, default: Date.now }
-});
-const User = mongoose.model('User', UserSchema);
-
 const metricsMiddleware = promBundle({includeMethod: true});
 app.use(metricsMiddleware);
 
