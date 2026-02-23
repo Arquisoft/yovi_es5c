@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 600 520"
+   version="1.1"
+   id="svg17"
+   sodipodi:docname="logo.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs17" />
+  <sodipodi:namedview
+     id="namedview17"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     showgrid="false"
+     inkscape:zoom="1.5057692"
+     inkscape:cx="299.51469"
+     inkscape:cy="313.12899"
+     inkscape:window-width="1920"
+     inkscape:window-height="1001"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg17" />
+  <rect
+     width="100%"
+     height="100%"
+     fill="#d9d9d9"
+     id="rect1" />
+  <polygon
+     points="300,40 60,460 540,460"
+     fill="#777"
+     stroke="black"
+     stroke-width="6"
+     id="polygon1"
+     style="fill:#24221c" />
+  <polygon
+     points="300,80 110,430 490,430"
+     fill="white"
+     stroke="black"
+     stroke-width="4"
+     id="polygon2"
+     style="fill:#f9f9f9" />
+  <g
+     stroke="#000000"
+     stroke-width="1"
+     fill="#ffffff"
+     id="g17"
+     transform="translate(5.3128991,-5.9770115)">
+    <polygon
+       points="300,180 280,170 280,150 300,140 320,150 320,170 "
+       id="polygon3"
+       transform="translate(-2.6564496,-3.9846747)"
+       style="fill:#ff0000" />
+    <polygon
+       points="300,140 320,150 320,170 300,180 280,170 280,150 "
+       id="polygon23"
+       transform="translate(36.526182,57.777771)"
+       style="fill:#0000ff" />
+    <polygon
+       points="280,150 300,140 320,150 320,170 300,180 280,170 "
+       id="polygon18"
+       transform="translate(14.610472,197.90549)"
+       style="fill:#ff0000" />
+    <polygon
+       points="290,220 270,230 250,220 250,200 270,190 290,200 "
+       id="polygon4"
+       transform="translate(5.9770115,-23.908046)"
+       style="fill:#0000ff" />
+    <polygon
+       points="280,150 300,140 320,150 320,170 300,180 280,170 "
+       id="polygon20"
+       transform="translate(-67.075351,199.23371)"
+       style="fill:#ff0000" />
+    <polygon
+       points="270,230 250,220 250,200 270,190 290,200 290,220 "
+       id="polygon21"
+       transform="translate(-14.610473,6.6411239)"
+       style="fill:#0000ff" />
+    <polygon
+       points="250,220 250,200 270,190 290,200 290,220 270,230 "
+       id="polygon22"
+       transform="translate(25.900383,6.6411239)"
+       style="fill:#ff0000" />
+    <polygon
+       points="350,220 330,230 310,220 310,200 330,190 350,200 "
+       id="polygon5"
+       transform="translate(-13.282248,-23.243934)"
+       style="fill:#0000ff" />
+    <polygon
+       points="380,270 360,280 340,270 340,250 360,240 380,250 "
+       id="polygon8"
+       transform="translate(-67.075351,128.17369)"
+       style="fill:#0000ff" />
+    <polygon
+       points="280,170 280,150 300,140 320,150 320,170 300,180 "
+       id="polygon19"
+       transform="translate(-26.564496,197.90549)"
+       style="fill:#0000ff" />
+    <polygon
+       points="210,330 190,320 190,300 210,290 230,300 230,320 "
+       id="polygon9"
+       transform="translate(-17.931034,49.144317)"
+       style="fill:#ff0000" />
+    <polygon
+       points="350,320 330,330 310,320 310,300 330,290 350,300 "
+       id="polygon11"
+       transform="translate(-77.701149,78.365262)"
+       style="fill:#0000ff" />
+    <polygon
+       points="410,320 390,330 370,320 370,300 390,290 410,300 "
+       id="polygon12"
+       transform="translate(-35.197957,48.480204)"
+       style="fill:#0000ff" />
+    <polygon
+       points="200,370 180,380 160,370 160,350 180,340 200,350 "
+       id="polygon13"
+       transform="translate(-9.2975734,28.556833)"
+       style="fill:#ff0000" />
+    <polygon
+       points="260,370 240,380 220,370 220,350 240,340 260,350 "
+       id="polygon14"
+       transform="translate(-28.556833,28.556833)"
+       style="fill:#0000ff" />
+    <polygon
+       points="320,350 320,370 300,380 280,370 280,350 300,340 "
+       id="polygon15"
+       transform="matrix(0.96717912,0,0,1.0004312,104.81434,-0.15521744)"
+       style="fill:#ff0000" />
+    <polygon
+       points="360,380 340,370 340,350 360,340 380,350 380,370 "
+       id="polygon16"
+       transform="translate(13.94636,28.556833)"
+       style="fill:#ff0000" />
+    <polygon
+       points="420,380 400,370 400,350 420,340 440,350 440,370 "
+       id="polygon17"
+       transform="translate(-5.9770115,28.556832)"
+       style="fill:#0000ff" />
+    <polygon
+       points="290,320 270,330 250,320 250,300 270,290 290,300 "
+       id="polygon10"
+       transform="translate(63.754789,78.365262)"
+       style="fill:#ff0000" />
+    <polygon
+       points="400,350 420,340 440,350 440,370 420,380 400,370 "
+       id="polygon24"
+       transform="translate(-207.20307,-31.213283)"
+       style="fill:#0000ff" />
+    <polygon
+       points="210,290 230,300 230,320 210,330 190,320 190,300 "
+       id="polygon25"
+       transform="translate(43.831419,18.595147)"
+       style="fill:#ff0000" />
+    <polygon
+       points="230,300 230,320 210,330 190,320 190,300 210,290 "
+       id="polygon26"
+       transform="translate(166.0281,19.259259)"
+       style="fill:#ff0000" />
+    <polygon
+       points="440,370 420,380 400,370 400,350 420,340 440,350 "
+       id="polygon27"
+       transform="translate(-126.18136,-31.877395)"
+       style="fill:#0000ff" />
+    <polygon
+       points="440,350 440,370 420,380 400,370 400,350 420,340 "
+       id="polygon28"
+       transform="translate(-85.006387,-31.213282)"
+       style="fill:#0000ff" />
+  </g>
+  <text
+     x="303.98468"
+     y="292.03064"
+     font-size="70px"
+     font-family="Arial"
+     font-weight="bold"
+     text-anchor="middle"
+     fill="#000000"
+     id="text17">YOVI</text>
+</svg>
