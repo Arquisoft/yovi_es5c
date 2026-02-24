@@ -22,7 +22,7 @@ jobs:
           - 27017:27017
     strategy:
       matrix:
-        service: [webapp, users, gateway-service]
+        service: [webapp, users]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
