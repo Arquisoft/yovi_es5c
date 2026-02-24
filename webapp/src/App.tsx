@@ -7,11 +7,9 @@ function App() {
    
   return (
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh',gap: '0vh' }}>
-        
-        <Routes>
-          <Route path="/register" element={<Register />} />
-        </Routes>
-        
+          <Routes>
+            <Route path="/register" element={<Register />} />
+          </Routes>
       </Box>
   )
 }
