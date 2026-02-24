@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
-const RegisterForm: React.FC = () => {
+
+const RegisterForm = ({ onRegistered }: { onRegistered?: (username: string) => void }) => {
   const [username, setUsername] = useState('');
   const [responseMessage, setResponseMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -30,12 +31,19 @@ const RegisterForm: React.FC = () => {
       const data = await res.json();
       if (res.ok) {
         setResponseMessage(data.message);
+        if (onRegistered) {
+          onRegistered(username);
+        }
         setUsername('');
       } else {
         setError(data.error || 'Server error');
       }
-    } catch (err: any) {
-      setError(err.message || 'Network error');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || 'Network error');
+      } else {
+        setError('Network error');
+      }
     } finally {
       setLoading(false);
     }
