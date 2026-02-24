@@ -13,8 +13,9 @@ mongoose.connect(mongoUri);
 
 // Temporal: Definición del esquema de usuario
 const UserSchema = new mongoose.Schema({
-  username: String,
-  createdAt: { type: Date, default: Date.now }
+  username: { type: String, required: true, unique: true },
+  createdAt: { type: Date, default: Date.now },
+  lastLogoutAt: { type: Date, default: null }
 });
 const User = mongoose.model('User', UserSchema);
 
@@ -41,17 +42,37 @@ app.use(express.json());
 app.post('/createuser', async (req, res) => {
   try {
     const { username } = req.body;
-    
-    // Temporal: Lógica para guardar en Mongo
+    if (!username) return res.status(400).json({ error: 'username is required' });
+
+    const existing = await User.findOne({ username });
+    if (existing) {
+      return res.status(409).json({ error: `User ${username} already exists`, user: existing });
+    }
+
     const newUser = new User({ username });
     await newUser.save();
-
     res.json({ message: `User ${username} created successfully in MongoDB`, user: newUser });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
+app.post('/logout', async (req, res) => {
+  try {
+    const { username } = req.body;
+    if (!username) return res.status(400).json({ error: 'username is required' });
+
+    const user = await User.findOne({ username });
+    if (!user) return res.status(404).json({ error: `User ${username} not found` });
+
+    user.lastLogoutAt = new Date();
+    await user.save();
+
+    res.json({ message: `User ${username} logged out`, user });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 
 if (require.main === module) {
   app.listen(port, () => {
