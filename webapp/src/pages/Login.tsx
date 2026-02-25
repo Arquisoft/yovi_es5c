@@ -2,12 +2,43 @@ import { Box, Paper, Typography, TextField, Button, Link as MuiLink, Container }
 import { Link } from "react-router-dom";
 
 const Login = () => {
+  const accentColor = "#4fc3f7"; 
+
+  const darkGlassInputStyle = {
+    '& .MuiOutlinedInput-root': {
+      backgroundColor: 'rgba(0, 0, 0, 0.2)', // Fondo para los input
+      backdropFilter: 'blur(8px)',
+      WebkitBackdropFilter: 'blur(8px)',
+      borderRadius: '12px',
+      color: '#ffffff', // Color para el texto escrito
+      '& fieldset': {
+        borderColor: 'rgba(255, 255, 255, 0.2)', // Borde blanco muy sutil
+      },
+      '&:hover fieldset': {
+        borderColor: 'rgba(255, 255, 255, 0.5)', // Borde un poco más visible al pasar el ratón
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: accentColor, // Borde del color de resaltado al hacer clic
+      },
+    },
+    '& .MuiInputLabel-root': {
+      color: 'rgba(255, 255, 255, 0.6)', // Etiqueta en gris claro
+    },
+    '& .MuiInputLabel-root.Mui-focused': {
+      color: accentColor, // Etiqueta del color de resaltado al hacer clic
+    }
+  };
+
   return (
+    // Fondo del viewport
     <Box
       sx={{
-        backgroundImage: "url(/login-background.jpg)",
-        backgroundSize: "cover",
+        // Background
+        // backgroundImage: "url(/fondo-login.png)",
         backgroundPosition: "center",
+        backgroundSize: "cover",
+        backgroundColor: "#1a1a1a",
+        // Distribucion de elementos
         height: "100vh",
         display: "flex",
         alignItems: "center",
@@ -16,26 +47,28 @@ const Login = () => {
     >
       <Container maxWidth="xs" sx={{ ml: { xs: 2, md: 8 } }}> 
         <Paper 
-          elevation={0} // Quitamos la sombra por defecto de MUI para usar la nuestra
+          elevation={0} 
           sx={{ 
-            padding: 4, 
+            padding: 5,
             display: "flex", 
             flexDirection: "column", 
-            gap: 2,
+            justifyContent: "center",
+            gap: 3,
             width: "100%",
+            minHeight: "60vh",
             
-            // --- EFECTO CRISTAL (GLASSMORPHISM) ---
-            backgroundColor: "rgba(255, 255, 255, 0.4)", // Fondo blanco con 40% de opacidad
-            backdropFilter: "blur(12px)", // Desenfoque de lo que hay detrás
-            WebkitBackdropFilter: "blur(12px)", // Soporte para navegadores basados en Safari
-            borderRadius: "24px", // Bordes bastante redondeados
-            border: "1px solid rgba(255, 255, 255, 0.5)", // Borde sutil para el brillo del cristal
-            boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.3)", // Sombra exterior suave y amplia
+            // --- EFECTO CRISTAL OSCURO ---
+            backgroundColor: "rgba(30, 30, 30, 0.6)",
+            backdropFilter: "blur(16px)", 
+            WebkitBackdropFilter: "blur(16px)", 
+            borderRadius: "24px", 
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.5)"
             // --------------------------------------
           }}
         >
-          <Typography component="h1" variant="h5" align="center" gutterBottom sx={{ fontWeight: 'bold', color: '#333' }}>
-            Iniciar Sesión
+          <Typography component="h1" variant="h4" align="center" gutterBottom sx={{ fontWeight: 'bold', color: '#ffffff', mb: 2 }}>
+            Bienvenido
           </Typography>
 
           <TextField
@@ -44,8 +77,7 @@ const Login = () => {
             label="Username"
             name="username"
             autoFocus
-            // Le damos un fondo un poco más sólido a los inputs para que resalten sobre el cristal
-            sx={{ backgroundColor: "rgba(255, 255, 255, 0.7)", borderRadius: 1 }}
+            sx={darkGlassInputStyle}
           />
           
           <TextField
@@ -54,27 +86,37 @@ const Login = () => {
             name="password"
             label="Password"
             type="password"
-            sx={{ backgroundColor: "rgba(255, 255, 255, 0.7)", borderRadius: 1 }}
+            sx={darkGlassInputStyle}
           />
 
           <Button
             type="submit"
             fullWidth
             variant="contained"
+            size="large"
             sx={{ 
               mt: 2, 
-              borderRadius: "12px", // Botón también redondeado para que encaje con el estilo
-              padding: "10px",
-              fontWeight: "bold"
+              borderRadius: "12px", 
+              padding: "12px",
+              fontWeight: "bold",
+              fontSize: "1rem",
+              textTransform: 'none',
+              backgroundColor: accentColor,
+              color: '#000000', // Texto boton
+              boxShadow: `0 4px 14px 0 ${accentColor}40`, // Sombra Boton
+              '&:hover': {
+                backgroundColor: '#29b6f6',
+                boxShadow: `0 6px 20px 0 ${accentColor}60`,
+              }
             }}
           >
-            Log In
+            Iniciar Sesión
           </Button>
 
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-            <Typography variant="body2" sx={{ color: '#333' }}>
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+            <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
               ¿Aún no tienes cuenta?{" "}
-              <MuiLink component={Link} to="/register" underline="always" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+              <MuiLink component={Link} to="/register" underline="always" sx={{ fontWeight: 'bold', color: accentColor }}>
                 Regístrate
               </MuiLink>
             </Typography>
