@@ -1,16 +1,25 @@
-import {Routes, Route } from 'react-router-dom';  
-import { Box } from '@mui/material'; 
+import { Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
-import Register from "./pages/Register";
+import Register from './pages/Register'
+import HomePage from './pages/HomePage'
+import NavBar from './components/NavBar'
+import PageFooter from './components/PageFooter'
 
 function App() {
-   
   return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh',gap: '0vh' }}>
-          <Routes>
-            <Route path="/register" element={<Register />} />
-          </Routes>
-      </Box>
+    <div className="App">
+      <NavBar />
+
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/homepage" element={<HomePage />} />
+        <Route path="/register" element={<Register />} />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+
+      <PageFooter />
+    </div>
   )
 }
 

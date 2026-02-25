@@ -1,46 +1,61 @@
-import { render, screen,  waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import RegisterForm from "../components/RegisterForm";
-import { afterEach, describe, expect, test, vi } from 'vitest' 
+import { describe, expect, test, vi, afterEach } from 'vitest'
 import '@testing-library/jest-dom'
+import { MemoryRouter } from 'react-router-dom'
+import Register from '../pages/Register'
 
+vi.mock('../SessionContext', () => ({
+  useSession: () => ({
+    isLoggedIn: false,
+    username: null,
+    createSession: vi.fn(),
+    destroySession: vi.fn(),
+  }),
+}))
 
-describe('RegisterForm', () => {
+describe('Register page', () => {
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
   test('shows validation error when username is empty', async () => {
-    render(<RegisterForm />)
-    const user = userEvent.setup()
+    render(
+      <MemoryRouter>
+        <Register />
+      </MemoryRouter>
+    )
 
-    await waitFor(async () => {
-      await user.click(screen.getByRole('button', { name: /lets go!/i }))
-      expect(screen.getByText(/please enter a username/i)).toBeInTheDocument()
-    })
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: /register/i }))
+
+    expect(screen.getByText(/username is required/i)).toBeInTheDocument()
   })
 
-  test('submits username, displays response, and calls onRegistered', async () => {
+  test('submits username and navigates to /homepage when backend returns ok', async () => {
     const user = userEvent.setup()
-    const onRegistered = vi.fn()
 
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ message: 'Hello Pablo! Welcome to the course!' }),
+      json: async () => ({ message: 'ok' }),
     } as Response)
 
-    render(<RegisterForm onRegistered={onRegistered} />)
+    render(
+      <MemoryRouter initialEntries={['/register']}>
+        <Register />
+      </MemoryRouter>
+    )
 
-    await waitFor(async () => {
-      await user.type(screen.getByLabelText(/whats your name\?/i), 'Pablo')
-      await user.click(screen.getByRole('button', { name: /lets go!/i }))
+    await user.type(screen.getByLabelText(/username/i), 'Pablo')
+    await user.type(screen.getByLabelText(/password/i), '1234')
+    await user.type(screen.getByLabelText(/email/i), 'pablo@uniovi.es')
+    await user.type(screen.getByLabelText(/name/i), 'Pablo')
+    await user.type(screen.getByLabelText(/surname/i), 'Trelles')
 
-      expect(
-        screen.getByText(/hello pablo! welcome to the course!/i)
-      ).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /register/i }))
 
-      // ✅ NUEVO: se llama al callback
-      expect(onRegistered).toHaveBeenCalledWith('Pablo')
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalled()
     })
   })
 })

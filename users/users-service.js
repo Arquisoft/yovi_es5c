@@ -67,6 +67,29 @@ app.post('/user', async (req, res) => {
         res.status(400).json({ error: error.message }); 
 }});
 
+app.post('/logout', async (req, res) => {
+  try {
+    const { username } = req.body;
+    if (!username || !username.trim()) {
+      return res.status(400).json({ error: 'username is required' });
+    }
+
+    const sanitizedUsername = username.trim().toLowerCase();
+    const user = await User.findOne({ username: sanitizedUsername });
+
+    if (!user) {
+      return res.status(404).json({ error: `User ${sanitizedUsername} not found` });
+    }
+
+    user.lastLogoutAt = new Date();
+    await user.save();
+
+    res.json({ message: `User ${sanitizedUsername} logged out`, user });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 function registerValidators(user, username, password, name, surname){
     if (user != null) {
       throw new Error('Invalid username');
