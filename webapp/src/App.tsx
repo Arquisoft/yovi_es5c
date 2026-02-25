@@ -1,23 +1,17 @@
+import {Routes, Route } from 'react-router-dom';  
+import { Box } from '@mui/material'; 
 import './App.css'
-import RegisterForm from './RegisterForm';
-import reactLogo from './assets/react.svg'
+import Register from "./pages/Register";
 
 function App() {
+   
   return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank" rel="noreferrer">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-
-      <h2>Welcome to the Software Arquitecture 2025-2026 course</h2>
-      <RegisterForm />
-    </div>
-  );
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh',gap: '0vh' }}>
+          <Routes>
+            <Route path="/register" element={<Register />} />
+          </Routes>
+      </Box>
+  )
 }
 
 export default App;

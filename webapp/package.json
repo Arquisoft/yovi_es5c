@@ -17,8 +17,13 @@
     "start:all": "concurrently \"npm run dev\" \"npm --prefix ../users start\""
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.8",
+    "@mui/material": "^7.3.8",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.13.1"
   },
   "devDependencies": {
     "@cucumber/cucumber": "^12.4.0",

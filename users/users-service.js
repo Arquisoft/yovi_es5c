@@ -6,17 +6,12 @@ const swaggerUi = require('swagger-ui-express');
 const fs = require('node:fs');
 const YAML = require('js-yaml');
 const promBundle = require('express-prom-bundle');
+const bcrypt = require('bcrypt');
+const User = require('./model/user-model');
 
 // Temporal: Conexión a MongoDB usando la variable de entorno del docker-compose
 const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/userdb';
 mongoose.connect(mongoUri);
-
-// Temporal: Definición del esquema de usuario
-const UserSchema = new mongoose.Schema({
-  username: String,
-  createdAt: { type: Date, default: Date.now }
-});
-const User = mongoose.model('User', UserSchema);
 
 const metricsMiddleware = promBundle({includeMethod: true});
 app.use(metricsMiddleware);
@@ -38,21 +33,6 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
-app.post('/createuser', async (req, res) => {
-  try {
-    const { username } = req.body;
-    
-    // Temporal: Lógica para guardar en Mongo
-    const newUser = new User({ username });
-    await newUser.save();
-
-    res.json({ message: `User ${username} created successfully in MongoDB`, user: newUser });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-
 if (require.main === module) {
   app.listen(port, () => {
     console.log(`User Service listening at http://localhost:${port}`)
@@ -60,3 +40,61 @@ if (require.main === module) {
 }
 
 module.exports = app
+
+app.post('/user', async (req, res) => {
+    try {
+        const { username, password, name, surname } = req.body;
+
+        const sanitizedUsername = username.trim().toLowerCase();
+        const user = await User.findOne({ username: sanitizedUsername });
+
+        registerValidators(user, username, password, name, surname);
+
+        // Encrypt the password before saving it
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
+        const newUser = new User({
+            username: req.body.username,
+            name: req.body.name,
+            surname: req.body.surname,
+            email: req.body.email,
+            password: hashedPassword,
+        });
+
+        await newUser.save(); 
+        res.json(newUser);
+    } catch (error) {
+        res.status(400).json({ error: error.message }); 
+}});
+
+function registerValidators(user, username, password, name, surname){
+    if (user != null) {
+      throw new Error('Invalid username');
+    }
+
+    // Email validation
+    if (username.trim().length < 4) {
+        throw new Error('The username must be at least 4 characters long');
+    }
+
+    // Password validation
+    if (password.trim().length < 8) {
+        throw new Error('The password must be at least 8 characters long');
+    }
+    if (!/\d/.test(password)) {
+        throw new Error('The password must contain at least one numeric character');
+    }
+    if (!/[A-Z]/.test(password)) {
+        throw new Error('The password must contain at least one uppercase letter');
+    }
+
+    // Name validation
+    if (!name.trim()) {
+        throw new Error('The name cannot be empty or contain only spaces');
+    }
+    
+    // Surname validation
+    if (!surname.trim()) {
+        throw new Error('The surname cannot be empty or contain only spaces');
+    }
+}

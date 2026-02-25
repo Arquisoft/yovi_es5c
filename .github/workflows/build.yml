@@ -26,6 +26,7 @@ jobs:
         node-version: 22
     - run: npm --prefix users ci
     - run: npm --prefix webapp ci
+    - run: npm --prefix gatewayservice ci
     - run: npm --prefix users run test:coverage
     - run: npm --prefix webapp run test:coverage
     - name: Install cargo-llvm-cov

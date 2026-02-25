@@ -12,18 +12,32 @@ services:
     depends_on:
       - mongodb
 
+  gatewayservice:
+    build: ./gatewayservice
+    container_name: gatewayservice
+    image: ghcr.io/arquisoft/yovi_es5c-gateway-service:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - USER_SERVICE_URL=http://users:3000
+      - GAMEY_SERVICE_URL=http://gamey:4000
+    depends_on:
+      - users
+      - gamey
+    networks:
+      - monitor-net
+
   webapp:
     build:
       context: ./webapp
       args:
-        - VITE_API_URL=http://localhost:3000
-        - VITE_GAMEY_URL=http://gamey:4000
+        - VITE_API_URL=http://localhost:8000 
     container_name: webapp
     image: ghcr.io/arquisoft/yovi_es5c-webapp:latest
     ports:
       - "80:80"
     depends_on:
-      - users
+      - gatewayservice
     networks:
       - monitor-net
 
