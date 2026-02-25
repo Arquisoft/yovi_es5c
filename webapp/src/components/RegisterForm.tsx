@@ -45,6 +45,11 @@ const RegisterForm = () => {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
 
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_-])[A-Za-z\d@$!%*?&.#_-]{8,}$/;
+
+  const isPasswordValid = passwordRegex.test(formData.password); 
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -59,8 +64,23 @@ const RegisterForm = () => {
     if (name === "name") setNameError(null);
     if (name === "surname") setSurnameError(null);
     if (name === "email") setEmailError(null);
-    if (name === "password") setPasswordError(null);
-    if (name === "confirmPassword") setConfirmPasswordError(null);
+    if (name === "password") {
+      if (!isPasswordValid) {
+        setPasswordError(
+        "The password must have at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character.");
+      } else {
+        setPasswordError(null);
+      }
+    }
+    if (name === "confirmPassword") {
+    if (value !== formData.password) {
+        setConfirmPasswordError("Passwords do not match");
+    } else {
+        setConfirmPasswordError(null);
+    }
+}
+      
+    
   };
 
 const handleSubmit = async (e: React.FormEvent) => {
@@ -92,6 +112,9 @@ const handleSubmit = async (e: React.FormEvent) => {
   if (!formData.password.trim()) {
     setPasswordError("Required field");
     hasError = true;
+  }else if (!isPasswordValid) {
+    setPasswordError(
+        "The password must have at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character.");
   }
 
   if (formData.password !== formData.confirmPassword) {
