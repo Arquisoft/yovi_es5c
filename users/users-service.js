@@ -74,21 +74,21 @@ app.post('/login', async (req, res) => {
 
         //Username and password must be filled
         if(!username || !password) {
-            return res.status(400).json({ error: 'Username and password are required' });
+            return res.status(400).json({ error: 'Username and password are required.' });
         }
 
         const user = await User.findOne({ username });
 
         //Checks user exists in database
         if(!user) {
-            return res.status(401).json({ error: 'Specified user was not found.' });
+            return res.status(401).json({ error: 'Incorrect username or password.' });
         }
 
         //Password match verification
         const passwordMatch = await bcrypt.compare(password, user.password);
 
         if(!passwordMatch) {
-            return res.status(401).json({ error: 'Invalid password.' });
+            return res.status(401).json({ error: 'Incorrect username or password.' });
         }
 
         //Creates JWT token and returns with success code
@@ -97,7 +97,7 @@ app.post('/login', async (req, res) => {
 
 
     } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ error: 'Internal server error.' });
     }
 });
 
