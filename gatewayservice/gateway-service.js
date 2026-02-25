@@ -45,4 +45,19 @@ app.post('/user', async (req, res) => {
   }
 });
 
+// User Login
+// Login user
+app.post('/login', async (req, res) => {
+  try {
+    const loginUrl = new URL(`/login`, userServiceUrl);
+    const loginResponse = await axios.post(loginUrl.href, req.body);
+    res.json(loginResponse.data);
+  } catch (error) {
+    handleErrors(res, error);
+  }
+});
+
+
+// ----- Gamey Service Endpoints -----
+
 app.listen(port, () => console.log(`Gateway listening on ${port}`))
