@@ -45,4 +45,26 @@ app.post('/user', async (req, res) => {
   }
 });
 
+app.post('/logout', async (req, res) => {
+  try {
+    const { username } = req.body;
+    if (!username || !username.trim()) {
+      return res.status(400).json({ error: 'username is required' });
+    }
+
+    const usersServiceUrl = process.env.USERS_SERVICE_URL || 'http://users:3000';
+
+    const response = await axios.post(`${usersServiceUrl}/logout`, {
+      username: username.trim(),
+    });
+
+    res.status(200).json(response.data);
+  } catch (error) {
+    // Mantén el estilo del gateway: propagar status si existe
+    const status = error?.response?.status || 500;
+    const data = error?.response?.data || { error: error.message || 'Gateway error' };
+    res.status(status).json(data);
+  }
+});
+
 app.listen(port, () => console.log(`Gateway listening on ${port}`))
