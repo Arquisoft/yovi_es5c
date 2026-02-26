@@ -1,13 +1,13 @@
 .login {
-	/* Background */
-	background-image: url(/fondo.jpg);
-	background-position: center;
-	background-size: cover;
     /* Distribucion de elementos */
-	height: 100vh;
+	min-height: 100vh;
 	display: flex;
 	align-items: center;
-	justify-content: flex-start;
+}
+
+.login .loginContainer {
+	max-width: 32em;
+	/* margin-left: 64px; */
 }
 
 .login .MuiOutlinedInput-root {
@@ -47,14 +47,15 @@
 	color: #4fc3f7;
 }
 
-.login .loginForm {
-	padding: 40px;
+.login .loginCard {
+	box-sizing: border-box;
+	padding: 75px 40px;
 	display: flex;
 	flex-direction: column; 
 	justify-content: center;
 	gap: 24px;
 	width: 100%;
-	min-height: 60vh;
+	min-height: 70vh;
 	
 	/* Efecto GlassMorph*/
 	background-color: rgba(30, 30, 30, 0.6);
@@ -85,23 +86,23 @@
   box-shadow: 0 6px 20px 0 rgba(79, 195, 247, 0.38);
 }
 
-.login .loginForm h1 {
+.login .loginCard h1 {
 	font-weight: bold;
 	color: #ffffff;
 	margin-bottom: 16px;
 }
 
-.login .loginForm .formFooter {
+.login .loginCard .formFooter {
 	display: flex;
 	justify-content: center;
 	margin-top: 24px;
 }
 
-.login .loginForm .formFooter p {
+.login .loginCard .formFooter p {
 	color: rgba(255, 255, 255, 0.7);
 }
 
-.login .loginForm .formFooter a {
+.login .loginCard .formFooter a {
 	font-weight: bold;
 	color: #4fc3f7;
 }

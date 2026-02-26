@@ -5,8 +5,8 @@ const LoginForm = () => {
   const accentColor = "#4fc3f7";
 
   return (
-	<Container maxWidth="xs" sx={{ ml: { xs: 2, md: 8 } }}> 
-	<Paper className="loginForm" elevation={0} >
+	<Container className="loginContainer"> 
+	<Paper className="loginCard" elevation={0} >
 		<Typography component="h1" variant="h4" align="center" gutterBottom>
 		Bienvenido
 		</Typography>
