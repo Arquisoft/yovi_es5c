@@ -1,0 +1,107 @@
+.login {
+	/* Background */
+	background-image: url(/fondo.jpg);
+	background-position: center;
+	background-size: cover;
+    /* Distribucion de elementos */
+	height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+}
+
+.login .MuiOutlinedInput-root {
+	/* Fondo para los input */
+	background-color: rgba(0, 0, 0, 0.2);
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+    border-radius: 12px;
+    /* Color para el texto escrito */
+	color: #ffffff;
+}
+
+.login .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
+	/* Borde blanco muy sutil */
+	border-color: rgba(255, 255, 255, 0.2);
+}
+
+.login .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+	/* Borde un poco más visible al pasar el ratón */
+	border-color: rgba(255, 255, 255, 0.5);
+}
+
+.login .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+	/* Borde del color de resaltado al hacer clic */
+	/* border-color: var(--accent-color); */
+	border-color: #4fc3f7;
+}
+
+/* Label */
+.login .MuiInputLabel-root {
+	/* Etiqueta en gris claro */
+	color: rgba(255, 255, 255, 0.6);
+}
+
+.login .MuiInputLabel-root.Mui-focused {
+	/* Etiqueta del color de resaltado al hacer clic */
+	color: #4fc3f7;
+}
+
+.login .loginForm {
+	padding: 40px;
+	display: flex;
+	flex-direction: column; 
+	justify-content: center;
+	gap: 24px;
+	width: 100%;
+	min-height: 60vh;
+	
+	/* Efecto GlassMorph*/
+	background-color: rgba(30, 30, 30, 0.6);
+	backdrop-filter: blur(16px);
+	-webkit-backdrop-filter: blur(16px);
+	border-radius: 24px;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+}
+
+.login .loginButton {
+  width: 100%;
+  margin-top: 16px;
+  border-radius: 12px;
+  padding: 12px;
+  font-weight: bold;
+  font-size: 1rem;
+  text-transform: none;
+  background-color: #29b6f6;
+  color: #000000;
+  box-shadow: 0 4px 14px 0 rgba(79, 195, 247, 0.25);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.login .loginButton:hover {
+  background-color: #29b6f6;
+  box-shadow: 0 6px 20px 0 rgba(79, 195, 247, 0.38);
+}
+
+.login .loginForm h1 {
+	font-weight: bold;
+	color: #ffffff;
+	margin-bottom: 16px;
+}
+
+.login .loginForm .formFooter {
+	display: flex;
+	justify-content: center;
+	margin-top: 24px;
+}
+
+.login .loginForm .formFooter p {
+	color: rgba(255, 255, 255, 0.7);
+}
+
+.login .loginForm .formFooter a {
+	font-weight: bold;
+	color: #4fc3f7;
+}
