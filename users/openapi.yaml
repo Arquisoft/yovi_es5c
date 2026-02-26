@@ -3,6 +3,7 @@ info:
   title: User Service API
   version: 1.0.0
   description: API for managing users
+
 paths:
   /createuser:
     post:
@@ -30,6 +31,65 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Hello testuser! welcome to the course!"
+                    example: "User testuser created successfully in MongoDB"
+                  user:
+                    $ref: '#/components/schemas/User'
         '400':
-          description: Error creating user
+          description: Bad request
+        '409':
+          description: User already exists
+
+  /logout:
+    post:
+      summary: Logs out a user
+      description: Updates the lastLogoutAt timestamp of the user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+              properties:
+                username:
+                  type: string
+                  example: "testuser"
+      responses:
+        '200':
+          description: User logged out successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User testuser logged out"
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Username missing
+        '404':
+          description: User not found
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "65cfa4b8f1a2c34d56789abc"
+        username:
+          type: string
+          example: "testuser"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-02-24T18:25:43.511Z"
+        lastLogoutAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2026-02-24T19:00:12.321Z"
