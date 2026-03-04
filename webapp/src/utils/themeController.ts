@@ -2,6 +2,8 @@ export interface LoginThemeParams {
   accentColor?: string;
   buttonBg?: string;
   buttonText?: string;
+  inputBg?: string;
+  inputOutline?: string,
   textPrimary?: string;
   textSecondary?: string;
   cardBg?: string;
@@ -21,6 +23,12 @@ export const updateThemeColors = (themeParams: LoginThemeParams) => {
   }
   if (themeParams.buttonText) {
     root.style.setProperty('--yovi-ui-button-text', themeParams.buttonText);
+  }
+  if (themeParams.inputBg) {
+	root.style.setProperty('--yovi-ui-input-bg', themeParams.inputBg);
+  }
+  if (themeParams.inputOutline) {
+	root.style.setProperty('--yovi-ui-input-outline', themeParams.inputOutline);
   }
   if (themeParams.textPrimary) {
     root.style.setProperty('--yovi-ui-text-primary', themeParams.textPrimary);
