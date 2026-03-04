@@ -21,17 +21,23 @@ export default function HomePage() {
       <h2>Welcome to the Software Arquitecture 2025-2026 course</h2>
 
       {!isLoggedIn ? (
-        <Button
-          variant="contained"
-          onClick={() => navigate('/register')}
-          sx={{ marginTop: 2 }}
-        >
-          Go to Register
-        </Button>
+        <div style={{display: "flex", alignItems: "center", flexDirection: "column"}}>
+          <Button variant="contained" onClick={() => navigate('/register')} sx={{ marginTop: 2 }}>
+            Go to Register
+          </Button>
+          <Button variant="contained" onClick={() => navigate('/login')} sx={{ marginTop: 2 }}>
+            Go to Login
+          </Button>
+        </div>
       ) : (
-        <p style={{ marginTop: 16 }}>
-          You are in as <b>{username}</b>
-        </p>
+        <div style={{display: "flex", alignItems: "center", flexDirection: "column", marginTop: 16}}>
+          <p>
+            You are in as <b>{username}</b>
+          </p>
+          <Button variant="contained" onClick={() => navigate('/game')} sx={{ marginTop: 2 }}>
+            Play
+          </Button>
+        </div>
       )}
     </div>
   )

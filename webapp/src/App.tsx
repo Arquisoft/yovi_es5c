@@ -5,6 +5,9 @@ import HomePage from './pages/HomePage'
 import NavBar from './components/NavBar'
 import PageFooter from './components/PageFooter'
 import GameSetup from './pages/GameSetup'
+import Login from "./pages/Login"
+import GamePage from './pages/GamePage'
+
 
 function App() {
   return (
@@ -16,6 +19,8 @@ function App() {
         <Route path="/homepage" element={<HomePage />} />
         <Route path="/register" element={<Register />} />
         <Route path="/set" element={<GameSetup />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/game" element={<GamePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
