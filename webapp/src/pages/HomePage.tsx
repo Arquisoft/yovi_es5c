@@ -30,9 +30,14 @@ export default function HomePage() {
           </Button>
         </div>
       ) : (
-        <p style={{ marginTop: 16 }}>
-          You are in as <b>{username}</b>
-        </p>
+        <div style={{display: "flex", alignItems: "center", flexDirection: "column", marginTop: 16}}>
+          <p>
+            You are in as <b>{username}</b>
+          </p>
+          <Button variant="contained" onClick={() => navigate('/game')} sx={{ marginTop: 2 }}>
+            Play
+          </Button>
+        </div>
       )}
     </div>
   )

@@ -78,4 +78,27 @@ app.post('/logout', async (req, res) => {
   }
 });
 
+// ----- Gamey Service Endpoints -----
+
+app.get('/game/status', async (req, res) => {
+  try {
+    const statusUrl = new URL('/status', gameyServiceUrl);
+    const response = await axios.get(statusUrl.href);
+    res.status(200).send(response.data);
+  } catch (error) {
+    handleErrors(res, error);
+  }
+});
+
+app.post('/game/bot/choose/:botId', async (req, res) => {
+  try {
+    const { botId } = req.params;
+    const chooseUrl = new URL(`/v1/ybot/choose/${botId}`, gameyServiceUrl);
+    const response = await axios.post(chooseUrl.href, req.body);
+    res.status(200).json(response.data);
+  } catch (error) {
+    handleErrors(res, error);
+  }
+});
+
 app.listen(port, () => console.log(`Gateway listening on ${port}`))
