@@ -2,7 +2,7 @@ use axum::{
     body::Body,
     http::{Request, StatusCode},
 };
-use gamey::{YBotRegistry, YEN, create_default_state, create_router, state::AppState, RandomBot, MoveResponse, ErrorResponse};
+use gamey::{YBotRegistry, YEN, create_default_state, create_router, state::AppState, RandomBot, MoveResponse, ErrorResponse, EvaluateResponse};
 use http_body_util::BodyExt;
 use std::sync::Arc;
 use tower::ServiceExt;
@@ -73,6 +73,34 @@ async fn test_choose_endpoint_with_valid_request() {
     assert_eq!(move_response.api_version, "v1");
     assert_eq!(move_response.bot_id, "random_bot");
     // Coordinates should be valid (we can't predict exactly which one the random bot picks)
+}
+
+#[tokio::test]
+async fn test_evaluate_endpoint_detects_ongoing_game() {
+    let app = test_app();
+
+    let yen = YEN::new(3, 0, vec!['B', 'R'], "./../...".to_string());
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/v1/game/evaluate")
+                .header("content-type", "application/json")
+                .body(Body::from(serde_json::to_string(&yen).unwrap()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let body = response.into_body().collect().await.unwrap().to_bytes();
+    let eval_response: EvaluateResponse = serde_json::from_slice(&body).unwrap();
+
+    assert_eq!(eval_response.api_version, "v1");
+    assert!(!eval_response.game_over);
+    assert_eq!(eval_response.winner, None);
 }
 
 #[tokio::test]

@@ -21,7 +21,8 @@ app.use(limiter)
 
 const handleErrors = (res, error) => {
   if (error.response && error.response.status) {
-    res.status(error.response.status).json({ error: error.response.data.error });
+    const backendData = error.response.data || {};
+    res.status(error.response.status).json({ error: backendData.error || backendData.message || 'Gateway error' });
   } else if (error.message) {
     res.status(500).json({ error: error.message });
   } else {
@@ -75,6 +76,39 @@ app.post('/logout', async (req, res) => {
     const status = error?.response?.status || 500;
     const data = error?.response?.data || { error: error.message || 'Gateway error' };
     res.status(status).json(data);
+  }
+});
+
+// ----- Gamey Service Endpoints -----
+
+app.get('/game/status', async (req, res) => {
+  try {
+    const statusUrl = new URL('/status', gameyServiceUrl);
+    const response = await axios.get(statusUrl.href);
+    res.status(200).send(response.data);
+  } catch (error) {
+    handleErrors(res, error);
+  }
+});
+
+app.post('/game/bot/choose/:botId', async (req, res) => {
+  try {
+    const { botId } = req.params;
+    const chooseUrl = new URL(`/v1/ybot/choose/${botId}`, gameyServiceUrl);
+    const response = await axios.post(chooseUrl.href, req.body);
+    res.status(200).json(response.data);
+  } catch (error) {
+    handleErrors(res, error);
+  }
+});
+
+app.post('/game/evaluate', async (req, res) => {
+  try {
+    const evaluateUrl = new URL('/v1/game/evaluate', gameyServiceUrl);
+    const response = await axios.post(evaluateUrl.href, req.body);
+    res.status(200).json(response.data);
+  } catch (error) {
+    handleErrors(res, error);
   }
 });
 

@@ -1,7 +1,15 @@
 import { Container, Typography, Box, Paper } from "@mui/material";
+import { Navigate } from "react-router-dom";
 import RegisterForm from "../components/RegisterForm";
+import { useSession } from "../SessionContext";
 
 const Register = () => {
+  const { isLoggedIn } = useSession();
+
+  if (isLoggedIn) {
+    return <Navigate to="/homepage" replace />;
+  }
+
   return (
     <Container maxWidth="sm">
       <Box

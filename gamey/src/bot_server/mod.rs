@@ -20,6 +20,7 @@
 //! ```
 
 pub mod choose;
+pub mod evaluate;
 pub mod error;
 pub mod state;
 pub mod version;
@@ -27,6 +28,7 @@ use axum::response::IntoResponse;
 use std::sync::Arc;
 use tower_http::cors::{CorsLayer, Any};
 pub use choose::MoveResponse;
+pub use evaluate::EvaluateResponse;
 pub use error::ErrorResponse;
 pub use version::*;
 
@@ -40,6 +42,10 @@ pub fn create_router(state: AppState) -> axum::Router {
     
     axum::Router::new()
         .route("/status", axum::routing::get(status))
+        .route(
+            "/{api_version}/game/evaluate",
+            axum::routing::post(evaluate::evaluate),
+        )
         .route(
             "/{api_version}/ybot/choose/{bot_id}",
             axum::routing::post(choose::choose),
