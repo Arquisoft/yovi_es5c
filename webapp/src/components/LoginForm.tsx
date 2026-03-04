@@ -50,8 +50,8 @@ const LoginForm = () => {
   };
 
   return (
-    <Container className="loginContainer"> 
-      <Paper className="loginCard" elevation={0} >
+    <Container className="uiContainer"> 
+      <Paper className="uiCard" elevation={0} >
         <Typography component="h1" variant="h4" align="center" gutterBottom>
           Welcome
         </Typography>
@@ -83,7 +83,7 @@ const LoginForm = () => {
           />
 
           <Button 
-            className="loginButton" 
+            className="uiButton" 
             type="submit" 
             fullWidth 
             variant="contained" 
