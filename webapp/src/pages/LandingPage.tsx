@@ -1,44 +1,57 @@
-import reactLogo from '../assets/react.svg'
+
 import { useSession } from '../SessionContext'
 import { Button } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import '../components/LandingPage.css'
+import backgroundVideo from '../assets/background.mp4'
 
 export default function LandingPage() {
   const { isLoggedIn, username } = useSession()
   const navigate = useNavigate()
 
   return (
-      <div className="home-container">
+    <div className="home-container">
       <video autoPlay loop muted playsInline className="background-video">
-        <source src="/background.mp4" type="video/mp4" />
+        <source src={backgroundVideo} type="video/mp4" />
       </video>
 
-        <div className="main-content">
-          <div>
-            <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-              <img src="/vite.svg" className="logo" alt="Vite logo" />
-            </a>
-            <a href="https://react.dev" target="_blank" rel="noreferrer">
-              <img src={reactLogo} className="logo react" alt="React logo" />
-            </a>
-          </div>
+      <div className="main-content">
+        <h1 className="title">
+          Welcome to <span>GAMEY</span>
+        </h1>
 
-          <h2>Welcome to the Software Architecture 2025-2026 course</h2>
-          {!isLoggedIn ? (
-                  <Button
-                    variant="contained"
-                    onClick={() => navigate('/register')}
-                    sx={{ marginTop: 2, backgroundColor: '#1976d2' }}
-                  > 
-                    Go to Register
-                  </Button>
-                ) : (
-                  <p style={{ marginTop: 16, color: 'white' }}>
-                    You are in as <b>{username}</b>
-                  </p>
-            )}
-        </div>
+        {!isLoggedIn ? (
+          <div className="button-group">
+            <Button
+              variant="contained"
+              onClick={() => navigate('/login')}
+            >
+              Sign In
+            </Button>
+
+            <Button
+              variant="outlined"
+              onClick={() => navigate('/register')}
+              sx={{ color: 'white', borderColor: 'white' }}
+            >
+              Create Account
+            </Button>
+          </div>
+        ) : (
+          <div className="button-group">
+            <h3>
+              Welcome back, <span>{username}</span> 🎮
+            </h3>
+
+            <Button
+              variant="contained"
+              onClick={() => navigate('/homepage')}
+            >
+              Go to Dashboard
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
