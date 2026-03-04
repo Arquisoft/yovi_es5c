@@ -1,0 +1,119 @@
+:root {
+  /* Variables de colores por defecto */
+  --yovi-ui-accent-color: #4fc3f7;
+  --yovi-ui-button-bg: #29b6f6;
+  --yovi-ui-button-text: #000000;
+  --yovi-ui-input-bg: rgba(0, 0, 0, 0.2);
+  --yovi-ui-input-outline: rgba(255, 255, 255, 0.2);
+  --yovi-ui-text-primary: #ffffff;
+  --yovi-ui-text-secondary: rgba(255, 255, 255, 0.6);
+  --yovi-ui-card-bg: rgba(30, 30, 30, 0.6);
+}
+
+.login {
+    /* Distribucion de elementos */
+	min-height: 100%;
+	display: flex;
+	align-items: center;
+}
+
+.login .loginContainer {
+	max-width: 32em;
+	/* margin-left: 64px; */
+}
+
+.login .MuiOutlinedInput-root {
+	/* Fondo para los input */
+	background-color: var(--yovi-ui-input-bg);
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+    border-radius: 12px;
+    /* Color para el texto escrito */
+	color: var(--yovi-ui-text-primary);
+}
+
+.login .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
+	border-color: var(--yovi-ui-input-outline);
+}
+
+.login .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+	/* Borde un poco más visible al pasar el ratón */
+	border-color: rgb(from var(--yovi-ui-input-outline) r g b / 50%);
+}
+
+.login .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+	/* Borde del color de resaltado al hacer clic */
+	/* border-color: var(--accent-color); */
+	border-color: var(--yovi-ui-accent-color);
+}
+
+/* Label */
+.login .MuiInputLabel-root {
+	/* Etiqueta en gris claro */
+	color: var(--yovi-ui-text-secondary);
+}
+
+.login .MuiInputLabel-root.Mui-focused {
+	/* Etiqueta del color de resaltado al hacer clic */
+	color: var(--yovi-ui-accent-color);
+}
+
+.login .loginCard {
+	box-sizing: border-box;
+	padding: 75px 40px;
+	display: flex;
+	flex-direction: column; 
+	justify-content: center;
+	gap: 24px;
+	width: 100%;
+	min-height: 70vh;
+	
+	/* Efecto GlassMorph*/
+	background-color: var(--yovi-ui-card-bg);
+	backdrop-filter: blur(16px);
+	-webkit-backdrop-filter: blur(16px);
+	border-radius: 24px;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+}
+
+.login .loginButton {
+  width: 100%;
+  margin-top: 16px;
+  border-radius: 12px;
+  padding: 12px;
+  font-weight: bold;
+  font-size: 1rem;
+  text-transform: none;
+  background-color: var(--yovi-ui-button-bg);
+  color: var(--yovi-ui-button-text);
+  box-shadow: 0 4px 14px 0 color-mix(in srgb, var(--yovi-ui-button-bg) 25%, transparent);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.login .loginButton:hover {
+  background-color: var(--yovi-ui-button-bg);
+  box-shadow: 0 6px 20px 0 color-mix(in srgb, var(--yovi-ui-button-bg) 38%, transparent);
+}
+
+.login .loginCard h1 {
+	font-weight: bold;
+	color: var(--yovi-ui-text-primary);
+	margin-bottom: 16px;
+}
+
+.login .loginCard .formFooter {
+	display: flex;
+	justify-content: center;
+	margin-top: 24px;
+}
+
+.login .loginCard .formFooter p {
+	color: var(--yovi-ui-text-secondary);
+}
+
+.login .loginCard .formFooter a {
+	font-weight: bold;
+	color: var(--yovi-ui-accent-color);
+}
