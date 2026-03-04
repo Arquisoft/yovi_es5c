@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button, Menu, MenuItem } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useNavigate } from 'react-router-dom'
+import { useSession } from "../SessionContext";
 
 // ─── Types ───────────────────────────────────────────────────
 type GameMode = "pvp" | "bot";
@@ -128,6 +129,11 @@ const GameSetup = () => {
   const [difficulty, setDifficulty] = useState<Difficulty>("Medium");
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const navigate = useNavigate();
+  const { isLoggedIn } = useSession();
+
+  if (!isLoggedIn) {
+    navigate('/login');
+  }
 
   const handleStart = (mode: GameMode) => {
      navigate('/game');
