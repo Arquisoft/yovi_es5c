@@ -1,34 +1,110 @@
-import { Box, Paper, Typography, TextField, Button, Link as MuiLink, Container } from "@mui/material";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Box, Paper, Typography, TextField, Button, Link as MuiLink, Container, Alert } from "@mui/material";
+import { Link, useNavigate } from "react-router-dom";
+import { useSession } from "../SessionContext"; // Ajusta la ruta si es necesario
 
 const LoginForm = () => {
-  const accentColor = "#4fc3f7";
+  // Estados para capturar las entradas del usuario y manejar errores
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  // Hook para crear la sesión y hook para redirigir
+  const { createSession } = useSession();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); // Evita que la página se recargue
+    setError(""); // Reiniciamos los errores previos
+
+    try {
+      // Petición POST al Gateway (usualmente puerto 8000 en base a tu archivo gateway-service.js)
+      const gatewayUrl = "http://localhost:8000"; // O usa import.meta.env.VITE_GATEWAY_URL si usas Vite
+
+      const response = await fetch(`${gatewayUrl}/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Si el login es exitoso (código 200), creamos la sesión
+        createSession(username);
+        
+        // Opcional: Si necesitas guardar el token JWT (data.token) devuelto por el users-service, puedes hacerlo aquí
+        // localStorage.setItem("jwtToken", data.token);
+
+        // Redirigir a la vista principal
+        navigate("/"); 
+      } else {
+        // En caso de credenciales incorrectas, capturamos el mensaje de tu backend
+        setError(data.error || "Error al iniciar sesión");
+      }
+    } catch (err) {
+      setError("Error de conexión con el servidor");
+    }
+  };
 
   return (
-	<Container className="loginContainer"> 
-	<Paper className="loginCard" elevation={0} >
-		<Typography component="h1" variant="h4" align="center" gutterBottom>
-		Welcome
-		</Typography>
+    <Container className="loginContainer"> 
+      <Paper className="loginCard" elevation={0} >
+        <Typography component="h1" variant="h4" align="center" gutterBottom>
+          Welcome
+        </Typography>
 
-		<TextField required fullWidth label="User" name="username" autoFocus />
-		<TextField required fullWidth name="password" label="Password" type="password" />
+        {/* Mostramos el error de forma visual usando Alert de MUI */}
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-		<Button className="loginButton" type="submit" fullWidth variant="contained" size="large">
-		Log-In
-		</Button>
+        {/* El formulario que engloba los campos y permite activar onSubmit al pulsar enter o clickar el botón */}
+        <form onSubmit={handleSubmit} style={{ width: "100%" }}>
+          <TextField 
+            required 
+            fullWidth 
+            label="User" 
+            name="username" 
+            autoFocus
+            margin="normal" // Agregado para que no se peguen
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <TextField 
+            required 
+            fullWidth 
+            name="password" 
+            label="Password" 
+            type="password"
+            margin="normal"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-		<Box className="formFooter">
-		<Typography variant="body1">
-			You don't have an account yet?{" "}
-			<MuiLink component={Link} to="/register" underline="always">
-			Sign-up
-			</MuiLink>
-		</Typography>
-		</Box>
-		
-	</Paper>
-	</Container>
+          <Button 
+            className="loginButton" 
+            type="submit" 
+            fullWidth 
+            variant="contained" 
+            size="large"
+            sx={{ mt: 2 }} // Un poco de margen superior
+          >
+            Log-In
+          </Button>
+        </form>
+
+        <Box className="formFooter" sx={{ mt: 3 }}>
+          <Typography variant="body1">
+            You don't have an account yet?{" "}
+            <MuiLink component={Link} to="/register" underline="always">
+              Sign-up
+            </MuiLink>
+          </Typography>
+        </Box>
+        
+      </Paper>
+    </Container>
   );
 };
 
