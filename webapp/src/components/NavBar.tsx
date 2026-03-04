@@ -34,7 +34,7 @@ export default function NavBar() {
         justifyContent: 'space-between',
         padding: '12px 16px',
         borderBottom: '1px solid #ddd',
-        background: 'rgba(255,255,255,0.75)',
+        background: 'rgba(17, 15, 97, 0.75)',
         backdropFilter: 'blur(6px)',
       }}
     >

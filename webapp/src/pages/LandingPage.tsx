@@ -2,9 +2,9 @@ import reactLogo from '../assets/react.svg'
 import { useSession } from '../SessionContext'
 import { Button } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
-import '../components/HomePage.css'
+import '../components/LandingPage.css'
 
-export default function HomePage() {
+export default function LandingPage() {
   const { isLoggedIn, username } = useSession()
   const navigate = useNavigate()
 
