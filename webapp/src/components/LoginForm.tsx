@@ -19,7 +19,7 @@ const LoginForm = () => {
 
     try {
       // Petición POST al Gateway (usualmente puerto 8000 en base a tu archivo gateway-service.js)
-      const gatewayUrl = "http://localhost:8000"; // O usa import.meta.env.VITE_GATEWAY_URL si usas Vite
+      const gatewayUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'; // O usa import.meta.env.VITE_GATEWAY_URL si usas Vite
 
       const response = await fetch(`${gatewayUrl}/login`, {
         method: "POST",
