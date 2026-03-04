@@ -34,8 +34,8 @@ export default function HomePage() {
           <p>
             You are in as <b>{username}</b>
           </p>
-          <Button variant="contained" onClick={() => navigate('/game')} sx={{ marginTop: 2 }}>
-            Play
+          <Button variant="contained" onClick={() => navigate('/set')} sx={{ marginTop: 2 }}>
+            Start Playing
           </Button>
         </div>
       )}

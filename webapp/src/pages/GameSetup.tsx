@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button, Menu, MenuItem } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import { useNavigate } from 'react-router-dom'
 
 // ─── Types ───────────────────────────────────────────────────
 type GameMode = "pvp" | "bot";
@@ -126,8 +127,10 @@ const ModeDescription = styled("p")({
 const GameSetup = () => {
   const [difficulty, setDifficulty] = useState<Difficulty>("Medium");
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const navigate = useNavigate();
 
   const handleStart = (mode: GameMode) => {
+     navigate('/game');
     console.log(mode,difficulty);
   };
 
