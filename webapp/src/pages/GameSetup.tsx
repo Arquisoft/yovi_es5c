@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { Button, Menu, MenuItem } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from "react-router-dom";
 import { useSession } from "../SessionContext";
+import { Navigate } from "react-router-dom";
 
 // ─── Types ───────────────────────────────────────────────────
 type GameMode = "pvp" | "bot";
 type Difficulty = "Easy" | "Medium" | "Hard";
-
-
 
 // ─── Constants ───────────────────────────────────────────────
 const DIFFICULTIES: Difficulty[] = ["Easy", "Medium", "Hard"];
@@ -21,7 +20,7 @@ const PageWrapper = styled("div")({
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "flex-start",
-  paddingTop:60,
+  paddingTop: 60,
   gap: 40,
   backgroundColor: "#0d0d0d",
 });
@@ -48,7 +47,6 @@ const DivColumn = styled("div")({
   gap: 6,
   maxWidth: 600,
 });
-
 
 const ModeButton = styled(Button)({
   width: 220,
@@ -122,8 +120,6 @@ const ModeDescription = styled("p")({
   textAlign: "center",
 });
 
-
-
 // ─── Component ───────────────────────────────────────────────
 const GameSetup = () => {
   const [difficulty, setDifficulty] = useState<Difficulty>("Medium");
@@ -132,12 +128,16 @@ const GameSetup = () => {
   const { isLoggedIn } = useSession();
 
   if (!isLoggedIn) {
-    navigate('/login');
+    return <Navigate to="/login" replace />;
   }
 
   const handleStart = (mode: GameMode) => {
-     navigate('/game');
-    console.log(mode,difficulty);
+    if (isLoggedIn) {
+      navigate("/game");
+      console.log(mode, difficulty);
+    } else {
+      navigate("/login");
+    }
   };
 
   const handleDifficultyOpen = (e: React.MouseEvent<HTMLElement>) => {
@@ -152,47 +152,50 @@ const GameSetup = () => {
   return (
     <PageWrapper>
       <DivColumn>
-      <Title>New Game</Title>
-      <SubTitle>Select a game mode to start playing</SubTitle>
+        <Title>New Game</Title>
+        <SubTitle>Select a game mode to start playing</SubTitle>
       </DivColumn>
-      
-    <img src="/logo.svg" alt="game logo" style={{ width: "20vw", height: "20vw" }} />
+
+      <img
+        src="/logo.svg"
+        alt="game logo"
+        style={{ width: "20vw", height: "20vw" }}
+      />
       <DivRow>
         <DivColumn>
           <ModeButton variant="outlined" onClick={() => handleStart("pvp")}>
-          ▲ Player vs Player ▲
+            ▲ Player vs Player ▲
           </ModeButton>
           <ModeDescription>Play locally against a friend</ModeDescription>
         </DivColumn>
 
         <DivColumn>
-        <DivRow>
-          <ModeButton variant="outlined" onClick={() => handleStart("bot")}>
-             ▲ Player vs Bot 🤖
-          </ModeButton>
-        
+          <DivRow>
+            <ModeButton variant="outlined" onClick={() => handleStart("bot")}>
+              ▲ Player vs Bot 🤖
+            </ModeButton>
 
-          <DifficultyButton onClick={handleDifficultyOpen}>
-            {difficulty} ▾
-          </DifficultyButton>
+            <DifficultyButton onClick={handleDifficultyOpen}>
+              {difficulty} ▾
+            </DifficultyButton>
 
-          <DifficultyMenu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={() => setAnchorEl(null)}
-          >
-            {DIFFICULTIES.map((d) => (
-              <DifficultyMenuItem
-                key={d}
-                selected={d === difficulty}
-                onClick={() => handleDifficultySelect(d)}
-              >
-                {d}
-              </DifficultyMenuItem>
-            ))}
-          </DifficultyMenu>
-        </DivRow>
-        <ModeDescription>Challenge the AI at your own pace</ModeDescription>
+            <DifficultyMenu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={() => setAnchorEl(null)}
+            >
+              {DIFFICULTIES.map((d) => (
+                <DifficultyMenuItem
+                  key={d}
+                  selected={d === difficulty}
+                  onClick={() => handleDifficultySelect(d)}
+                >
+                  {d}
+                </DifficultyMenuItem>
+              ))}
+            </DifficultyMenu>
+          </DivRow>
+          <ModeDescription>Challenge the AI at your own pace</ModeDescription>
         </DivColumn>
       </DivRow>
     </PageWrapper>
