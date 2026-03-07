@@ -8,7 +8,8 @@ export default function PageFooter() {
         marginTop: 0,
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        color: '#ffffff',
       }}
     >
       <small>ASW 2025-2026 · Game Y</small>

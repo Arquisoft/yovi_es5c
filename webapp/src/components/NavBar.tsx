@@ -38,11 +38,11 @@ export default function NavBar() {
         backdropFilter: 'blur(6px)',
       }}
     >
-      <div style={{ fontWeight: 700, cursor: 'pointer' }} onClick={() => navigate('/')}>
+      <div style={{ fontWeight: 700, cursor: 'pointer', color: 'white' }} onClick={() => navigate('/')}>
         Game Y
       </div>
 
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center', color: 'white' }}>
         {isLoggedIn && (
           <span>
             Hi, <b>{username}</b>
