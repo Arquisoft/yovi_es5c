@@ -147,6 +147,8 @@ const handleSubmit = async (e: React.FormEvent) => {
     } catch (err: any) {
       const backendError = err.response?.data?.error || "An unexpected error occurred during registration";
       setError(backendError);
+    } finally {
+      setLoading(false);
     }
 
 };
@@ -249,7 +251,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         </Alert>
       )}
 
-      <Button
+      <Button className="uiButton"
         type="submit"
         fullWidth
         variant="contained"

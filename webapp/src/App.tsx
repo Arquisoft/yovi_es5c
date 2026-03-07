@@ -6,11 +6,29 @@ import HomePage from './pages/HomePage'
 import NavBar from './components/NavBar'
 import PageFooter from './components/PageFooter'
 import LandingPage from './pages/LandingPage'
+import Login from "./pages/Login"
+import GamePage from './pages/GamePage'
+import { useEffect } from "react";
+import { updateThemeColors } from "./utils/themeController";
+import "./ui.css"
 
 function App() {
 
   const location = useLocation()
   const isLanding = location.pathname === '/' || location.pathname === '/landingPage'
+
+  useEffect(() => {
+    updateThemeColors({
+        accentColor: "#1976d2",
+        buttonColor: "#1976d2",
+        buttonText: "#ffffff",
+        inputBg: "rgba(255, 255, 255, 0.5)",
+        inputOutline: "rgba(0, 0, 0, 0.23)",
+        textPrimary: "rgba(0, 0, 0, 0.87)",
+        textSecondary: "rgba(0, 0, 0, 0.6)",
+        cardBg: "rgba(255, 255, 255, 0.65)"
+      });
+  }, []);
 
   return (
     <div className="App">
@@ -21,6 +39,8 @@ function App() {
         <Route path="/landingPage" element={<LandingPage />} />
         <Route path="/register" element={<Register />} />
         <Route path="/homepage" element={<PrivateRoute><HomePage /></PrivateRoute>} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/game" element={<GamePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 

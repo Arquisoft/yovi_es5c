@@ -8,22 +8,9 @@ export default function HomePage() {
 
   return (
       <div className="home-container">
-        <Button
-          variant="contained"
-          onClick={() => navigate('/game')}
-          sx={{
-            mt: 3,
-            fontSize: '1rem',
-            padding: '10px 20px',
-            backgroundColor: 'white',
-            color: 'black',
-            '&:hover': {
-              backgroundColor: '#e0e0e0',
-            },
-          }}
-        >
-          Play the Game
-        </Button>
+          <Button variant="contained" onClick={() => navigate('/game')} sx={{ marginTop: 2 }}>
+            Play
+          </Button>
       </div>
   )
 }
