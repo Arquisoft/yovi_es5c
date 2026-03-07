@@ -3,20 +3,12 @@ import RegisterForm from "../components/RegisterForm";
 
 const Register = () => {
   return (
-    <Container maxWidth="sm">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
-        <Paper elevation={3} sx={{ padding: 4, width: "100%" }}>
+    <Container maxWidth="sm" sx={{ flex: 1, display: 'flex', alignItems: 'center', py: 4 }}>
+      <Box sx={{ width: '100%' }}>
+        <Paper elevation={3} sx={{ padding: 4 }}>
           <Typography component="h1" variant="h5" align="center" gutterBottom>
             Registro de Usuario
           </Typography>
-
           <RegisterForm />
         </Paper>
       </Box>

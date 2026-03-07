@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import './App.css'
 import Register from './pages/Register'
 import PrivateRoute from './pages/PrivateRoute'
@@ -8,9 +8,13 @@ import PageFooter from './components/PageFooter'
 import LandingPage from './pages/LandingPage'
 
 function App() {
+
+  const location = useLocation()
+  const isLanding = location.pathname === '/' || location.pathname === '/landingPage'
+
   return (
     <div className="App">
-      <NavBar />
+      {!isLanding && <NavBar />}
 
       <Routes>
         <Route path="/" element={<LandingPage />} />
@@ -20,7 +24,7 @@ function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
-      <PageFooter />
+      {!isLanding && <PageFooter />}
     </div>
   )
 }

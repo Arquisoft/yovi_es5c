@@ -3,7 +3,6 @@ import { useSession } from '../SessionContext'
 import { Button } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import '../components/LandingPage.css'
-import backgroundVideo from '../assets/background.mp4'
 
 export default function LandingPage() {
   const { isLoggedIn, username } = useSession()
@@ -12,7 +11,7 @@ export default function LandingPage() {
   return (
     <div className="home-container">
       <video autoPlay loop muted playsInline className="background-video">
-        <source src={backgroundVideo} type="video/mp4" />
+        <source src="/background.mp4" type="video/mp4" />
       </video>
 
       <div className="main-content">
