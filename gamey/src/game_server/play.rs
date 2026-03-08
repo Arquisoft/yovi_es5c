@@ -1,5 +1,5 @@
 use crate::{
-    Coordinates, GameStatus, GameY, Movement, PlayerId, YEN,
+    Coordinates, GameStatus, GameY, Movement, YEN,
     bot_server::{check_api_version, error::ErrorResponse, state::AppState},
 };
 use axum::{
@@ -18,7 +18,8 @@ pub struct MoveRequest {
     pub state: YEN,
     pub row: u32,
     pub col: u32,
-    pub bot_id: String,
+    pub bot_id: Option<String>,
+    pub mode: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -37,8 +38,9 @@ pub async fn move_turn(
     Json(request): Json<MoveRequest>,
 ) -> Result<Json<MoveTurnResponse>, Json<ErrorResponse>> {
     check_api_version(&params.api_version)?;
+    let is_bot_mode = request.mode.as_deref().unwrap_or("bot") == "bot";
 
-    let mut game = match GameY::try_from(request.state) {
+    let mut game = match GameY::try_from(request.state.clone()) {
         Ok(game) => game,
         Err(err) => {
             return err_response(
@@ -54,7 +56,7 @@ pub async fn move_turn(
         return err_response(
             "Invalid row/col for board size",
             &params.api_version,
-            Some(request.bot_id),
+            request.bot_id.clone(),
         );
     }
 
@@ -63,8 +65,12 @@ pub async fn move_turn(
     }
 
     let player_coords = row_col_to_coords(size, request.row, request.col);
+    let moving_player = match game.next_player() {
+        Some(player) => player,
+        None => return ok_response(&game, &params.api_version, None),
+    };
     let player_move = Movement::Placement {
-        player: PlayerId::new(0),
+        player: moving_player,
         coords: player_coords,
     };
 
@@ -72,7 +78,7 @@ pub async fn move_turn(
         return err_response(
             &format!("Invalid player move: {}", err),
             &params.api_version,
-            Some(request.bot_id),
+            request.bot_id.clone(),
         );
     }
 
@@ -80,17 +86,32 @@ pub async fn move_turn(
         return ok_response(&game, &params.api_version, None);
     }
 
-    let bot = match state.bots().find(&request.bot_id) {
+    if !is_bot_mode {
+        return ok_response(&game, &params.api_version, None);
+    }
+
+    let bot_id = match request.bot_id {
+        Some(bot_id) if !bot_id.trim().is_empty() => bot_id,
+        _ => {
+            return err_response(
+                "bot_id is required in bot mode",
+                &params.api_version,
+                None,
+            );
+        }
+    };
+
+    let bot = match state.bots().find(&bot_id) {
         Some(bot) => bot,
         None => {
             let available_bots = state.bots().names().join(", ");
             return err_response(
                 &format!(
                     "Bot not found: {}, available bots: [{}]",
-                    request.bot_id, available_bots
+                    bot_id, available_bots
                 ),
                 &params.api_version,
-                Some(request.bot_id),
+                Some(bot_id),
             );
         }
     };
@@ -113,7 +134,7 @@ pub async fn move_turn(
         return err_response(
             &format!("Invalid bot move: {}", err),
             &params.api_version,
-            Some(request.bot_id),
+            None,
         );
     }
 

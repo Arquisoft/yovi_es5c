@@ -128,12 +128,12 @@ const GameSetup = () => {
   const { isLoggedIn } = useSession();
 
   if (!isLoggedIn) {
-    return <Navigate to="/login" replace />;
+      return <Navigate to="/login" replace />;
   }
 
   const handleStart = (mode: GameMode) => {
     if (isLoggedIn) {
-      navigate("/game");
+      navigate("/game", { state: { mode, difficulty } });
       console.log(mode, difficulty);
     } else {
       navigate("/login");

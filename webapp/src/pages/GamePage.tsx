@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Alert, Box, Button, Paper, Typography } from '@mui/material'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useSession } from "../SessionContext";
 
 const apiEndpoint = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -25,6 +25,8 @@ interface MoveTurnResponse {
     layout: string
   }
 }
+
+type GameMode = 'pvp' | 'bot'
 
 function makeEmptyBoard(): Board {
   return Array.from({ length: boardSize }, (_, row) => Array.from({ length: row + 1 }, () => '.' as Cell))
@@ -73,22 +75,29 @@ function boardFromLayout(size: number, layout: string): Board {
 
 export default function GamePage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [isAvailable, setIsAvailable] = useState(true)
   const [board, setBoard] = useState<Board>(makeEmptyBoard())
   const [busy, setBusy] = useState(false)
   const [winner, setWinner] = useState<Winner>(null)
-  const [message, setMessage] = useState('Your turn. Place a blue piece.')
+  const mode = (location.state as { mode?: GameMode } | null)?.mode ?? 'bot'
+  const [currentPlayer, setCurrentPlayer] = useState<'B' | 'R'>('B')
+  const [message, setMessage] = useState(mode === 'pvp' ? 'Player B turn.' : 'Your turn. Place a blue piece.')
   const [error, setError] = useState('')
 
   const { isLoggedIn } = useSession();
 
   if (!isLoggedIn) {
-    navigate('/login');
+    return <Navigate to="/login" replace />;
   }
 
   useEffect(() => {
     const checkStatus = async () => {
       try {
+        if (mode === 'pvp') {
+          setIsAvailable(true)
+          return
+        }
         const response = await fetch(`${apiEndpoint}/game/status`)
         const text = response.ok ? await response.text() : ''
         setIsAvailable(response.ok && text === 'OK')
@@ -98,7 +107,7 @@ export default function GamePage() {
     }
 
     checkStatus()
-  }, [])
+  }, [mode])
 
   const play = async (row: number, col: number) => {
     if (!isAvailable || busy || winner !== null || board[row][col] !== '.') {
@@ -112,21 +121,26 @@ export default function GamePage() {
     setBusy(true)
     const previousBoard = cloneBoard(board)
     const optimisticBoard = cloneBoard(board)
-    optimisticBoard[row][col] = 'B'
+    optimisticBoard[row][col] = mode === 'pvp' ? currentPlayer : 'B'
     setBoard(optimisticBoard)
 
     try {
-      setMessage('Bot is thinking...')
+      setMessage(mode === 'pvp' ? 'Processing move...' : 'Bot is thinking...')
+
+      const payload: Record<string, unknown> = {
+        state: toYen(previousBoard),
+        row,
+        col,
+        mode,
+      }
+      if (mode === 'bot') {
+        payload.bot_id = 'random_bot'
+      }
 
       const response = await fetch(`${apiEndpoint}/game/move`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          state: toYen(previousBoard),
-          row,
-          col,
-          bot_id: 'random_bot',
-        }),
+        body: JSON.stringify(payload),
       })
 
       const data = await response.json()
@@ -134,7 +148,9 @@ export default function GamePage() {
         throw new Error(data.error || 'Unable to process move')
       }
 
-      await delay(botDelayMs)
+      if (mode === 'bot') {
+        await delay(botDelayMs)
+      }
 
       const moveData = data as MoveTurnResponse
       const updated = boardFromLayout(moveData.state.size, moveData.state.layout)
@@ -143,19 +159,25 @@ export default function GamePage() {
       if (moveData.game_over && moveData.winner) {
         setWinner(moveData.winner)
         if (moveData.winner === 'B') {
-          setMessage('You win.')
+          setMessage(mode === 'pvp' ? 'Player B wins.' : 'You win.')
         } else {
-          setMessage('Bot wins.')
+          setMessage(mode === 'pvp' ? 'Player R wins.' : 'Bot wins.')
         }
       } else {
         setWinner(null)
-        setMessage('Your turn. Place a blue piece.')
+        if (mode === 'pvp') {
+          const nextPlayer = moveData.state.turn === 0 ? 'B' : 'R'
+          setCurrentPlayer(nextPlayer)
+          setMessage(`Player ${nextPlayer} turn.`)
+        } else {
+          setMessage('Your turn. Place a blue piece.')
+        }
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Unknown error'
       setBoard(previousBoard)
       setError(msg)
-      setMessage('Your move could not be completed against the bot.')
+      setMessage(mode === 'pvp' ? 'Your move could not be completed.' : 'Your move could not be completed against the bot.')
     } finally {
       setBusy(false)
     }
@@ -165,8 +187,9 @@ export default function GamePage() {
     setBoard(makeEmptyBoard())
     setBusy(false)
     setWinner(null)
+    setCurrentPlayer('B')
     setError('')
-    setMessage('Your turn. Place a blue piece.')
+    setMessage(mode === 'pvp' ? 'Player B turn.' : 'Your turn. Place a blue piece.')
   }
 
   const svgWidth = svgPadding * 2 + (boardSize - 1) * horizontalGap
@@ -179,7 +202,7 @@ export default function GamePage() {
     <div className="main-content">
       <Paper elevation={3} sx={{ p: 4, maxWidth: 900, width: '100%' }}>
         <Typography variant="h4" component="h2" gutterBottom>
-          Game Y - V1
+          Game Y - {mode === 'pvp' ? 'Player vs Player' : 'Player vs Bot'}
         </Typography>
 
         <Alert severity={error ? 'warning' : 'info'} sx={{ mb: 3 }}>
