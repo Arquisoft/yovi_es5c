@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Alert, Box, Button, CircularProgress, Paper, Typography } from '@mui/material'
+import { Alert, Box, Button, Paper, Typography } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 
 const apiEndpoint = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -13,21 +13,30 @@ const svgPadding = 40
 
 type Cell = '.' | 'B' | 'R'
 type Board = Cell[][]
-type ServiceStatus = 'checking' | 'online' | 'offline'
 type Winner = 'B' | 'R' | null
+interface MoveTurnResponse {
+  game_over: boolean
+  winner: Winner
+  state: {
+    size: number
+    turn: number
+    players: string[]
+    layout: string
+  }
+}
 
 function makeEmptyBoard(): Board {
   return Array.from({ length: boardSize }, (_, row) => Array.from({ length: row + 1 }, () => '.' as Cell))
 }
 
-function copyBoard(board: Board): Board {
+function cloneBoard(board: Board): Board {
   return board.map((row) => [...row])
 }
 
 function toYen(board: Board) {
   return {
     size: board.length,
-    turn: 1, // bot (R) moves after player (B)
+    turn: 0,
     players: ['B', 'R'],
     layout: board.map((row) => row.join('')).join('/'),
   }
@@ -40,37 +49,30 @@ function getPosition(row: number, col: number) {
   return { x, y }
 }
 
-function isFull(board: Board) {
-  return board.every((row) => row.every((cell) => cell !== '.'))
-}
-
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-async function evaluateWinner(board: Board): Promise<Winner> {
-  const response = await fetch(`${apiEndpoint}/game/evaluate`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(toYen(board)),
-  })
+function boardFromLayout(size: number, layout: string): Board {
+  const rows = layout.split('/')
+  const board: Board = []
 
-  const data = await response.json()
-  if (!response.ok) {
-    throw new Error(data.error || 'Unable to evaluate game status')
+  for (let row = 0; row < size; row++) {
+    const rowChars = rows[row]?.split('') ?? []
+    const cells: Cell[] = []
+    for (let col = 0; col <= row; col++) {
+      const value = rowChars[col]
+      cells.push(value === 'B' || value === 'R' ? value : '.')
+    }
+    board.push(cells)
   }
 
-  if (!data.game_over) {
-    return null
-  }
-
-  return data.winner === 'B' || data.winner === 'R' ? data.winner : null
+  return board
 }
 
 export default function GamePage() {
   const navigate = useNavigate()
-  const [serviceStatus, setServiceStatus] = useState<ServiceStatus>('checking')
-  const [serviceMessage, setServiceMessage] = useState('Checking game service status...')
+  const [isAvailable, setIsAvailable] = useState(true)
   const [board, setBoard] = useState<Board>(makeEmptyBoard())
   const [busy, setBusy] = useState(false)
   const [winner, setWinner] = useState<Winner>(null)
@@ -81,21 +83,10 @@ export default function GamePage() {
     const checkStatus = async () => {
       try {
         const response = await fetch(`${apiEndpoint}/game/status`)
-        if (!response.ok) {
-          throw new Error(`Gateway returned ${response.status}`)
-        }
-        const text = await response.text()
-        if (text === 'OK') {
-          setServiceStatus('online')
-          setServiceMessage('Gamey service is available.')
-        } else {
-          setServiceStatus('offline')
-          setServiceMessage(`Unexpected response: ${text}`)
-        }
+        const text = response.ok ? await response.text() : ''
+        setIsAvailable(response.ok && text === 'OK')
       } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Unknown error'
-        setServiceStatus('offline')
-        setServiceMessage(`Gamey service is not reachable: ${msg}`)
+        setIsAvailable(false)
       }
     }
 
@@ -103,67 +94,59 @@ export default function GamePage() {
   }, [])
 
   const play = async (row: number, col: number) => {
-    if (serviceStatus !== 'online' || busy || winner !== null || board[row][col] !== '.') {
+    if (!isAvailable || busy || winner !== null || board[row][col] !== '.') {
+      if (!isAvailable) {
+        setError('Game service is unavailable.')
+      }
       return
     }
 
     setError('')
     setBusy(true)
-
-    const playerBoard = copyBoard(board)
-    playerBoard[row][col] = 'B'
-    setBoard(playerBoard)
+    const previousBoard = cloneBoard(board)
+    const optimisticBoard = cloneBoard(board)
+    optimisticBoard[row][col] = 'B'
+    setBoard(optimisticBoard)
 
     try {
-      const playerWinner = await evaluateWinner(playerBoard)
-      if (playerWinner === 'B') {
-        setWinner('B')
-        setMessage('You win.')
-        return
-      }
-
-      if (isFull(playerBoard)) {
-        setMessage('Board full. Start a new game.')
-        return
-      }
-
       setMessage('Bot is thinking...')
 
-      const response = await fetch(`${apiEndpoint}/game/bot/choose/random_bot`, {
+      const response = await fetch(`${apiEndpoint}/game/move`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(toYen(playerBoard)),
+        body: JSON.stringify({
+          state: toYen(previousBoard),
+          row,
+          col,
+          bot_id: 'random_bot',
+        }),
       })
 
       const data = await response.json()
       if (!response.ok) {
-        throw new Error(data.error || 'Unable to get bot move')
+        throw new Error(data.error || 'Unable to process move')
       }
 
       await delay(botDelayMs)
 
-      const botRow = boardSize - 1 - data.coords.x
-      const botCol = data.coords.y
-
-      if (!playerBoard[botRow] || playerBoard[botRow][botCol] !== '.') {
-        throw new Error('Bot returned an invalid or occupied position')
-      }
-
-      const updated = copyBoard(playerBoard)
-      updated[botRow][botCol] = 'R'
+      const moveData = data as MoveTurnResponse
+      const updated = boardFromLayout(moveData.state.size, moveData.state.layout)
       setBoard(updated)
 
-      const botWinner = await evaluateWinner(updated)
-      if (botWinner === 'R') {
-        setWinner('R')
-        setMessage('Bot wins.')
-      } else if (isFull(updated)) {
-        setMessage('Board full. Start a new game.')
+      if (moveData.game_over && moveData.winner) {
+        setWinner(moveData.winner)
+        if (moveData.winner === 'B') {
+          setMessage('You win.')
+        } else {
+          setMessage('Bot wins.')
+        }
       } else {
+        setWinner(null)
         setMessage('Your turn. Place a blue piece.')
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Unknown error'
+      setBoard(previousBoard)
       setError(msg)
       setMessage('Your move could not be completed against the bot.')
     } finally {
@@ -192,17 +175,6 @@ export default function GamePage() {
           Game Y - V1
         </Typography>
 
-        <Box sx={{ mb: 3 }}>
-          {serviceStatus === 'checking' ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <CircularProgress size={18} />
-              <Typography variant="body2">{serviceMessage}</Typography>
-            </Box>
-          ) : (
-            <Alert severity={serviceStatus === 'online' ? 'success' : 'error'}>{serviceMessage}</Alert>
-          )}
-        </Box>
-
         <Alert severity={error ? 'warning' : 'info'} sx={{ mb: 3 }}>
           {error || message}
         </Alert>
@@ -217,7 +189,7 @@ export default function GamePage() {
               {board.map((row, rowIndex) =>
                 row.map((cell, cellIndex) => {
                   const { x, y } = getPosition(rowIndex, cellIndex)
-                  const clickable = serviceStatus === 'online' && !busy && winner === null && cell === '.'
+                  const clickable = isAvailable && !busy && winner === null && cell === '.'
                   const fill = cell === 'B' ? '#1565c0' : cell === 'R' ? '#c62828' : '#fffaf0'
 
                   return (

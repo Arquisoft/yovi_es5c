@@ -91,21 +91,10 @@ app.get('/game/status', async (req, res) => {
   }
 });
 
-app.post('/game/bot/choose/:botId', async (req, res) => {
+app.post('/game/move', async (req, res) => {
   try {
-    const { botId } = req.params;
-    const chooseUrl = new URL(`/v1/ybot/choose/${botId}`, gameyServiceUrl);
-    const response = await axios.post(chooseUrl.href, req.body);
-    res.status(200).json(response.data);
-  } catch (error) {
-    handleErrors(res, error);
-  }
-});
-
-app.post('/game/evaluate', async (req, res) => {
-  try {
-    const evaluateUrl = new URL('/v1/game/evaluate', gameyServiceUrl);
-    const response = await axios.post(evaluateUrl.href, req.body);
+    const moveUrl = new URL('/v1/game/move', gameyServiceUrl);
+    const response = await axios.post(moveUrl.href, req.body);
     res.status(200).json(response.data);
   } catch (error) {
     handleErrors(res, error);
