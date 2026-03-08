@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Alert, Box, Button, CircularProgress, Paper, Typography } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
+import { useSession } from "../SessionContext";
 
 const apiEndpoint = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 const boardSize = 5
@@ -76,6 +77,12 @@ export default function GamePage() {
   const [winner, setWinner] = useState<Winner>(null)
   const [message, setMessage] = useState('Your turn. Place a blue piece.')
   const [error, setError] = useState('')
+
+  const { isLoggedIn } = useSession();
+
+  if (!isLoggedIn) {
+    navigate('/login');
+  }
 
   useEffect(() => {
     const checkStatus = async () => {

@@ -147,7 +147,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     } catch (err: any) {
       const backendError = err.response?.data?.error || "An unexpected error occurred during registration";
       setError(backendError);
-    } finally {
+    }finally{
       setLoading(false);
     }
 
@@ -167,6 +167,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             onChange={handleChange}
             error={!!usernameError}
             helperText={usernameError || ""}
+            disabled={loading}
           />
         </Grid>
 
@@ -181,6 +182,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             onChange={handleChange}
             error={!!nameError}
             helperText={nameError || ""}
+            disabled={loading}
           />
         </Grid>
 
@@ -195,6 +197,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             onChange={handleChange}
             error={!!surnameError}
             helperText={surnameError || ""}
+            disabled={loading}
           />
         </Grid>
 
@@ -211,6 +214,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             onChange={handleChange}
             error={!!emailError}
             helperText={emailError || ""}
+            disabled={loading}
           />
         </Grid>
 
@@ -226,6 +230,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             onChange={handleChange}
             error={!!passwordError}
             helperText={passwordError || ""}
+            disabled={loading}
           />
         </Grid>
 
@@ -241,6 +246,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             onChange={handleChange}
             error={!!confirmPasswordError}
             helperText={confirmPasswordError || ""}
+            disabled={loading}
           />
         </Grid>
       </Grid>
