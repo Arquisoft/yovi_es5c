@@ -20,6 +20,9 @@ describe('Gateway Service - Login Routing', () => {
     });
 
     it('should route POST /login to the user service', async () => {
+        // Inicializamos el mock aquí dentro para no necesitar beforeEach
+        axios.post = vi.fn();
+        
         // Simulamos la respuesta correcta del microservicio de usuarios
         const mockResponse = { data: { token: 'fake-jwt-token', username: 'testuser' } };
         axios.post.mockResolvedValueOnce(mockResponse);
@@ -40,6 +43,9 @@ describe('Gateway Service - Login Routing', () => {
     });
 
     it('should forward errors from the user service', async () => {
+        // Inicializamos el mock aquí dentro también
+        axios.post = vi.fn();
+
         // Simulamos un error 401 desde el microservicio
         axios.post.mockRejectedValueOnce({
             response: { status: 401, data: { error: 'Invalid credentials' } }
