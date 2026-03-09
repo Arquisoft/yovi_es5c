@@ -1,6 +1,6 @@
 export interface LoginThemeParams {
   accentColor?: string;
-  buttonBg?: string;
+  buttonColor?: string;
   buttonText?: string;
   inputBg?: string;
   inputOutline?: string,
@@ -18,8 +18,8 @@ export const updateThemeColors = (themeParams: LoginThemeParams) => {
   if (themeParams.accentColor) {
     root.style.setProperty('--yovi-ui-accent-color', themeParams.accentColor);
   }
-  if (themeParams.buttonBg) {
-    root.style.setProperty('--yovi-ui-button-bg', themeParams.buttonBg);
+  if (themeParams.buttonColor) {
+    root.style.setProperty('--yovi-ui-button-bg', themeParams.buttonColor);
   }
   if (themeParams.buttonText) {
     root.style.setProperty('--yovi-ui-button-text', themeParams.buttonText);

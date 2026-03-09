@@ -11,7 +11,7 @@ const Register = () => {
   }
 
   return (
-    <Container maxWidth="sm">
+    <Container className="yovi-ui" maxWidth="sm">
       <Box
         sx={{
           marginTop: 8,
@@ -20,7 +20,7 @@ const Register = () => {
           alignItems: "center",
         }}
       >
-        <Paper elevation={3} sx={{ padding: 4, width: "100%" }}>
+        <Paper className="uiCard" elevation={3} sx={{ padding: 4, width: "100%" }}>
           <Typography component="h1" variant="h5" align="center" gutterBottom>
             User registration
           </Typography>

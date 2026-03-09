@@ -17,12 +17,12 @@
 	align-items: center;
 }
 
-.login .loginContainer {
+.yovi-ui .uiContainer {
 	max-width: 32em;
 	/* margin-left: 64px; */
 }
 
-.login .MuiOutlinedInput-root {
+.yovi-ui .MuiOutlinedInput-root {
 	/* Fondo para los input */
 	background-color: var(--yovi-ui-input-bg);
 	backdrop-filter: blur(8px);
@@ -32,33 +32,33 @@
 	color: var(--yovi-ui-text-primary);
 }
 
-.login .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
+.yovi-ui .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
 	border-color: var(--yovi-ui-input-outline);
 }
 
-.login .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+.yovi-ui .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
 	/* Borde un poco más visible al pasar el ratón */
 	border-color: rgb(from var(--yovi-ui-input-outline) r g b / 50%);
 }
 
-.login .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+.yovi-ui .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
 	/* Borde del color de resaltado al hacer clic */
 	/* border-color: var(--accent-color); */
 	border-color: var(--yovi-ui-accent-color);
 }
 
 /* Label */
-.login .MuiInputLabel-root {
+.yovi-ui .MuiInputLabel-root {
 	/* Etiqueta en gris claro */
 	color: var(--yovi-ui-text-secondary);
 }
 
-.login .MuiInputLabel-root.Mui-focused {
+.yovi-ui .MuiInputLabel-root.Mui-focused {
 	/* Etiqueta del color de resaltado al hacer clic */
 	color: var(--yovi-ui-accent-color);
 }
 
-.login .loginCard {
+.yovi-ui .uiCard {
 	box-sizing: border-box;
 	padding: 75px 40px;
 	display: flex;
@@ -77,7 +77,7 @@
 	box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
 }
 
-.login .loginButton {
+.yovi-ui .uiButton {
   width: 100%;
   margin-top: 16px;
   border-radius: 12px;
@@ -92,28 +92,28 @@
   transition: all 0.3s ease;
 }
 
-.login .loginButton:hover {
+.yovi-ui .uiButton:hover {
   background-color: var(--yovi-ui-button-bg);
   box-shadow: 0 6px 20px 0 color-mix(in srgb, var(--yovi-ui-button-bg) 38%, transparent);
 }
 
-.login .loginCard h1 {
+.yovi-ui .uiCard h1 {
 	font-weight: bold;
 	color: var(--yovi-ui-text-primary);
 	margin-bottom: 16px;
 }
 
-.login .loginCard .formFooter {
+.yovi-ui .uiCard .formFooter {
 	display: flex;
 	justify-content: center;
 	margin-top: 24px;
 }
 
-.login .loginCard .formFooter p {
+.yovi-ui .uiCard .formFooter p {
 	color: var(--yovi-ui-text-secondary);
 }
 
-.login .loginCard .formFooter a {
+.yovi-ui .uiCard .formFooter a {
 	font-weight: bold;
 	color: var(--yovi-ui-accent-color);
 }

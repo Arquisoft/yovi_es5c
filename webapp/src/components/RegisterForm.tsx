@@ -257,7 +257,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         </Alert>
       )}
 
-      <Button
+      <Button className="uiButton"
         type="submit"
         fullWidth
         variant="contained"
