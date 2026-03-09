@@ -86,8 +86,10 @@ jobs:
           npm run test:e2e:install-browsers
       - name: Run E2E tests (start servers and run cucumber)
         run: |
-          cd webapp
-          npm run test:e2e
+          cd gatewayservice && node gateway-service.js &
+          cd webapp && npm run test:e2e
+        env:
+          VITE_API_URL: http://localhost:8000
 
   docker-push-users:
     name: Publish users image
