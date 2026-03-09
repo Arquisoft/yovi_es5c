@@ -1,19 +1,12 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import Login from "../pages/Login";
 import { MemoryRouter } from "react-router-dom";
 import "@testing-library/jest-dom";
 import { act } from "react";
-import axios from "axios";
 
-// Mock de Axios y SessionContext, igual que en Register
-vi.mock("axios", () => ({
-  default: {
-    post: vi.fn(),
-  },
-}));
-
+// Mock del SessionContext
 vi.mock("../SessionContext", () => ({
   useSession: () => ({
     isLoggedIn: false,
@@ -22,23 +15,32 @@ vi.mock("../SessionContext", () => ({
 }));
 
 describe("Login page", () => {
+  beforeEach(() => {
+    // Mockeamos la API nativa fetch antes de cada test
+    global.fetch = vi.fn();
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  it("renders the login title", () => {
+  it("renders the welcome title", () => {
     render(
       <MemoryRouter>
         <Login />
       </MemoryRouter>
     );
 
-    const title = screen.getByText(/login/i);
+    const title = screen.getByRole("heading", { name: /welcome/i });
     expect(title).toBeInTheDocument();
   });
 
   it("submits form when data is correct", async () => {
-    (axios.post as any).mockResolvedValue({ data: { token: "fake-token", username: "miguel1235" } });
+    // Simulamos que la petición fetch devuelve OK (200) y un JSON
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      json: async () => ({ token: "fake-token", username: "miguel1235" }),
+    });
 
     await act(async () => {
       render(
@@ -56,14 +58,13 @@ describe("Login page", () => {
       await user.type(usernameInput, "miguel1235");
       await user.type(passwordInput, "Miguel1**");
 
-      const loginButton = screen.getByRole("button", { name: /login/i });
+      const loginButton = screen.getByRole("button", { name: /log-in/i });
       await user.click(loginButton);
     });
 
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalled();
-      // Opcional: Verificar que el endpoint llamado es el correcto
-      // expect(axios.post).toHaveBeenCalledWith(expect.stringContaining('/login'), expect.any(Object));
+      // Verificamos que fetch haya sido llamado
+      expect(global.fetch).toHaveBeenCalled();
     });
   });
 
@@ -78,17 +79,20 @@ describe("Login page", () => {
 
     const user = userEvent.setup();
     const usernameInput = document.querySelector('input[name="username"]') as HTMLInputElement;
+    const passwordInput = document.querySelector('input[name="password"]') as HTMLInputElement;
 
     await act(async () => {
       // Solo rellenamos el username, dejamos el password vacío
       await user.type(usernameInput, "miguel1235");
 
-      const loginButton = screen.getByRole("button", { name: /login/i });
+      const loginButton = screen.getByRole("button", { name: /log-in/i });
       await user.click(loginButton);
     });
 
-    expect(axios.post).not.toHaveBeenCalled();
-    // Suponiendo que muestras un mensaje de campo requerido como en el registro
-    expect(screen.getByText(/required field/i)).toBeInTheDocument();
+    // Validamos que fetch NO ha sido llamado
+    expect(global.fetch).not.toHaveBeenCalled();
+    
+    // Verificamos que el input password es inválido por la validación nativa HTML
+    expect(passwordInput).toBeInvalid();
   });
 });
