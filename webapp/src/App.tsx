@@ -6,11 +6,13 @@ import HomePage from './pages/HomePage'
 import NavBar from './components/NavBar'
 import PageFooter from './components/PageFooter'
 import LandingPage from './pages/LandingPage'
+import GameSetup from './pages/GameSetup'
 import Login from "./pages/Login"
 import GamePage from './pages/GamePage'
 import { useEffect } from "react";
 import { updateThemeColors } from "./utils/themeController";
 import "./ui.css"
+
 
 function App() {
 
@@ -39,6 +41,7 @@ function App() {
         <Route path="/landingPage" element={<LandingPage />} />
         <Route path="/register" element={<Register />} />
         <Route path="/homepage" element={<PrivateRoute><HomePage /></PrivateRoute>} />
+        <Route path="/set" element={<PrivateRoute><GameSetup /></PrivateRoute>} />
         <Route path="/login" element={<Login />} />
         <Route path="/game" element={<GamePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

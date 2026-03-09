@@ -22,7 +22,7 @@ const Register = () => {
       >
         <Paper className="uiCard" elevation={3} sx={{ padding: 4, width: "100%" }}>
           <Typography component="h1" variant="h5" align="center" gutterBottom>
-            Registro de Usuario
+            User registration
           </Typography>
           <RegisterForm />
         </Paper>
