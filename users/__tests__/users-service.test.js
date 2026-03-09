@@ -204,4 +204,48 @@ describe('User Service', () => {
 
 })
 
+describe('POST /login', () => {
+    afterEach(async () => {
+        vi.restoreAllMocks()
+        const User = mongoose.model('User')
+        await User.deleteMany({}) // Limpiamos la BD después de cada test
+    })
 
+    it('successfully logs in a registered user', async () => {
+        const username = 'LoginUser'
+        const password = 'TestPassword123'
+
+        // 1. Primero creamos el usuario (simulando que ya existe en BD)
+        await request(app)
+            .post('/createuser')
+            .send({ username, password }) // Asumiendo que createuser acepta password
+            .set('Accept', 'application/json')
+
+        // 2. Intentamos hacer login
+        const loginRes = await request(app)
+            .post('/login')
+            .send({ username, password })
+            .set('Accept', 'application/json')
+
+        expect(loginRes.status).toBe(200)
+        expect(loginRes.body).toHaveProperty('token') // O la propiedad que devuelvas (ej. message, user)
+        expect(loginRes.body.username).toBe(username)
+    })
+
+    it('fails to log in with incorrect password', async () => {
+        const username = 'LoginUser'
+        
+        await request(app)
+            .post('/createuser')
+            .send({ username, password: 'CorrectPassword' })
+            .set('Accept', 'application/json')
+
+        const loginRes = await request(app)
+            .post('/login')
+            .send({ username, password: 'WrongPassword' })
+            .set('Accept', 'application/json')
+
+        expect(loginRes.status).toBe(401) // O 400 dependiendo de tu implementación
+        expect(loginRes.body).toHaveProperty('error')
+    })
+})
