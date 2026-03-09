@@ -22,7 +22,7 @@ jobs:
           - 27017:27017
     strategy:
       matrix:
-        service: [webapp, users, gateway-service]
+        service: [webapp, users, gatewayservice]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -78,7 +78,7 @@ jobs:
           npm ci
       - name: Install gateway dependencies
         run: |
-          cd gateway-service
+          cd gatewayservice
           npm ci
       - name: Install Playwright browsers
         run: |
