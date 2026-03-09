@@ -213,13 +213,22 @@ describe('POST /login', () => {
 
     it('successfully logs in a registered user', async () => {
         const username = 'LoginUser'
-        const password = 'TestPassword123'
+        const password = 'TestPassword123' // Cumple requisitos: min 8 chars, 1 mayúscula, 1 número
 
-        // 1. Primero creamos el usuario (simulando que ya existe en BD)
-        await request(app)
-            .post('/createuser')
-            .send({ username, password }) // Asumiendo que createuser acepta password
+        // 1. Primero creamos el usuario con TODOS los campos obligatorios y en la ruta correcta
+        const createRes = await request(app)
+            .post('/user')
+            .send({ 
+                username: username, 
+                password: password,
+                name: 'Miguel',        // Obligatorio por tu validador
+                surname: 'Arias',      // Obligatorio por tu validador
+                email: 'test@test.com'
+            }) 
             .set('Accept', 'application/json')
+
+        // Comprobamos que el usuario se creó correctamente antes de intentar el login
+        expect(createRes.status).toBe(200)
 
         // 2. Intentamos hacer login
         const loginRes = await request(app)
@@ -227,25 +236,35 @@ describe('POST /login', () => {
             .send({ username, password })
             .set('Accept', 'application/json')
 
+        // 3. Verificamos que el login es exitoso
         expect(loginRes.status).toBe(200)
-        expect(loginRes.body).toHaveProperty('token') // O la propiedad que devuelvas (ej. message, user)
-        expect(loginRes.body.username).toBe(username)
+        expect(loginRes.body).toHaveProperty('token') 
     })
 
     it('fails to log in with incorrect password', async () => {
-        const username = 'LoginUser'
+        const username = 'LoginUser2'
+        const correctPassword = 'CorrectPassword123'
         
+        // Creamos el usuario
         await request(app)
-            .post('/createuser')
-            .send({ username, password: 'CorrectPassword' })
+            .post('/user')
+            .send({ 
+                username: username, 
+                password: correctPassword,
+                name: 'TestName',
+                surname: 'TestSurname',
+                email: 'test@test.com'
+            })
             .set('Accept', 'application/json')
 
+        // Intentamos login con contraseña errónea
         const loginRes = await request(app)
             .post('/login')
-            .send({ username, password: 'WrongPassword' })
+            .send({ username, password: 'WrongPassword123' })
             .set('Accept', 'application/json')
 
-        expect(loginRes.status).toBe(401) // O 400 dependiendo de tu implementación
+        expect(loginRes.status).toBe(401)
         expect(loginRes.body).toHaveProperty('error')
+        expect(loginRes.body.error).toBe('Incorrect password.')
     })
 })
