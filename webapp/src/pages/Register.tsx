@@ -14,7 +14,7 @@ const Register = () => {
     <Container className="yovi-ui" maxWidth="sm">
       <Box
         sx={{
-          marginTop: 8,
+          marginTop: 0,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -24,7 +24,6 @@ const Register = () => {
           <Typography component="h1" variant="h5" align="center" gutterBottom>
             User registration
           </Typography>
-
           <RegisterForm />
         </Paper>
       </Box>
