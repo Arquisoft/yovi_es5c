@@ -3,11 +3,13 @@ export default function PageFooter() {
     <footer
       style={{
         padding: '12px 16px',
-        borderTop: '1px solid #ddd',
-        marginTop: 24,
+        borderTop: '1px solid #dddddd',
+        background: 'rgba(15, 15, 39, 0.75)',
+        marginTop: 0,
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        color: '#ffffff',
       }}
     >
       <small>ASW 2025-2026 · Game Y</small>

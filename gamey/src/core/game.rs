@@ -451,14 +451,18 @@ impl TryFrom<YEN> for GameY {
     type Error = GameYError;
 
     fn try_from(game: YEN) -> Result<Self> {
-        let mut ygame = GameY::new(game.size());
+        let size = game.size();
         let rows: Vec<&str> = game.layout().split('/').collect();
-        if rows.len() as u32 != game.size() {
+        if rows.len() as u32 != size {
             return Err(GameYError::InvalidYENLayout {
-                expected: game.size(),
+                expected: size,
                 found: rows.len() as u32,
             });
         }
+
+        let mut b_coords: Vec<Coordinates> = Vec::new();
+        let mut r_coords: Vec<Coordinates> = Vec::new();
+
         for (row, row_str) in rows.iter().enumerate() {
             let cells: Vec<char> = row_str.chars().collect();
             if cells.len() as u32 != row as u32 + 1 {
@@ -469,23 +473,13 @@ impl TryFrom<YEN> for GameY {
                 });
             }
             for (col, cell) in cells.iter().enumerate() {
-                let x = game.size() - 1 - (row as u32);
+                let x = size - 1 - (row as u32);
                 let y = col as u32;
-                let z = game.size() - 1 - x - y;
+                let z = size - 1 - x - y;
                 let coords = Coordinates::new(x, y, z);
                 match cell {
-                    'B' => {
-                        ygame.add_move(Movement::Placement {
-                            player: PlayerId::new(0),
-                            coords,
-                        })?;
-                    }
-                    'R' => {
-                        ygame.add_move(Movement::Placement {
-                            player: PlayerId::new(1),
-                            coords,
-                        })?;
-                    }
+                    'B' => b_coords.push(coords),
+                    'R' => r_coords.push(coords),
                     '.' => {}
                     _ => {
                         return Err(GameYError::InvalidCharInLayout {
@@ -497,6 +491,48 @@ impl TryFrom<YEN> for GameY {
                 }
             }
         }
+
+        let mut ygame = GameY::new(size);
+        let mut b_index = 0usize;
+        let mut r_index = 0usize;
+
+        while b_index < b_coords.len() || r_index < r_coords.len() {
+            let next_player = match ygame.next_player() {
+                Some(player) => player.id(),
+                None => break,
+            };
+
+            if next_player == 0 {
+                if b_index >= b_coords.len() {
+                    return Err(GameYError::ServerError {
+                        message: "Invalid board: missing B move for expected turn".to_string(),
+                    });
+                }
+                ygame.add_move(Movement::Placement {
+                    player: PlayerId::new(0),
+                    coords: b_coords[b_index],
+                })?;
+                b_index += 1;
+            } else {
+                if r_index >= r_coords.len() {
+                    return Err(GameYError::ServerError {
+                        message: "Invalid board: missing R move for expected turn".to_string(),
+                    });
+                }
+                ygame.add_move(Movement::Placement {
+                    player: PlayerId::new(1),
+                    coords: r_coords[r_index],
+                })?;
+                r_index += 1;
+            }
+        }
+
+        if b_index != b_coords.len() || r_index != r_coords.len() {
+            return Err(GameYError::ServerError {
+                message: "Invalid board: extra moves remain after game end".to_string(),
+            });
+        }
+
         Ok(ygame)
     }
 }

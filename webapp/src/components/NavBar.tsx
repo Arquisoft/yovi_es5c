@@ -34,15 +34,15 @@ export default function NavBar() {
         justifyContent: 'space-between',
         padding: '12px 16px',
         borderBottom: '1px solid #ddd',
-        background: 'rgba(255,255,255,0.75)',
+        background: 'rgba(15, 15, 39, 0.75)',
         backdropFilter: 'blur(6px)',
       }}
     >
-      <div style={{ fontWeight: 700, cursor: 'pointer' }} onClick={() => navigate('/')}>
+      <div style={{ fontWeight: 700, cursor: 'pointer', color: 'white' }} onClick={() => navigate('/')}>
         Game Y
       </div>
 
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center', color: 'white' }}>
         {isLoggedIn && (
           <span>
             Hi, <b>{username}</b>

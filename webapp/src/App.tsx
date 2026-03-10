@@ -1,9 +1,11 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import './App.css'
 import Register from './pages/Register'
+import PrivateRoute from './pages/PrivateRoute'
 import HomePage from './pages/HomePage'
 import NavBar from './components/NavBar'
 import PageFooter from './components/PageFooter'
+import LandingPage from './pages/LandingPage'
 import GameSetup from './pages/GameSetup'
 import Login from "./pages/Login"
 import GamePage from './pages/GamePage'
@@ -13,6 +15,9 @@ import "./ui.css"
 
 
 function App() {
+
+  const location = useLocation()
+  const isLanding = location.pathname === '/' || location.pathname === '/landingPage'
 
   useEffect(() => {
     updateThemeColors({
@@ -29,19 +34,20 @@ function App() {
 
   return (
     <div className="App">
-      <NavBar />
+      {!isLanding && <NavBar />}
 
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/homepage" element={<HomePage />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/landingPage" element={<LandingPage />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/set" element={<GameSetup />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/game" element={<GamePage />} />
+        <Route path="/homepage" element={<PrivateRoute><HomePage /></PrivateRoute>} />
+        <Route path="/set" element={<PrivateRoute><GameSetup /></PrivateRoute>} />
+        <Route path="/game" element={<PrivateRoute><GamePage /></PrivateRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
-      <PageFooter />
+      {!isLanding && <PageFooter />}
     </div>
   )
 }
