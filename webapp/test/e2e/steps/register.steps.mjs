@@ -1,5 +1,6 @@
 import { Given, When, Then } from '@cucumber/cucumber'
 
+//Caso positivo: registro exitoso
 Given('An unregistered user', async function () {
   this.username = `user_${Date.now()}`
   this.password = 'Password123!'
@@ -21,4 +22,19 @@ When('I fill the data in the form and press submit', async function () {
 Then('I should be redirect to the homepage', async function () {
   await this.page.waitForURL('**/homepage', { timeout: 15000 })
   await this.page.waitForSelector('button:has-text("Play")', { timeout: 15000 })
+})
+
+//Caso negativo: intento registrar usuario ya existente
+Given('the register page is open', async function () {
+  await this.page.goto('http://localhost:5173/register')
+})
+
+When('I fill the form with an already registered username', async function () {
+  await this.page.fill('input[name="username"]', 'Alice')
+  await this.page.fill('input[name="name"]', 'Alice')
+  await this.page.fill('input[name="surname"]', 'Alice')
+  await this.page.fill('input[name="email"]', 'alice@test.com')
+  await this.page.fill('input[name="password"]', 'Alice123**')
+  await this.page.fill('input[name="confirmPassword"]', 'Alice123**')
+  await this.page.click('button:has-text("Register")')
 })
