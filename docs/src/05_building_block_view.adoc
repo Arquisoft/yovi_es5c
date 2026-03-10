@@ -13,17 +13,19 @@ flowchart LR
 
   subgraph Y[Yovi]
     W[Aplicación Web]
+    GW[API Gateway]
     US[Servicio de Usuarios]
     G[Servicio de Juego Y / Rust]
     DB[(Base de datos)]
   end
 
-  U -->|Interacción de Usuario| W
-  B -->|HTTP API| W
+  U --> W
+  W --> GW
+  B --> GW
 
-  W -->|JSON| US
-  W -->|JSON| G
-  US -->|MQL| DB
+  GW --> US
+  GW --> G
+  US --> DB
 ----
 
 Tabla 1. Bloques de construcción contenidos (Nivel 1)
@@ -33,22 +35,25 @@ Tabla 1. Bloques de construcción contenidos (Nivel 1)
 |Bloque |Descripción
 
 |Stakeholder: Usuario
-|Persona que accede a Yovi desde un navegador para registrarse y jugar partidas.
+|Persona que accede a Yovi desde un navegador para registrarse y jugar partidas a través de la interfaz gráfica.
 
 |Stakeholder: Bot
-|Cliente externo que interactúa con el sistema mediante el API expuesto para bots.
+|Cliente externo automatizado que interactúa con el sistema mediante los endpoints expuestos en el API Gateway.
 
 |Aplicación Web
-|Punto de entrada del sistema. Ofrece la UI y expone el API para bots. Orquesta llamadas al servicio de usuarios y al servicio de juego.
+|Aplicación Frontend (SPA desarrollada con React y Vite) que ofrece la interfaz de usuario. Delega toda la comunicación externa al API Gateway.
+
+|API Gateway
+|Punto de entrada principal del sistema (Node.js/Express). Expone la API pública, maneja límites de peticiones y enruta el tráfico hacia los servicios correspondientes.
 
 |Servicio de Usuarios
-|Gestiona registro/autenticación y almacenamiento de información de usuarios y estadísticas/histórico.
+|Gestiona la lógica de negocio relacionada con cuentas de usuario, validación de datos, registro, y autenticación. Interactúa con la base de datos.
 
 |Servicio de Juego (Rust)
-|Implementa la lógica del juego Y: Plataforma de juego automatizada y cálculo del siguiente movimiento según estrategias.
+|Implementa la lógica central del juego Y. Procesa y valida los movimientos, gestiona el estado de los tableros y calcula las respuestas automatizadas.
 
 |Base de datos
-|Persistencia de usuarios, resultados de partidas e información estadística/histórico.
+|Sistema de persistencia (MongoDB) utilizado por el Servicio de Usuarios para almacenar información.
 |===
 
 
@@ -59,22 +64,24 @@ Tabla 1. Bloques de construcción contenidos (Nivel 1)
 [mermaid, "bb-level2-webapp", png]
 ----
 flowchart LR
-  U[Stakeholder: Usuario]
-  B[Stakeholder: Bot]
+  U((Usuario))
+  GW[API Gateway]
 
-  subgraph W[Aplicación Web]
-    UI[UI / Vistas]
-    APIEXT[API externa para bots]
-    CTRL[Controladores / Orquestación]
-    CL[Clientes REST internos]
+  subgraph WebApp [Aplicación Web]
+    direction TB
+    Router[Enrutador\nReact Router]
+    UI[Vistas y Componentes\nReact / MUI]
+    Context[Gestión de Sesión\nSessionContext]
+    APIClient[Cliente API\nAxios / Fetch]
   end
 
-  U -->|interactúa| UI
-  B -->|peticiones| APIEXT
-
-  UI --> CTRL
-  APIEXT --> CTRL
-  CTRL --> CL
+  U -->|Navega / Interactúa| Router
+  U -->|Interactúa| UI
+  
+  Router -->|Renderiza| UI
+  UI <-->|Lee / Actualiza estado| Context
+  UI -->|Solicita operaciones| APIClient
+  APIClient -->|Peticiones HTTP| GW
 ----
 
 Tabla 2. Bloques de construcción contenidos (Aplicación Web)
@@ -83,17 +90,17 @@ Tabla 2. Bloques de construcción contenidos (Aplicación Web)
 |===
 |Bloque |Descripción
 
-|UI / Vistas
-|Pantallas y componentes que permiten al usuario registrarse, iniciar partidas y jugar.
+|Enrutador (React Router)
+|Gestiona la navegación en el cliente (SPA) mapeando URLs a sus componentes correspondientes y protegiendo las rutas privadas (ej. redirigiendo al login si no hay sesión activa).
 
-|API externa para bots
-|Endpoints públicos para que bots consulten/gestionen información permitida y ejecuten el método `play`.
+|Vistas y Componentes (React / MUI)
+|Conjunto de pantallas y elementos visuales (Login, Registro, Tablero de Juego) desarrollados con React y Material-UI que presentan la interfaz e interceptan las acciones del usuario.
 
-|Controladores / Orquestación
-|Lógica que valida peticiones, aplica reglas de aplicación y coordina llamadas a servicios.
+|Gestión de Sesión (SessionContext)
+|Estado global de la aplicación en el navegador. Utiliza la Context API de React y el LocalStorage para mantener de forma persistente la información del usuario logueado (`username`, `isLoggedIn`, `sessionId`).
 
-|Clientes REST internos
-|Capa encargada de invocar al Servicio de Usuarios y al Servicio de Juego mediante REST/JSON.
+|Cliente API (Axios / Fetch)
+|Capa de integración encargada de construir, ejecutar y gestionar las respuestas de las peticiones HTTP asíncronas dirigidas a la URL pública del API Gateway (`VITE_API_URL`).
 |===
 
 
@@ -102,23 +109,28 @@ Tabla 2. Bloques de construcción contenidos (Aplicación Web)
 [mermaid, "bb-level2-gamey", png]
 ----
 flowchart LR
-  subgraph Gamey
-    CLI["Interfaz Web/CLI Usuario"]
-    Engine["Motor de juego\n(estado y reglas)"]
-    Server["API de servidor de bots"]
-    Manager["Gestor de bots\n(registro y selección)"]
-    Bots["Bots\n(implementaciones)"]
-    Notation["Notación y I/O"]
-    Errors["Manejo de errores"]
+  GW[API Gateway / Cliente]
+
+  subgraph Gamey [Servicio de Juego Y / Rust]
+    direction TB
+    Server[Servidor API HTTP\nAxum / Stateless]
+    Notation[Notación y Parsing\nYEN]
+    Engine[Motor de juego\nLógica / GameY]
+    Registry[Registro de bots\nAppState]
+    Bots[Bots\nEstrategias]
+    CLI[Interfaz de Consola\nCLI]
   end
 
-  CLI --> Engine
-  Server --> Engine
-  Server --> Manager
-  Manager --> Bots
-  Bots --> Engine
-  Engine --> Notation
-  Engine --> Errors
+  GW -->|Petición POST con JSON/YEN| Server
+  Server -->|Deserializa estado| Notation
+  Notation -->|Instancia al vuelo| Engine
+  Server -->|Busca disponibilidad| Registry
+  Registry -->|Retorna| Bots
+  Bots -->|Analiza y propone movimiento| Engine
+  Engine -->|Serializa nuevo estado| Notation
+  Notation -->|Respuesta HTTP| Server
+  
+  CLI -->|Uso local y pruebas| Engine
 ----
 
 Tabla 3. Bloques de construcción contenidos (Servicio de Juego)
@@ -127,26 +139,23 @@ Tabla 3. Bloques de construcción contenidos (Servicio de Juego)
 |===
 |Bloque |Descripción
 
-|Interfaz Web/CLI Usuario
-|Expone operaciones del servicio para comunicarse con el Usuario de la aplicación (actualmente por línea de comandos, API Web en el futuro).
+|Servidor API HTTP (Axum)
+|Punto de entrada de red. Funciona de manera **completamente stateless** (sin estado de partida). En lugar de almacenar partidas, extrae el estado del tablero que llega en el cuerpo de cada petición HTTP (`MoveRequest`) para procesarlo.
 
-|Motor de juego
-|Modelo de estado, reglas, validación y aplicación de acciones.
+|Notación y Parsing (YEN)
+|Capa de traducción. Deserializa el formato de texto compacto YEN recibido en JSON para construir estructuras nativas de Rust (`GameY`), y a la inversa para devolver la respuesta al cliente.
 
-|API de servidor de bots
-|Punto de entrada para bots remotos; expone estado, recibe y valida elecciones.
+|Motor de juego (Lógica)
+|Núcleo del sistema. En lugar de persistir, se crea una instancia efímera de `GameY` en cada petición basándose en la notación entrante. Aplica reglas, valida movimientos y verifica victorias.
 
-|Gestor de bots
-|Registro, creación y selección de instancias de bots y políticas de elección.
+|Registro de bots (AppState)
+|El único estado global que mantiene el servidor en memoria. Gestiona y registra qué implementaciones de bots (estrategias) están cargadas y disponibles para ser utilizadas en base al parámetro enviado en la petición.
 
 |Bots
-|Implementaciones de estrategias (aleatorio, heurístico, etc.) que proponen acciones.
+|Módulo que contiene las implementaciones de los oponentes automatizados (ej. `RandomBot`). Analizan la instancia temporal del tablero y proponen unas coordenadas válidas para jugar.
 
-|Notación y I/O
-|Serialización/deserialización y representación textual del estado/jugadas.
-
-|Manejo de errores
-|Tipos y propagación de errores compartidos por los componentes.
+|Interfaz de Consola (CLI)
+|Aplicación de línea de comandos incluida en el binario que permite arrancar el programa y jugar localmente sin necesidad del servidor HTTP, interactuando directamente con el motor.
 |===
 
 
@@ -157,47 +166,42 @@ Tabla 3. Bloques de construcción contenidos (Servicio de Juego)
 [mermaid, "bb-level3-core", png]
 ----
 flowchart TB
-  subgraph Engine [Motor de juego]
-    Coord[Topologia / Coordenadas]
-    State[Estado de la partida]
-    Validator[Validador / Movimiento]
-    Victory[Detector de victoria]
-    Players[Gestión de jugadores]
-    Render[Representación / Opciones]
+  YEN_IN["Estado Serializado / JSON YEN"]
+  YEN_OUT["Nuevo Estado / JSON YEN"]
+
+  subgraph Core ["Core del juego - Transición de Estado"]
+    direction TB
+    Game["GameY<br>Motor efímero de partida"]
+    Coords["Topología y Coordenadas"]
+    Move["Movimientos y Acciones"]
+    UF["Algoritmo Union-Find<br>PlayerSet"]
   end
 
-  Coord -->|define vecindad y conversiones| State
-  Coord -->|vecindad| Validator
-  State -->|consulta| Validator
-  State -->|analiza conexiones| Victory
-  Validator -->|aplica mutaciones| State
-  Players -->|consulta/actualiza| State
-  State -->|serialización/representación| Render
+  YEN_IN -->|"TryFrom: Reconstruye tablero"| Game
+  Move -->|"Aplica nueva jugada"| Game
+  
+  Game -->|"Calcula adyacencias"| Coords
+  Game -->|"Une componentes y verifica victoria"| UF
+  UF -->|"Confirma estado"| Game
+  
+  Game -->|"From: Serializa resultado"| YEN_OUT
 ----
 
 Tabla 4. Bloques de construcción contenidos (Core del juego)
 
 [cols="1,3", options="header"]
-[cols="1,3", options="header"]
 |===
 |Bloque |Descripción
 
-|Topología / Coordenadas
-|Funciones y utilidades para coordenadas y vecinos del tablero). No guarda estado.
+|GameY (Motor efímero de partida)
+|Estructura central que funciona como una **máquina de transición de estado**. Su ciclo de vida en el servidor web consta de tres fases: 1) Reconstruirse a partir de una notación YEN simulando las piezas previas. 2) Aplicar un único movimiento entrante validando reglas. 3) Exportarse de nuevo a YEN y destruirse.
 
-|Estado de la partida
-|Estructura central que mantiene posiciones, turno y dimensiones; contiene la lógica de consulta del estado.
+|Topología y Coordenadas
+|Módulo de cálculo puro (`Coordinates`) basado en coordenadas baricéntricas `(x, y, z)`. Resuelve conversiones desde índices lineales y, crucialmente, calcula cuáles son las coordenadas adyacentes a una casilla concreta y qué bordes del tablero toca.
 
-|Validador / Movimiento
-|Validación de intenciones de movimiento y aplicación de mutaciones sobre el estado.
+|Movimientos y Acciones
+|Representación de la intención del turno actual. Define si el jugador o bot intenta colocar una pieza (`Placement`) en unas coordenadas específicas, o ejecutar una regla especial del juego (`GameAction` como `Swap` o `Resign`).
 
-|Detector de victoria
-|Algoritmos que analizan conexiones en el tablero para decidir condiciones de victoria.
-
-|Gestión de jugadores
-|Modela jugadores y conjuntos de jugadores, APIs para añadir/consultar participantes.
-
-|Representación / Opciones
-|Opciones de render y serialización del estado para salida/IO.
+|Algoritmo Union-Find (PlayerSet)
+|Estructura de datos y algoritmo que gestiona el grafo de conexiones. Cada vez que GameY reconstruye el tablero o añade una pieza, `PlayerSet` une las casillas del mismo color que se tocan. Comprueba de forma ultra-optimizada si un mismo conjunto ha logrado tocar los lados A, B y C simultáneamente (condición de victoria).
 |===
-
