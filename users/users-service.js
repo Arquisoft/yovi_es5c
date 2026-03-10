@@ -64,7 +64,11 @@ app.post('/user', async (req, res) => {
         await newUser.save(); 
         res.json(newUser);
     } catch (error) {
-        res.status(400).json({ error: error.message }); 
+        if (error.code === 11000) {
+            res.status(400).json({ error: "User already exists" })
+        } else {
+            res.status(400).json({ error: error.message })
+        }
 }});
 
 app.post('/login', async (req, res) => {
