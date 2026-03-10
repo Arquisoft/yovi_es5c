@@ -44,9 +44,21 @@ endif::arc42help[]
 [cols="1,3" options="header"]
 |===
 | Sección | Descripción
-| **Título** | Selección de MongoDB como base de datos para el juego YOVI
-| **Contexto** | Necesidad de persistencia de datos para el historial de partidas, registro de usuarios y datos internos. Se requiere una solución que soporte esquemas flexibles (tableros variables) y comunicación mediante JSON (notación YEN). 
-| **Decisión** | **Aceptar el uso de MongoDB.** Se elige por ser una base de datos documental nativa en JSON, su compatibilidad con Docker y la familiaridad previa del equipo con esta tecnología.
-| **Estado** | **Aceptado** 
-| **Consecuencias** | **Beneficios:** Optimización para JSON/YEN, flexibilidad ante cambios en el modelo de datos (tableros), alta velocidad de lectura/escritura para bots y fácil escalabilidad para futuros modos de juego. <br> **Desventajas:** Gestión de transacciones ACID más compleja (riesgo de inconsistencia en estadísticas) y un elevado consumo de memoria RAM en el despliegue. 
+| Título | Selección de MongoDB como base de datos para el juego YOVI
+| Contexto | Necesidad de persistencia de datos para el historial de partidas, registro de usuarios y datos internos. Se requiere una solución que soporte esquemas flexibles (tableros variables) y comunicación mediante JSON (notación YEN). 
+| Decisión  | **Aceptar el uso de MongoDB.** Se elige por ser una base de datos documental nativa en JSON, su compatibilidad con Docker y la familiaridad previa del equipo con esta tecnología.
+|  Estado | **Aceptado** 
+|  Consecuencias | **Beneficios:** Optimización para JSON/YEN, flexibilidad ante cambios en el modelo de datos (tableros), alta velocidad de lectura/escritura para bots y fácil escalabilidad para futuros modos de juego. <br> **Desventajas:** Gestión de transacciones ACID más compleja (riesgo de inconsistencia en estadísticas) y un elevado consumo de memoria RAM en el despliegue. 
+|===
+
+=== Estrategia de Control de Versiones
+[cols="1,3" options="header"]
+|===
+| Sección | Descripción
+| Título | Adopción de modelo Git Flow para la gestión del repositorio en GitHub
+| Contexto | Necesidad de coordinar el desarrollo grupal para evitar conflictos e inconsistencias. Se requiere un flujo que permita separar el código estable del experimental y facilite el trabajo paralelo.
+| Decisión | Implementar una variante de Git Flow. Se utilizarán dos ramas persistentes (main para entregas estables y develop para integración) junto a ramas temporales (feature/) de ciclo de vida corto para tareas específicas.
+| Estado | **Aceptado**
+| Consecuencias | **Beneficios:** Protección del entorno de producción, aislamiento de errores en ramas experimentales y facilitación del desarrollo paralelo (ej. lógica en Rust y corrección de bugs simultáneos).<br>
+**Desventajas:** Historial menos lineal debido a múltiples bifurcaciones y mayor complejidad potencial al resolver conflictos en integraciones semanales.
 |===
