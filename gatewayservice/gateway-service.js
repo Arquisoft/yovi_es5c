@@ -101,4 +101,7 @@ app.post('/game/move', async (req, res) => {
   }
 });
 
-app.listen(port, () => console.log(`Gateway listening on ${port}`))
+const server = app.listen(port, () => console.log(`Gateway listening on ${port}`))
+
+module.exports = { app, server }
+

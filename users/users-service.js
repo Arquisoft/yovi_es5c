@@ -10,7 +10,6 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('./model/user-model');
 
-// Temporal: Conexión a MongoDB usando la variable de entorno del docker-compose
 const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/userdb';
 mongoose.connect(mongoUri);
 
@@ -44,12 +43,12 @@ module.exports = app
 
 app.post('/user', async (req, res) => {
     try {
-        const { username, password, name, surname } = req.body;
+        const { username, password, name, surname, email } = req.body;
 
         const sanitizedUsername = username.trim().toLowerCase();
         const user = await User.findOne({ username: sanitizedUsername });
 
-        registerValidators(user, username, password, name, surname);
+        registerValidators(user, username, password, name, surname, email);
 
         // Encrypt the password before saving it
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
@@ -81,14 +80,14 @@ app.post('/login', async (req, res) => {
 
         //Checks user exists in database
         if(!user) {
-            return res.status(401).json({ error: 'Incorrect username or password.' });
+            return res.status(401).json({ error: 'Incorrect username' });
         }
 
         //Password match verification
         const passwordMatch = await bcrypt.compare(password, user.password);
 
         if(!passwordMatch) {
-            return res.status(401).json({ error: 'Incorrect username or password.' });
+            return res.status(401).json({ error: 'Incorrect password.' });
         }
 
         //Creates JWT token and returns with success code
@@ -103,8 +102,6 @@ app.post('/login', async (req, res) => {
 
 
         
-
-
 
 app.post('/logout', async (req, res) => {
   try {

@@ -22,7 +22,7 @@ jobs:
           - 27017:27017
     strategy:
       matrix:
-        service: [webapp, users, gateway-service]
+        service: [webapp, users, gatewayservice]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -58,10 +58,14 @@ jobs:
           cargo test
 
   e2e:
-    if: false
     name: Run E2E tests
     runs-on: ubuntu-latest
     needs: [test-node, test-rust]
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -79,7 +83,7 @@ jobs:
           npm ci
       - name: Install gateway dependencies
         run: |
-          cd gateway-service
+          cd gatewayservice
           npm ci
       - name: Install Playwright browsers
         run: |
@@ -87,13 +91,15 @@ jobs:
           npm run test:e2e:install-browsers
       - name: Run E2E tests (start servers and run cucumber)
         run: |
-          cd webapp
-          npm run test:e2e
+          cd gatewayservice && node gateway-service.js &
+          cd webapp && npm run test:e2e
+        env:
+          VITE_API_URL: http://localhost:8000
 
   docker-push-users:
     name: Publish users image
     runs-on: ubuntu-latest
-    #needs: e2e
+    needs: e2e
     permissions:
       contents: read
       packages: write
@@ -113,7 +119,7 @@ jobs:
   docker-push-webapp:
     name: Publish webapp image
     runs-on: ubuntu-latest
-    #needs: e2e
+    needs: e2e
     permissions:
       contents: read
       packages: write
@@ -136,7 +142,7 @@ jobs:
   docker-push-gamey:
     name: Publish gamey image
     runs-on: ubuntu-latest
-    #needs: e2e
+    needs: e2e
     permissions:
       contents: read
       packages: write
@@ -156,7 +162,7 @@ jobs:
   docker-push-gateway:
     name: Publish gateway image
     runs-on: ubuntu-latest
-    #needs: e2e
+    needs: e2e
     permissions:
       contents: read
       packages: write

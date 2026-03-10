@@ -1,23 +1,24 @@
 import { Given, When, Then } from '@cucumber/cucumber'
-import assert from 'assert'
 
-Given('the register page is open', async function () {
-  const page = this.page
-  if (!page) throw new Error('Page not initialized')
-  await page.goto('http://localhost:5173')
+Given('An unregistered user', async function () {
+  this.username = `user_${Date.now()}`
+  this.password = 'Password123!'
+
+  await this.page.goto('http://localhost:5173/register')
 })
 
-When('I enter {string} as the username and submit', async function (username) {
-  const page = this.page
-  if (!page) throw new Error('Page not initialized')
-  await page.fill('#username', username)
-  await page.click('.submit-button')
+When('I fill the data in the form and press submit', async function () {
+  await this.page.fill('input[name="username"]', this.username)
+  await this.page.fill('input[name="name"]', 'Admin')
+  await this.page.fill('input[name="surname"]', 'Admin')
+  await this.page.fill('input[name="email"]', `${this.username}@test.com`)
+  await this.page.fill('input[name="password"]', this.password)
+  await this.page.fill('input[name="confirmPassword"]', this.password)
+
+  await this.page.click('button:has-text("Register")')
 })
 
-Then('I should see a welcome message containing {string}', async function (expected) {
-  const page = this.page
-  if (!page) throw new Error('Page not initialized')
-  await page.waitForSelector('.success-message', { timeout: 5000 })
-  const text = await page.textContent('.success-message')
-  assert.ok(text && text.includes(expected), `Expected success message to include "${expected}", got: "${text}"`)
+Then('I should be redirect to the homepage', async function () {
+  await this.page.waitForURL('**/homepage', { timeout: 15000 })
+  await this.page.waitForSelector('button:has-text("Start Playing")', { timeout: 15000 })
 })
