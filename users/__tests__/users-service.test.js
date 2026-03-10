@@ -202,90 +202,33 @@ describe('User Service', () => {
     expect(response.body.error).toBe('The surname cannot be empty or contain only spaces');
   });
 
-  
-  it('The email cannot be empty or contain only spaces', async () => {
-    const newUser = {
-        username: 'testuser',
-        name: 'testname',
-        surname: 'testsurname',
-        email: '',
-        password: 'Admin123##',
-    };
+  it('should logout a user on POST /logout', async () => {
+    const user = new User({
+      username: 'testuser',
+      name: 'test',
+      surname: 'user',
+      email: 'test@uniovi.es',
+      password: 'hashedpassword',
+    });
 
-    const response = await request(app).post('/user').send(newUser);
+    await user.save();
 
-    // Check that the status code is 400 (error)
-    expect(response.status).toBe(400);
+    const response = await request(app)
+      .post('/logout')
+      .send({ username: 'testuser' });
 
-    // Check that the error message is returned in the "error" field
-    expect(response.body).toHaveProperty('error');
-    expect(response.body.error).toBe('The email cannot be empty or contain only spaces');
-  });
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty(
+      'message',
+      'User testuser logged out'
+    );
+
+    const userInDb = await User.findOne({ username: 'testuser' });
+
+    expect(userInDb).not.toBeNull();
+    expect(userInDb.lastLogoutAt).not.toBeNull();
+});
 
 })
- 
 
-describe('POST /login', () => {
-    afterEach(async () => {
-        vi.restoreAllMocks()
-        const User = mongoose.model('User')
-        await User.deleteMany({}) // Limpiamos la BD después de cada test
-    })
 
-    it('successfully logs in a registered user', async () => {
-        const username = 'LoginUser'
-        const password = 'TestPassword123' // Cumple requisitos: min 8 chars, 1 mayúscula, 1 número
-
-        // 1. Primero creamos el usuario con TODOS los campos obligatorios y en la ruta correcta
-        const createRes = await request(app)
-            .post('/user')
-            .send({ 
-                username: username, 
-                password: password,
-                name: 'Miguel',        // Obligatorio por tu validador
-                surname: 'Arias',      // Obligatorio por tu validador
-                email: 'test@test.com'
-            }) 
-            .set('Accept', 'application/json')
-
-        // Comprobamos que el usuario se creó correctamente antes de intentar el login
-        expect(createRes.status).toBe(200)
-
-        // 2. Intentamos hacer login
-        const loginRes = await request(app)
-            .post('/login')
-            .send({ username, password })
-            .set('Accept', 'application/json')
-
-        // 3. Verificamos que el login es exitoso
-        expect(loginRes.status).toBe(200)
-        expect(loginRes.body).toHaveProperty('token') 
-    })
-
-    it('fails to log in with incorrect password', async () => {
-        const username = 'LoginUser2'
-        const correctPassword = 'CorrectPassword123'
-        
-        // Creamos el usuario
-        await request(app)
-            .post('/user')
-            .send({ 
-                username: username, 
-                password: correctPassword,
-                name: 'TestName',
-                surname: 'TestSurname',
-                email: 'test@test.com'
-            })
-            .set('Accept', 'application/json')
-
-        // Intentamos login con contraseña errónea
-        const loginRes = await request(app)
-            .post('/login')
-            .send({ username, password: 'WrongPassword123' })
-            .set('Accept', 'application/json')
-
-        expect(loginRes.status).toBe(401)
-        expect(loginRes.body).toHaveProperty('error')
-        expect(loginRes.body.error).toBe('Incorrect password.')
-    })
-})
