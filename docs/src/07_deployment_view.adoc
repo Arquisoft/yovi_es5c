@@ -62,7 +62,7 @@ endif::arc42help[]
 
 _**Diagrama de Despliegue (resumen)**_
 
-Se utiliza el diagrama de la sección "Contexto de negocio" para representar, a alto nivel, los contenedores Docker, la red interna, la base de datos y la pila de monitoreo. El diagrama muestra cómo los bloques de software (Gamey Server, Users Service, Web App) se despliegan en contenedores separados y cómo estos consumen servicios infraestructurales (MongoDB, red Docker, Prometheus, Grafana).
+Se utiliza el diagrama de la sección "Contexto de negocio" para representar, a alto nivel, los contenedores Docker, la red interna, la base de datos y la pila de monitoreo. El diagrama muestra cómo los bloques de software (Gamey Server, Users Service, Web App, Gateway) se despliegan en contenedores separados y cómo estos consumen servicios infraestructurales (MongoDB, red Docker, Prometheus, Grafana).
 
 Motivación::
 
@@ -120,54 +120,35 @@ endif::arc42help[]
 config:
   layout: fixed
 ---
-flowchart TB
- subgraph Software["Bloques de Construcción"]
-        GameyServer["Gamey Server<br>"]
-        UsersService["Users Service<br>"]
-        WebApp["Web App<br>"]
-  end
- subgraph Containers["Contenedores Docker"]
-        GameyContainer["Puerto 4000"]
-        UsersContainer["Puerto 3000"]
-        WebAppContainer["Puerto 80"]
-        MongoDB["MongoDB<br>Puerto 27017"]
-  end
- subgraph Monitoring["Monitoreo"]
-        PrometheusContainer["Contenedor prometheus<br>Puerto 9090"]
-        GrafanaContainer["Contenedor grafana<br>Puerto 9091"]
-  end
- subgraph Infrastructure["Elementos de Infraestructura"]
-        DockerNet["Docker<br>"]
-        Containers
-        Monitoring
-  end
-    GameyServer --> GameyContainer
-    WebApp --> WebAppContainer
-    GameyContainer --> DockerNet
-    UsersContainer --> DockerNet
-    WebAppContainer --> DockerNet
-    PrometheusContainer --> DockerNet
-    GrafanaContainer --> DockerNet
-    MongoDB --> DockerNet
-    WebAppContainer -- depends_on --> UsersContainer
-    UsersService --> UsersContainer
-    UsersContainer -- uses --> MongoDB
+graph LR
+    User((User))
 
-     GameyServer:::software
-     UsersService:::software
-     WebApp:::software
-     GameyContainer:::container
-     UsersContainer:::container
-     WebAppContainer:::container
-     PrometheusContainer:::monitoring
-     GrafanaContainer:::monitoring
-     DockerNet:::network
-     MongoDB:::database
-    classDef software fill:#e1f5ff,stroke:#01579b,stroke-width:2px,color:#000
-    classDef container fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
-    classDef monitoring fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
-    classDef database fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef network fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+    subgraph Azure [Azure]
+        subgraph Docker [Docker]
+            App[Yovi App]
+            Gateway[Gateway Service]
+            
+            GameY[GameY Service]
+            UserS[User Service]
+
+            MongoDb[MongoDb]
+        end
+    end
+
+    %% Conexiones principales
+    User --> App
+    App --> Gateway
+
+    %% Gateway a microservicios
+    Gateway --> UserS
+    Gateway --> GameY
+
+    %% Conexiones a Bases de Datos
+    UserS --> MongoDb
+
+    %% Aplicar Clases
+    class App,Gateway,UserS, greenFill
+    class MongoDb,QDB dbFill
 ----
 
 ==== _Contenedores_
@@ -178,7 +159,9 @@ Este grupo representa los servicios principales de la aplicación que se ejecuta
 
 * **Puerto 3000 (Users)**: Es el encargado de la gestión de usuarios. Conexión directa a MongoDB.
 
-* **Puerto 80 (WebApp)**: Es el punto de entrada web. Existe una relación directa entre este contenedor y el de Users, ya que depende de la gestión de usuarios para autenticar y autorizar a los jugadores.
+* **Puerto 80 (WebApp)**: Es la interfaz de usuario de la aplicación, proporcionando acceso a través de un navegador web. Este servicio se comunica con el Gateway para acceder a los servicios de Gamey y Users.
+
+* **Puerto 8000 (Gateway)**: Actúa como punto de entrada para las solicitudes HTTP y redirige las peticiones a los microservicios correspondientes.
 
 * **Puerto 27017 (MongoDB)**: Es la base de datos de la aplicación. Esta interrelacionado con casi todos los conteneder ya que necesita almacenar y proveer de tanto los datos de identificación de los usuarios como de los resultados de sus partidas y sus estadísticas. Cuenta con un volumen persistente para trasladar datos en caso de ser necesario.
 
