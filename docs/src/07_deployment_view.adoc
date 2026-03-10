@@ -113,8 +113,7 @@ Please copy the structure from level 1 for each selected element.
 ****
 endif::arc42help[]
 
-=== Contexto de negocio
-[mermaid, "business-context", png]
+[mermaid, "level2", png]
 ----
 ---
 config:
