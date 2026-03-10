@@ -202,6 +202,33 @@ describe('User Service', () => {
     expect(response.body.error).toBe('The surname cannot be empty or contain only spaces');
   });
 
+  it('should logout a user on POST /logout', async () => {
+    const user = new User({
+      username: 'testuser',
+      name: 'test',
+      surname: 'user',
+      email: 'test@uniovi.es',
+      password: 'hashedpassword',
+    });
+
+    await user.save();
+
+    const response = await request(app)
+      .post('/logout')
+      .send({ username: 'testuser' });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty(
+      'message',
+      'User testuser logged out'
+    );
+
+    const userInDb = await User.findOne({ username: 'testuser' });
+
+    expect(userInDb).not.toBeNull();
+    expect(userInDb.lastLogoutAt).not.toBeNull();
+});
+
 })
 
 

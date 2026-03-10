@@ -101,8 +101,6 @@ app.post('/login', async (req, res) => {
 });
 
 
-        
-
 app.post('/logout', async (req, res) => {
   try {
     const { username } = req.body;
