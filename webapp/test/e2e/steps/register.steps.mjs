@@ -31,12 +31,12 @@ Given('the register page is open', async function () {
   await this.page.goto(`${BASE_URL}/register`)
 })
 
-When('I fill the form with an already registered username', async function () {
-  await this.page.fill('input[name="username"]', 'Alice')
-  await this.page.fill('input[name="name"]', 'Alice')
-  await this.page.fill('input[name="surname"]', 'Alice')
-  await this.page.fill('input[name="email"]', 'alice@test.com')
-  await this.page.fill('input[name="password"]', 'Alice123**')
-  await this.page.fill('input[name="confirmPassword"]', 'Alice123**')
+When('I fill the form with an already registered username {string} and password {string}', async function (username, password) {
+  await this.page.fill('input[name="username"]', username)
+  await this.page.fill('input[name="name"]', username)
+  await this.page.fill('input[name="surname"]', username)
+  await this.page.fill('input[name="email"]', `${username}@test.com`)
+  await this.page.fill('input[name="password"]', password)
+  await this.page.fill('input[name="confirmPassword"]', password)
   await this.page.click('button:has-text("Register")')
 })

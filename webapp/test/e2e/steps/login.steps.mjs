@@ -1,6 +1,25 @@
 import { Given, When, Then, After } from '@cucumber/cucumber'
 import assert from 'assert'
 
+Given('a registered user {string} with password {string}', async function (username, password) {
+  const page = this.page
+  if (!page) throw new Error('Page not initialized')
+
+  // Navegamos al registro y creamos el usuario previamente para que exista
+  await page.goto(`${BASE_URL}/register`)
+  await page.fill('input[name="username"]', username)
+  await page.fill('input[name="name"]', username)
+  await page.fill('input[name="surname"]', username)
+  await page.fill('input[name="email"]', `${username}@test.com`)
+  await page.fill('input[name="password"]', password)
+  await page.fill('input[name="confirmPassword"]', password)
+  
+  await page.click('button:has-text("Register")')
+  
+  // Esperamos la redirección para garantizar que el registro finalizó antes del siguiente paso
+  await page.waitForURL('**/homepage', { timeout: 15000 })
+})
+
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173'
 
 Given('the login page is open', async function () {

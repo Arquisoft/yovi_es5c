@@ -6,6 +6,7 @@ Scenario: The user is not registered in the site
   Then I should be redirect to the homepage
 
 Scenario: Register with existing username
-  Given the register page is open
-  When I fill the form with an already registered username
+  Given a registered user "AliceReg" with password "Alice123**"
+  And the register page is open
+  When I fill the form with an already registered username "AliceReg" and password "Alice123**"
   Then I should see an error message containing "User already exists"
