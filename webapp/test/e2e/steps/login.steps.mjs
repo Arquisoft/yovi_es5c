@@ -1,13 +1,6 @@
 import { Given, When, Then, After } from '@cucumber/cucumber'
 import assert from 'assert'
 
-// After(async function () {
-//   // Busca el botón de logout y hace click
-//   await this.page.click('#root > div > div > div > div > button');
-//   await this.page.click('#root > div > header > div:nth-child(2) > button')
-//   await this.page.goto('http://localhost:5173/login')
-// })
-
 Given('the login page is open', async function () {
   const page = this.page
   if (!page) throw new Error('Page not initialized')
