@@ -1,44 +1,16 @@
-import reactLogo from '../assets/react.svg'
-import { useSession } from '../SessionContext'
+
 import { Button } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
+import '../components/HomePage.css'
 
 export default function HomePage() {
-  const { isLoggedIn, username } = useSession()
   const navigate = useNavigate()
 
   return (
-    <div className="main-content">
-      <div>
-        <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank" rel="noreferrer">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+      <div className="home-container">
+          <Button variant="contained" onClick={() => navigate('/game')} sx={{ marginTop: 2 }}>
+            Play
+          </Button>
       </div>
-
-      <h2>Welcome to the Software Arquitecture 2025-2026 course</h2>
-
-      {!isLoggedIn ? (
-        <div style={{display: "flex", alignItems: "center", flexDirection: "column"}}>
-          <Button variant="contained" onClick={() => navigate('/register')} sx={{ marginTop: 2 }}>
-            Go to Register
-          </Button>
-          <Button variant="contained" onClick={() => navigate('/login')} sx={{ marginTop: 2 }}>
-            Go to Login
-          </Button>
-        </div>
-      ) : (
-        <div style={{display: "flex", alignItems: "center", flexDirection: "column", marginTop: 16}}>
-          <p>
-            You are in as <b>{username}</b>
-          </p>
-          <Button variant="contained" onClick={() => navigate('/set')} sx={{ marginTop: 2 }}>
-            Start Playing
-          </Button>
-        </div>
-      )}
-    </div>
   )
 }
