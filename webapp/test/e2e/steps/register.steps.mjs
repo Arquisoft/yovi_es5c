@@ -20,5 +20,5 @@ When('I fill the data in the form and press submit', async function () {
 
 Then('I should be redirect to the homepage', async function () {
   await this.page.waitForURL('**/homepage', { timeout: 15000 })
-  await this.page.waitForSelector('button:has-text("Start Playing")', { timeout: 15000 })
+  await this.page.waitForSelector('button:has-text("Play")', { timeout: 15000 })
 })
