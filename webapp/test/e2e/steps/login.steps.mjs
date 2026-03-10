@@ -1,12 +1,12 @@
 import { Given, When, Then, After } from '@cucumber/cucumber'
 import assert from 'assert'
 
-// Limpia cookies antes de cada escenario
-After(async function () {
-  // Busca el botón de logout y haz click
-  await this.page.click('#root > div > header > div:nth-child(2) > button')
-  await this.page.goto('http://localhost:5173/login')
-})
+// After(async function () {
+//   // Busca el botón de logout y hace click
+//   await this.page.click('#root > div > div > div > div > button');
+//   await this.page.click('#root > div > header > div:nth-child(2) > button')
+//   await this.page.goto('http://localhost:5173/login')
+// })
 
 Given('the login page is open', async function () {
   const page = this.page
@@ -28,6 +28,7 @@ When('I enter {string} as the username and {string} as the password and submit t
   await page.waitForTimeout(1000)
 })
 
+//Caso positivo: login correcto
 Then('I should be redirected and see a paragraph containing {string}', async function (expected) {
   const page = this.page
   if (!page) throw new Error('Page not initialized')
@@ -37,3 +38,14 @@ Then('I should be redirected and see a paragraph containing {string}', async fun
   const text = await page.textContent('p')
   assert.ok(text && text.includes(expected), `Expected dashboard message to include "${expected}", got: "${text}"`)
 })
+
+//Caso negativo (usuario no registrado o contraseña incorrecta)
+Then('I should see an error message containing {string}', async function (expected) {
+  const page = this.page
+  if (!page) throw new Error('Page not initialized')
+  
+  await page.waitForSelector('.MuiAlert-message', { timeout: 5000 })
+  const text = await page.textContent('.MuiAlert-message')
+  assert.ok(text && text.includes(expected), `Expected error message to include "${expected}", got: "${text}"`)
+})
+
