@@ -1,10 +1,12 @@
 import { Given, When, Then, After } from '@cucumber/cucumber'
 import assert from 'assert'
 
+const BASE_URL = process.env.BASE_URL || 'http://localhost:5173'
+
 Given('the login page is open', async function () {
   const page = this.page
   if (!page) throw new Error('Page not initialized')
-  await page.goto('http://localhost:5173/login')
+  await page.goto(`${BASE_URL}/login`)
 })
 
 When('I enter {string} as the username and {string} as the password and submit the login', async function (username, password) {
