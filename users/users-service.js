@@ -126,12 +126,12 @@ app.post('/logout', async (req, res) => {
   }
 });
 
-function registerValidators(user, username, password, name, surname){
+function registerValidators(user, username, password, name, surname, email){
     if (user != null) {
       throw new Error('Invalid username');
     }
 
-    // Email validation
+    // UserName validation
     if (username.trim().length < 4) {
         throw new Error('The username must be at least 4 characters long');
     }
@@ -155,5 +155,10 @@ function registerValidators(user, username, password, name, surname){
     // Surname validation
     if (!surname.trim()) {
         throw new Error('The surname cannot be empty or contain only spaces');
+    }
+
+    // Email validation
+    if (!email.trim()) {
+        throw new Error('The email cannot be empty or contain only spaces');
     }
 }
