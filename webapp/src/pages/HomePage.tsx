@@ -47,7 +47,7 @@ export default function HomePage() {
 
         <PlayButton 
             variant="contained" 
-            onClick={() => navigate('/game')}
+            onClick={() => navigate('/set')}
             startIcon={<PlayArrowIcon />}
           >
             Play
