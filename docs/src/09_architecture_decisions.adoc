@@ -1,7 +1,7 @@
 ifndef::imagesdir[:imagesdir: ../images]
 
 [[section-design-decisions]]
-== Architecture Decisions
+=== Decisiones Arquitectónicas
 
 
 ifdef::arc42help[]
@@ -33,5 +33,20 @@ Various options:
 See https://docs.arc42.org/section-9/[Architecture Decisions] in the arc42 documentation.
 There you will find links and examples about ADR.
 
+
+
+
 ****
 endif::arc42help[]
+
+
+=== Base de Datos
+[cols="1,3" options="header"]
+|===
+| Sección | Descripción
+| **Título** | Selección de MongoDB como base de datos para el juego YOVI
+| **Contexto** | Necesidad de persistencia de datos para el historial de partidas, registro de usuarios y datos internos. Se requiere una solución que soporte esquemas flexibles (tableros variables) y comunicación mediante JSON (notación YEN). 
+| **Decisión** | **Aceptar el uso de MongoDB.** Se elige por ser una base de datos documental nativa en JSON, su compatibilidad con Docker y la familiaridad previa del equipo con esta tecnología.
+| **Estado** | **Aceptado** 
+| **Consecuencias** | **Beneficios:** Optimización para JSON/YEN, flexibilidad ante cambios en el modelo de datos (tableros), alta velocidad de lectura/escritura para bots y fácil escalabilidad para futuros modos de juego. <br> **Desventajas:** Gestión de transacciones ACID más compleja (riesgo de inconsistencia en estadísticas) y un elevado consumo de memoria RAM en el despliegue. 
+|===
