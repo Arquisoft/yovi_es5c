@@ -34,8 +34,8 @@ Then('I should be redirected and see a paragraph containing {string}', async fun
   if (!page) throw new Error('Page not initialized')
   
   // Aparecerá un párrafo indicando que el login fue exitoso
-  await page.waitForSelector('p', { timeout: 20000 })
-  const text = await page.textContent('p')
+  await page.waitForSelector('h3', { timeout: 5000 })
+  const text = await page.textContent('h3')
   assert.ok(text && text.includes(expected), `Expected dashboard message to include "${expected}", got: "${text}"`)
 })
 
