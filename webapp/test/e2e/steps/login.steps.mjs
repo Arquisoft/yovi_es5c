@@ -16,8 +16,16 @@ Given('a registered user {string} with password {string}', async function (usern
   
   await page.click('button:has-text("Register")')
   
-  // Esperamos la redirección para garantizar que el registro finalizó antes del siguiente paso
+  // Esperamos la redirección para garantizar que el registro finalizó
   await page.waitForURL('**/homepage', { timeout: 15000 })
+
+  // IMPORTANTE: Limpiamos la sesión del navegador para que el siguiente 
+  // paso empiece como un usuario anónimo (sin estar logueado).
+  await page.evaluate(() => {
+    window.localStorage.clear();
+    window.sessionStorage.clear();
+  });
+  await page.context().clearCookies();
 })
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173'
