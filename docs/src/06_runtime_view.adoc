@@ -39,7 +39,7 @@ See https://docs.arc42.org/section-6/[Runtime View] in the arc42 documentation.
 ****
 endif::arc42help[]
 
-=== <Ejecución de partida jugador contra jugador>
+=== Ejecución de partida jugador contra jugador
 
 A continuación se muestra el diagrama de secuencia de una partida entre dos jugadores humanos a través de la terminal, que representa el flujo principal del sistema en su estado actual.
 El diagrama muestra:
@@ -48,14 +48,14 @@ El diagrama muestra:
 * Cómo se gestionan los turnos alternados entre jugadores hasta que finaliza la partida
 
 
-[mermaid,"Sequence diagram",png]
+[mermaid,"Sequence diagram Game Y",png]
 ----
 sequenceDiagram
     participant U as Usuarios
-    participant Main as main.rs::main()
-    participant CLI as cli.rs::run_cli_game()
-    participant Game as game.rs::GameY
-    participant PI as cli.rs::process_input()
+    participant Main as Punto de Entrada (GameY)
+    participant CLI as Interfaz CLI (GameY)
+    participant Game as Juego (GameY)
+    participant PI as Procesador de Input (GameY)
 
     Note over U,Main: Inicio de la aplicación
     U->>Main: ejecutar: gamey
@@ -102,7 +102,7 @@ sequenceDiagram
     Main-->>U: fin del programa
 ----
 
-=== <Registro de un usuario>
+=== Registro de un usuario
 
 En este otro diagrama observamos el proceso de registro de un nuevo usuario en el sistema, donde participan el usuario, la API REST, el middleware de validación y la base de datos.
 
