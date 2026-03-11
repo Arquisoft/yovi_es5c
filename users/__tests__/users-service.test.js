@@ -202,6 +202,22 @@ describe('User Service', () => {
     expect(response.body.error).toBe('The surname cannot be empty or contain only spaces');
   });
 
+  it('The email cannot be empty or contain only spaces', async () => {
+    const newUser = {
+        username: 'testuser',
+        name: 'testname',
+        surname: 'testsurname',
+        email: '   ', // Email vacío o con espacios
+        password: 'Admin123##',
+    };
+
+    const response = await request(app).post('/user').send(newUser);
+
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty('error');
+    expect(response.body.error).toBe('The email cannot be empty or contain only spaces');
+  });
+
   it('should logout a user on POST /logout', async () => {
     const user = new User({
       username: 'testuser',
