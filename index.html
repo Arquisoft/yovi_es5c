@@ -483,8 +483,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#section-runtime-view">6. Vista en tiempo de ejecución</a>
 <ul class="sectlevel2">
-<li><a href="#_ejecución_de_partida_jugador_contra_jugador">6.1. &lt;Ejecución de partida jugador contra jugador&gt;</a></li>
-<li><a href="#_registro_de_un_usuario">6.2. &lt;Registro de un usuario&gt;</a></li>
+<li><a href="#_ejecución_de_partida_jugador_contra_jugador">6.1. Ejecución de partida jugador contra jugador</a></li>
+<li><a href="#_registro_de_un_usuario">6.2. Registro de un usuario</a></li>
 </ul>
 </li>
 <li><a href="#section-deployment-view">7. Vista de Despliegue</a>
@@ -500,17 +500,20 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_persistencia_de_datos">8.3. Persistencia de datos</a></li>
 <li><a href="#_conceptos_de_desarrollo">8.4. Conceptos de desarrollo</a></li>
 <li><a href="#_seguridad">8.5. Seguridad</a></li>
+<li><a href="#section-design-decisions">8.6. Decisiones Arquitectónicas</a></li>
+<li><a href="#_base_de_datos">8.7. Base de Datos</a></li>
+<li><a href="#_estrategia_de_control_de_versiones">8.8. Estrategia de Control de Versiones</a></li>
+<li><a href="#_centralización_de_endpoints">8.9. Centralización de Endpoints</a></li>
 </ul>
 </li>
-<li><a href="#section-design-decisions">9. Architecture Decisions</a></li>
-<li><a href="#section-quality-scenarios">10. Requisitos de Calidad</a>
+<li><a href="#section-quality-scenarios">9. Requisitos de Calidad</a>
 <ul class="sectlevel2">
-<li><a href="#_árbol_de_calidad">10.1. Árbol de Calidad</a></li>
-<li><a href="#_escenarios_de_calidad">10.2. Escenarios de Calidad</a></li>
+<li><a href="#_árbol_de_calidad">9.1. Árbol de Calidad</a></li>
+<li><a href="#_escenarios_de_calidad">9.2. Escenarios de Calidad</a></li>
 </ul>
 </li>
-<li><a href="#section-technical-risks">11. Risks and Technical Debts</a></li>
-<li><a href="#section-glossary">12. Glossary</a></li>
+<li><a href="#section-technical-risks">10. Risks and Technical Debts</a></li>
+<li><a href="#section-glossary">11. Glossary</a></li>
 </ul>
 </div>
 </div>
@@ -983,7 +986,7 @@ con respecto a plagio y honestidad académica.</p></td>
 <h3 id="_contexto_de_negocio">3.1. Contexto de negocio</h3>
 <div class="imageblock">
 <div class="content">
-<img src="./images/business-context.png" alt="business context" width="784" height="214">
+<img src="./images/business-context.png" alt="business context" width="631" height="70">
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -1017,7 +1020,7 @@ con respecto a plagio y honestidad académica.</p></td>
 <h3 id="_contexto_técnico">3.2. Contexto técnico</h3>
 <div class="imageblock">
 <div class="content">
-<img src="./images/technical-context.png" alt="technical context" width="784" height="299">
+<img src="./images/technical-context.png" alt="technical context" width="784" height="247">
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -1033,28 +1036,28 @@ con respecto a plagio y honestidad académica.</p></td>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Usuario</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Persona que accede a Yovi mediante un navegador web para registrarse, iniciar sesión y jugar partidas del juego Y.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Jugador</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Persona que accede a YOVI desde el navegador para registrarse, iniciar sesión y jugar partidas.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Aplicación Web / Yovi</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Aplicación accesible vía web que ofrece la interfaz de usuario, coordina la lógica del sistema y actúa como punto de entrada a los servicios internos y al API para bots.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aplicación web YOVI</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Es la parte visible del sistema. Muestra la interfaz al jugador, coordina el flujo de partida y conecta con el resto de componentes.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">API externa para bots</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Interfaz pública expuesta por la aplicación que permite a clientes externos interactuar con el sistema para consultar información y jugar partidas de forma automatizada.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Punto de acceso para bots</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Entrada específica para programas automáticos. Permite que bots externos jueguen sin usar la interfaz gráfica.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Bot / cliente externo</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Cliente automatizado externo que consume el API para interactuar con el sistema, incluyendo la ejecución de partidas contra la aplicación.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bot externo</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Programa automatizado que se conecta a YOVI para enviar jugadas y recibir respuestas del sistema.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Servicio de juego / Rust</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Módulo encargado de validar el estado de las partidas y de sugerir el siguiente movimiento según las reglas del juego Y.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Motor de reglas del juego</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Componente interno que comprueba si una jugada es válida y calcula la respuesta según las reglas de Y.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Base de datos / MongoDB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Sistema de persistencia que almacena la información de usuarios, partidas, estadísticas e histórico de participación.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Base de datos</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Almacena de forma persistente usuarios, partidas y estadísticas para poder consultarlas en cualquier momento.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1076,32 +1079,32 @@ con respecto a plagio y honestidad académica.</p></td>
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Registro/login</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Usuario → Aplicación Web (HTTP/HTTPS)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Jugador → Aplicación web</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">El usuario crea cuenta e inicia sesión desde el navegador.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Consulta de histórico/estadísticas</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Usuario → Aplicación Web (HTTP/HTTPS)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Jugador → Aplicación web</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">El usuario consulta partidas jugadas, ganadas/perdidas, etc.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Jugada del usuario</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Usuario → Aplicación Web (HTTP/HTTPS)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Jugador → Aplicación web</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">El usuario realiza un movimiento desde la UI.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Play (bot)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Bot → API externa (HTTP/HTTPS)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bot externo → Punto de acceso para bots</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">El bot envía <code>position</code> en notación YEN y recibe el siguiente movimiento.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Siguiente movimiento / validación</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Aplicación Web ↔ Servicio Rust (REST + JSON/YEN)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">La app delega en Rust el cálculo/validación y recibe respuesta.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aplicación web ↔ Motor de reglas</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">La app pide validar/calcular la jugada y recibe el resultado para continuar la partida.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Persistencia</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Aplicación Web → Base de datos</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aplicación web → Base de datos</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Guardar/leer usuarios, partidas y estadísticas.</p></td>
 </tr>
 </tbody>
@@ -1254,7 +1257,7 @@ Refer to details in the following sections.</p>
 <h3 id="_sistema_general_nivel_1">5.1. Sistema General (Nivel 1)</h3>
 <div class="imageblock">
 <div class="content">
-<img src="./images/bb-level1-yovi.png" alt="bb level1 yovi" width="784" height="189">
+<img src="./images/bb-level1-yovi.png" alt="bb level1 yovi" width="784" height="252">
 </div>
 </div>
 <div class="paragraph">
@@ -1274,27 +1277,31 @@ Refer to details in the following sections.</p>
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Stakeholder: Usuario</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Persona que accede a Yovi desde un navegador para registrarse y jugar partidas.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Persona que accede a Yovi desde un navegador para registrarse y jugar partidas a través de la interfaz gráfica.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Stakeholder: Bot</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Cliente externo que interactúa con el sistema mediante el API expuesto para bots.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cliente externo automatizado que interactúa con el sistema mediante los endpoints expuestos en el API Gateway.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Aplicación Web</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Punto de entrada del sistema. Ofrece la UI y expone el API para bots. Orquesta llamadas al servicio de usuarios y al servicio de juego.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aplicación Frontend (SPA desarrollada con React y Vite) que ofrece la interfaz de usuario. Delega toda la comunicación externa al API Gateway.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">API Gateway</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Punto de entrada principal del sistema (Node.js/Express). Expone la API pública, maneja límites de peticiones y enruta el tráfico hacia los servicios correspondientes.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Servicio de Usuarios</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Gestiona registro/autenticación y almacenamiento de información de usuarios y estadísticas/histórico.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gestiona la lógica de negocio relacionada con cuentas de usuario, validación de datos, registro, y autenticación. Interactúa con la base de datos.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Servicio de Juego (Rust)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Implementa la lógica del juego Y: Plataforma de juego automatizada y cálculo del siguiente movimiento según estrategias.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implementa la lógica central del juego Y. Procesa y valida los movimientos, gestiona el estado de los tableros y calcula las respuestas automatizadas.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Base de datos</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Persistencia de usuarios, resultados de partidas e información estadística/histórico.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sistema de persistencia (MongoDB) utilizado por el Servicio de Usuarios para almacenar información.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1305,7 +1312,7 @@ Refer to details in the following sections.</p>
 <h4 id="_whitebox_aplicación_web">5.2.1. Whitebox: Aplicación Web</h4>
 <div class="imageblock">
 <div class="content">
-<img src="./images/bb-level2-webapp.png" alt="bb level2 webapp" width="784" height="168">
+<img src="./images/bb-level2-webapp.png" alt="bb level2 webapp" width="784" height="149">
 </div>
 </div>
 <div class="paragraph">
@@ -1324,20 +1331,20 @@ Refer to details in the following sections.</p>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">UI / Vistas</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Pantallas y componentes que permiten al usuario registrarse, iniciar partidas y jugar.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enrutador (React Router)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gestiona la navegación en el cliente (SPA) mapeando URLs a sus componentes correspondientes y protegiendo las rutas privadas (ej. redirigiendo al login si no hay sesión activa).</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">API externa para bots</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Endpoints públicos para que bots consulten/gestionen información permitida y ejecuten el método <code>play</code>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Vistas y Componentes (React / MUI)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Conjunto de pantallas y elementos visuales (Login, Registro, Tablero de Juego) desarrollados con React y Material-UI que presentan la interfaz e interceptan las acciones del usuario.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Controladores / Orquestación</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Lógica que valida peticiones, aplica reglas de aplicación y coordina llamadas a servicios.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gestión de Sesión (SessionContext)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Estado global de la aplicación en el navegador. Utiliza la Context API de React y el LocalStorage para mantener de forma persistente la información del usuario logueado (<code>username</code>, <code>isLoggedIn</code>, <code>sessionId</code>).</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Clientes REST internos</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Capa encargada de invocar al Servicio de Usuarios y al Servicio de Juego mediante REST/JSON.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cliente API (Axios / Fetch)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Capa de integración encargada de construir, ejecutar y gestionar las respuestas de las peticiones HTTP asíncronas dirigidas a la URL pública del API Gateway (<code>VITE_API_URL</code>).</p></td>
 </tr>
 </tbody>
 </table>
@@ -1346,7 +1353,7 @@ Refer to details in the following sections.</p>
 <h4 id="_whitebox_servicio_de_juego_y_rust">5.2.2. Whitebox: Servicio de Juego Y (Rust)</h4>
 <div class="imageblock">
 <div class="content">
-<img src="./images/bb-level2-gamey.png" alt="bb level2 gamey" width="661" height="709">
+<img src="./images/bb-level2-gamey.png" alt="bb level2 gamey" width="784" height="181">
 </div>
 </div>
 <div class="paragraph">
@@ -1365,32 +1372,28 @@ Refer to details in the following sections.</p>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Interfaz Web/CLI Usuario</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Expone operaciones del servicio para comunicarse con el Usuario de la aplicación (actualmente por línea de comandos, API Web en el futuro).</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Servidor API HTTP (Axum)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Punto de entrada de red. Funciona de manera <strong>completamente stateless</strong> (sin estado de partida). En lugar de almacenar partidas, extrae el estado del tablero que llega en el cuerpo de cada petición HTTP (<code>MoveRequest</code>) para procesarlo.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Motor de juego</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Modelo de estado, reglas, validación y aplicación de acciones.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Notación y Parsing (YEN)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Capa de traducción. Deserializa el formato de texto compacto YEN recibido en JSON para construir estructuras nativas de Rust (<code>GameY</code>), y a la inversa para devolver la respuesta al cliente.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">API de servidor de bots</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Punto de entrada para bots remotos; expone estado, recibe y valida elecciones.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Motor de juego (Lógica)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Núcleo del sistema. En lugar de persistir, se crea una instancia efímera de <code>GameY</code> en cada petición basándose en la notación entrante. Aplica reglas, valida movimientos y verifica victorias.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Gestor de bots</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Registro, creación y selección de instancias de bots y políticas de elección.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Registro de bots (AppState)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El único estado global que mantiene el servidor en memoria. Gestiona y registra qué implementaciones de bots (estrategias) están cargadas y disponibles para ser utilizadas en base al parámetro enviado en la petición.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Bots</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Implementaciones de estrategias (aleatorio, heurístico, etc.) que proponen acciones.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Módulo que contiene las implementaciones de los oponentes automatizados (ej. <code>RandomBot</code>). Analizan la instancia temporal del tablero y proponen unas coordenadas válidas para jugar.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Notación y I/O</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Serialización/deserialización y representación textual del estado/jugadas.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Manejo de errores</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Tipos y propagación de errores compartidos por los componentes.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Interfaz de Consola (CLI)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aplicación de línea de comandos incluida en el binario que permite arrancar el programa y jugar localmente sin necesidad del servidor HTTP, interactuando directamente con el motor.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1402,7 +1405,7 @@ Refer to details in the following sections.</p>
 <h4 id="_whitebox_core_del_juego">5.3.1. Whitebox: Core del juego</h4>
 <div class="imageblock">
 <div class="content">
-<img src="./images/bb-level3-core.png" alt="bb level3 core" width="784" height="211">
+<img src="./images/bb-level3-core.png" alt="bb level3 core" width="784" height="269">
 </div>
 </div>
 <div class="paragraph">
@@ -1421,28 +1424,20 @@ Refer to details in the following sections.</p>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Topología / Coordenadas</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Funciones y utilidades para coordenadas y vecinos del tablero). No guarda estado.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GameY (Motor efímero de partida)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Estructura central que funciona como una <strong>máquina de transición de estado</strong>. Su ciclo de vida en el servidor web consta de tres fases: 1) Reconstruirse a partir de una notación YEN simulando las piezas previas. 2) Aplicar un único movimiento entrante validando reglas. 3) Exportarse de nuevo a YEN y destruirse.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Estado de la partida</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Estructura central que mantiene posiciones, turno y dimensiones; contiene la lógica de consulta del estado.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Topología y Coordenadas</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Módulo de cálculo puro (<code>Coordinates</code>) basado en coordenadas baricéntricas <code>(x, y, z)</code>. Resuelve conversiones desde índices lineales y, crucialmente, calcula cuáles son las coordenadas adyacentes a una casilla concreta y qué bordes del tablero toca.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Validador / Movimiento</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Validación de intenciones de movimiento y aplicación de mutaciones sobre el estado.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Movimientos y Acciones</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Representación de la intención del turno actual. Define si el jugador o bot intenta colocar una pieza (<code>Placement</code>) en unas coordenadas específicas, o ejecutar una regla especial del juego (<code>GameAction</code> como <code>Swap</code> o <code>Resign</code>).</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Detector de victoria</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Algoritmos que analizan conexiones en el tablero para decidir condiciones de victoria.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Gestión de jugadores</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Modela jugadores y conjuntos de jugadores, APIs para añadir/consultar participantes.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Representación / Opciones</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Opciones de render y serialización del estado para salida/IO.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Algoritmo Union-Find (PlayerSet)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Estructura de datos y algoritmo que gestiona el grafo de conexiones. Cada vez que GameY reconstruye el tablero o añade una pieza, <code>PlayerSet</code> une las casillas del mismo color que se tocan. Comprueba de forma ultra-optimizada si un mismo conjunto ha logrado tocar los lados A, B y C simultáneamente (condición de victoria).</p></td>
 </tr>
 </tbody>
 </table>
@@ -1517,7 +1512,7 @@ You will mainly capture scenarios in your documentation to communicate your arch
 </div>
 </div>
 <div class="sect2">
-<h3 id="_ejecución_de_partida_jugador_contra_jugador">6.1. &lt;Ejecución de partida jugador contra jugador&gt;</h3>
+<h3 id="_ejecución_de_partida_jugador_contra_jugador">6.1. Ejecución de partida jugador contra jugador</h3>
 <div class="paragraph">
 <p>A continuación se muestra el diagrama de secuencia de una partida entre dos jugadores humanos a través de la terminal, que representa el flujo principal del sistema en su estado actual.
 El diagrama muestra:</p>
@@ -1534,12 +1529,12 @@ El diagrama muestra:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/Sequence%20diagram.png" alt="Sequence diagram" width="784" height="1157">
+<img src="./images/Sequence%20diagram%20Game%20Y.png" alt="Sequence diagram Game Y" width="784" height="1087">
 </div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_registro_de_un_usuario">6.2. &lt;Registro de un usuario&gt;</h3>
+<h3 id="_registro_de_un_usuario">6.2. Registro de un usuario</h3>
 <div class="paragraph">
 <p>En este otro diagrama observamos el proceso de registro de un nuevo usuario en el sistema, donde participan el usuario, la API REST, el middleware de validación y la base de datos.</p>
 </div>
@@ -1664,7 +1659,7 @@ when your infrastructure is more complex.</p>
 <p><em><strong>Diagrama de Despliegue (resumen)</strong></em></p>
 </div>
 <div class="paragraph">
-<p>Se utiliza el diagrama de la sección "Contexto de negocio" para representar, a alto nivel, los contenedores Docker, la red interna, la base de datos y la pila de monitoreo. El diagrama muestra cómo los bloques de software (Gamey Server, Users Service, Web App) se despliegan en contenedores separados y cómo estos consumen servicios infraestructurales (MongoDB, red Docker, Prometheus, Grafana).</p>
+<p>Se utiliza el diagrama de la sección "Contexto de negocio" para representar, a alto nivel, los contenedores Docker, la red interna, la base de datos y la pila de monitoreo. El diagrama muestra cómo los bloques de software (Gamey Server, Users Service, Web App, Gateway) se despliegan en contenedores separados y cómo estos consumen servicios infraestructurales (MongoDB, red Docker, Prometheus, Grafana).</p>
 </div>
 <div class="dlist">
 <dl>
@@ -1750,7 +1745,7 @@ when your infrastructure is more complex.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/level2.png" alt="level2" width="784" height="459">
+<img src="./images/level2.png" alt="level2" width="784" height="230">
 </div>
 </div>
 <div class="sect3">
@@ -1767,7 +1762,10 @@ when your infrastructure is more complex.</p>
 <p><strong>Puerto 3000 (Users)</strong>: Es el encargado de la gestión de usuarios. Conexión directa a MongoDB.</p>
 </li>
 <li>
-<p><strong>Puerto 80 (WebApp)</strong>: Es el punto de entrada web. Existe una relación directa entre este contenedor y el de Users, ya que depende de la gestión de usuarios para autenticar y autorizar a los jugadores.</p>
+<p><strong>Puerto 80 (WebApp)</strong>: Es la interfaz de usuario de la aplicación, proporcionando acceso a través de un navegador web. Este servicio se comunica con el Gateway para acceder a los servicios de Gamey y Users.</p>
+</li>
+<li>
+<p><strong>Puerto 8000 (Gateway)</strong>: Actúa como punto de entrada para las solicitudes HTTP y redirige las peticiones a los microservicios correspondientes.</p>
 </li>
 <li>
 <p><strong>Puerto 27017 (MongoDB)</strong>: Es la base de datos de la aplicación. Esta interrelacionado con casi todos los conteneder ya que necesita almacenar y proveer de tanto los datos de identificación de los usuarios como de los resultados de sus partidas y sus estadísticas. Cuenta con un volumen persistente para trasladar datos en caso de ser necesario.</p>
@@ -2031,11 +2029,8 @@ La base de datos no se expone directamente al exterior y solo es accesible desde
 </div>
 <div style="page-break-after: always;"></div>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="section-design-decisions">9. Architecture Decisions</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="section-design-decisions">8.6. Decisiones Arquitectónicas</h3>
 <div class="sidebarblock arc42help">
 <div class="content">
 <div class="paragraph">
@@ -2080,11 +2075,130 @@ There you will find links and examples about ADR.</p>
 </div>
 </div>
 </div>
+</div>
+<div class="sect2">
+<h3 id="_base_de_datos">8.7. Base de Datos</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sección</th>
+<th class="tableblock halign-left valign-top">Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Título</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Selección de MongoDB como base de datos para el juego YOVI</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contexto</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Necesidad de persistencia de datos para el historial de partidas, registro de usuarios y datos internos. Se requiere una solución que soporte esquemas flexibles (tableros variables) y comunicación mediante JSON (notación YEN).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Decisión</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Aceptar el uso de MongoDB.</strong> Se elige por ser una base de datos documental nativa en JSON, su compatibilidad con Docker y la familiaridad previa del equipo con esta tecnología.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Estado</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Aceptado</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Consecuencias</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Beneficios:</strong> Optimización para JSON/YEN, flexibilidad ante cambios en el modelo de datos (tableros), alta velocidad de lectura/escritura para bots y fácil escalabilidad para futuros modos de juego.</p>
+<p class="tableblock"><strong>Desventajas:</strong> Gestión de transacciones ACID más compleja (riesgo de inconsistencia en estadísticas) y un elevado consumo de memoria RAM en el despliegue.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_estrategia_de_control_de_versiones">8.8. Estrategia de Control de Versiones</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sección</th>
+<th class="tableblock halign-left valign-top">Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Título</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Adopción de modelo Git Flow para la gestión del repositorio en GitHub</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contexto</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Necesidad de coordinar el desarrollo grupal para evitar conflictos e inconsistencias. Se requiere un flujo que permita separar el código estable del experimental y facilite el trabajo paralelo.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Decisión</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implementar una variante de Git Flow. Se utilizarán dos ramas persistentes (main para entregas estables y develop para integración) junto a ramas temporales (feature) de ciclo de vida corto para tareas específicas.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Estado</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Aceptado</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Consecuencias</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Beneficios:</strong> Protección del entorno de producción, aislamiento de errores en ramas experimentales y facilitación del desarrollo paralelo (ej. lógica en Rust y corrección de bugs simultáneos).</p>
+<p class="tableblock"><strong>Desventajas:</strong> Historial menos lineal debido a múltiples bifurcaciones y mayor complejidad potencial al resolver conflictos en integraciones semanales.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_centralización_de_endpoints">8.9. Centralización de Endpoints</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sección</th>
+<th class="tableblock halign-left valign-top">Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Título</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implementación de un API Gateway para la centralización de endpoints</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contexto</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El esqueleto proporcionado inicialmente presentaba una estructura dispersa. Para gestionar las peticiones de los clientes (web, bots) hacia los diferentes módulos de la aplicación, es necesario un punto de entrada único que simplifique la comunicación y la seguridad.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Decisión</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implementar un API Gateway. Se centralizan todos los endpoints de la aplicación en un único punto de acceso para actuar como intermediario hacia los servicios internos.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Estado</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Aceptado</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Consecuencias</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Beneficios</strong>:</p>
+<p class="tableblock">- Abstracción y simplificación: Los servicios internos son transparentes al cliente; el gateway redirige cada petición al servicio oportuno.</p>
+<p class="tableblock">- Seguridad centralizada: Permite gestionar la autenticación, el filtrado de datos y el control de tráfico en un solo punto.</p>
+<p class="tableblock"><strong>Desventajas</strong>:</p>
+<p class="tableblock">-Punto único de fallo: Si el gateway falla, se interrumpe toda la comunicación externa con el juego.</p>
+<p class="tableblock">-Latencia añadida: La inclusión de esta capa puede incrementar sutilmente el tiempo de respuesta.</p></td>
+</tr>
+</tbody>
+</table>
 <div style="page-break-after: always;"></div>
 </div>
 </div>
+</div>
 <div class="sect1">
-<h2 id="section-quality-scenarios">10. Requisitos de Calidad</h2>
+<h2 id="section-quality-scenarios">9. Requisitos de Calidad</h2>
 <div class="sectionbody">
 <div class="sidebarblock arc42help">
 <div class="content">
@@ -2109,7 +2223,7 @@ concrete and measurable.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_árbol_de_calidad">10.1. Árbol de Calidad</h3>
+<h3 id="_árbol_de_calidad">9.1. Árbol de Calidad</h3>
 <div class="sidebarblock arc42help">
 <div class="content">
 <div class="paragraph">
@@ -2141,22 +2255,22 @@ concrete and measurable.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/qualityTree.png" alt="qualityTree" width="784" height="1089">
+<img src="./images/qualityTree.png" alt="qualityTree" width="784" height="1128">
 </div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_escenarios_de_calidad">10.2. Escenarios de Calidad</h3>
+<h3 id="_escenarios_de_calidad">9.2. Escenarios de Calidad</h3>
 <div class="sect3">
-<h4 id="_escenario_1_exactitud_en_movimientos">10.2.1. Escenario 1: Exactitud en Movimientos</h4>
+<h4 id="_escenario_1_exactitud_en_movimientos">9.2.1. Escenario 1: Exactitud en Movimientos</h4>
 <div class="imageblock">
 <div class="content">
-<img src="./images/escenarioCalidadExactitud1.png" alt="escenarioCalidadExactitud1" width="784" height="119">
+<img src="./images/escenarioCalidadExactitud1.png" alt="escenarioCalidadExactitud1" width="784" height="134">
 </div>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_escenario_2_exactitud_en_estado_de_la_partida">10.2.2. Escenario 2: Exactitud en estado de la partida</h4>
+<h4 id="_escenario_2_exactitud_en_estado_de_la_partida">9.2.2. Escenario 2: Exactitud en estado de la partida</h4>
 <div class="imageblock">
 <div class="content">
 <img src="./images/escenarioCalidadExactitud2.png" alt="escenarioCalidadExactitud2" width="784" height="149">
@@ -2164,34 +2278,34 @@ concrete and measurable.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_escenario_3_usabilidad_de_la_aplicación">10.2.3. Escenario 3: Usabilidad de la aplicación</h4>
+<h4 id="_escenario_3_usabilidad_de_la_aplicación">9.2.3. Escenario 3: Usabilidad de la aplicación</h4>
 <div class="imageblock">
 <div class="content">
-<img src="./images/escenarioCalidadUsabilidad1.png" alt="escenarioCalidadUsabilidad1" width="784" height="130">
+<img src="./images/escenarioCalidadUsabilidad1.png" alt="escenarioCalidadUsabilidad1" width="784" height="144">
 </div>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_escenario_4_rendimiento_en_tiempos_de_respuesta">10.2.4. Escenario 4: Rendimiento en tiempos de respuesta</h4>
+<h4 id="_escenario_4_rendimiento_en_tiempos_de_respuesta">9.2.4. Escenario 4: Rendimiento en tiempos de respuesta</h4>
 <div class="imageblock">
 <div class="content">
-<img src="./images/escenarioCalidadRendimiento1.png" alt="escenarioCalidadRendimiento1" width="784" height="149">
+<img src="./images/escenarioCalidadRendimiento1.png" alt="escenarioCalidadRendimiento1" width="784" height="164">
 </div>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_escenario_5_protección_contra_inyecciones_sql">10.2.5. Escenario 5: Protección contra inyecciones SQL</h4>
+<h4 id="_escenario_5_protección_contra_inyecciones_sql">9.2.5. Escenario 5: Protección contra inyecciones SQL</h4>
 <div class="imageblock">
 <div class="content">
-<img src="./images/escenarioCalidadSeguridad1.png" alt="escenarioCalidadSeguridad1" width="784" height="119">
+<img src="./images/escenarioCalidadSeguridad1.png" alt="escenarioCalidadSeguridad1" width="784" height="134">
 </div>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_escenario_6_disponibilidad_de_la_aplicación_en_mantenimientos">10.2.6. Escenario 6: Disponibilidad de la aplicación en mantenimientos</h4>
+<h4 id="_escenario_6_disponibilidad_de_la_aplicación_en_mantenimientos">9.2.6. Escenario 6: Disponibilidad de la aplicación en mantenimientos</h4>
 <div class="imageblock">
 <div class="content">
-<img src="./images/escenarioCalidadDisponibilidad1.png" alt="escenarioCalidadDisponibilidad1" width="784" height="206">
+<img src="./images/escenarioCalidadDisponibilidad1.png" alt="escenarioCalidadDisponibilidad1" width="784" height="221">
 </div>
 </div>
 <div style="page-break-after: always;"></div>
@@ -2200,7 +2314,7 @@ concrete and measurable.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="section-technical-risks">11. Risks and Technical Debts</h2>
+<h2 id="section-technical-risks">10. Risks and Technical Debts</h2>
 <div class="sectionbody">
 <div class="sidebarblock arc42help">
 <div class="content">
@@ -2229,7 +2343,7 @@ concrete and measurable.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="section-glossary">12. Glossary</h2>
+<h2 id="section-glossary">11. Glossary</h2>
 <div class="sectionbody">
 <div class="sidebarblock arc42help">
 <div class="content">
@@ -2295,7 +2409,7 @@ concrete and measurable.</p>
 <div id="footer">
 <div id="footer-text">
 Version 8.2 EN<br>
-Last updated 2026-02-11 12:12:17 +0100
+Last updated 2026-02-19 18:09:00 +0100
 </div>
 </div>
 </body>
