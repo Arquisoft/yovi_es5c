@@ -20,7 +20,7 @@
 //! ```
 
 use clap::Parser;
-use gamey::{self, CliArgs, Mode, run_bot_server, run_cli_game};
+use gamey::{self, CliArgs, Mode, run_cli_game, run_game_server};
 use tracing_subscriber::prelude::*;
 
 /// Main entry point for the GameY application.
@@ -33,7 +33,7 @@ async fn main() {
     let args = CliArgs::parse();
 
     if args.mode == Mode::Server {
-        if let Err(e) = run_bot_server(args.port).await {
+        if let Err(e) = run_game_server(args.port).await {
             eprintln!("Error: {}", e);
             std::process::exit(1);
         }
