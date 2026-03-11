@@ -1,10 +1,13 @@
 import { Given, When, Then } from '@cucumber/cucumber'
 
+const BASE_URL = process.env.BASE_URL || 'http://localhost:5173'
+
+//Caso positivo: registro exitoso
 Given('An unregistered user', async function () {
   this.username = `user_${Date.now()}`
   this.password = 'Password123!'
 
-  await this.page.goto('http://localhost:5173/register')
+  await this.page.goto(`${BASE_URL}/register`)
 })
 
 When('I fill the data in the form and press submit', async function () {
@@ -20,5 +23,20 @@ When('I fill the data in the form and press submit', async function () {
 
 Then('I should be redirect to the homepage', async function () {
   await this.page.waitForURL('**/homepage', { timeout: 15000 })
-  await this.page.waitForSelector('button:has-text("Start Playing")', { timeout: 15000 })
+  await this.page.waitForSelector('button:has-text("Play")', { timeout: 15000 })
+})
+
+//Caso negativo: intento registrar usuario ya existente
+Given('the register page is open', async function () {
+  await this.page.goto(`${BASE_URL}/register`)
+})
+
+When('I fill the form with an already registered username {string} and password {string}', async function (username, password) {
+  await this.page.fill('input[name="username"]', username)
+  await this.page.fill('input[name="name"]', username)
+  await this.page.fill('input[name="surname"]', username)
+  await this.page.fill('input[name="email"]', `${username}@test.com`)
+  await this.page.fill('input[name="password"]', password)
+  await this.page.fill('input[name="confirmPassword"]', password)
+  await this.page.click('button:has-text("Register")')
 })

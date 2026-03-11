@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, afterEach, beforeEach, vi } from 'vitest'
 import request from 'supertest'
 import mongoose from 'mongoose'
 import { MongoMemoryServer } from 'mongodb-memory-server'
@@ -200,6 +200,104 @@ describe('User Service', () => {
     // Check that the error message is returned in the "error" field
     expect(response.body).toHaveProperty('error');
     expect(response.body.error).toBe('The surname cannot be empty or contain only spaces');
+  });
+
+  it('The email cannot be empty or contain only spaces', async () => {
+    const newUser = {
+        username: 'testuser',
+        name: 'testname',
+        surname: 'testsurname',
+        email: '   ', // Email vacío o con espacios
+        password: 'Admin123##',
+    };
+
+    const response = await request(app).post('/user').send(newUser);
+
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty('error');
+    expect(response.body.error).toBe('The email cannot be empty or contain only spaces');
+  });
+
+  it('should logout a user on POST /logout', async () => {
+    const user = new User({
+      username: 'testuser',
+      name: 'test',
+      surname: 'user',
+      email: 'test@uniovi.es',
+      password: 'hashedpassword',
+    });
+
+    await user.save();
+
+    const response = await request(app)
+      .post('/logout')
+      .send({ username: 'testuser' });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty(
+      'message',
+      'User testuser logged out'
+    );
+
+    const userInDb = await User.findOne({ username: 'testuser' });
+
+    expect(userInDb).not.toBeNull();
+    expect(userInDb.lastLogoutAt).not.toBeNull();
+});
+
+describe('Login endpoints', () => {
+    beforeEach(async () => {
+      // Creamos un usuario válido antes de probar el login
+      const hashedPassword = await bcrypt.hash('Admin123##', 10);
+      const user = new User({
+        username: 'logintest',
+        name: 'test',
+        surname: 'user',
+        email: 'login@uniovi.es',
+        password: hashedPassword,
+      });
+      await user.save();
+    });
+
+    it('should login successfully with correct credentials', async () => {
+      const response = await request(app).post('/login').send({
+        username: 'logintest',
+        password: 'Admin123##'
+      });
+      
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('token');
+    });
+
+    it('should fail if username or password is missing', async () => {
+      const response = await request(app).post('/login').send({
+        username: 'logintest'
+        // password is missing
+      });
+      
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Username and password are required.');
+    });
+
+    it('should fail if user does not exist', async () => {
+      const response = await request(app).post('/login').send({
+        username: 'doesnotexist',
+        password: 'Admin123##'
+      });
+      
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBe('Incorrect username');
+    });
+
+    it('should fail if password is incorrect', async () => {
+      const response = await request(app).post('/login').send({
+        username: 'logintest',
+        password: 'WrongPassword123##'
+      });
+      
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBe('Incorrect password.');
+    });
   });
 
 })

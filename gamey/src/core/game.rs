@@ -748,7 +748,7 @@ mod tests {
             "size": 2,
             "turn": 0,
             "players": ["B","R"],
-            "layout": "B/BB"
+            "layout": "B/RB"
         }"#;
         let yen: YEN = serde_json::from_str(yen_str).unwrap();
         let game = GameY::try_from(yen).unwrap();
@@ -767,7 +767,7 @@ mod tests {
             "size": 3,
             "turn": 0,
             "players": ["B","R"],
-            "layout": "B/BB/BBR"
+            "layout": "B/RB/.RB"
         }"#;
         let yen: YEN = serde_json::from_str(yen_str).unwrap();
         let game = GameY::try_from(yen).unwrap();

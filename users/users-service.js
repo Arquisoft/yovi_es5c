@@ -64,7 +64,11 @@ app.post('/user', async (req, res) => {
         await newUser.save(); 
         res.json(newUser);
     } catch (error) {
-        res.status(400).json({ error: error.message }); 
+        if (error.code === 11000) {
+            res.status(400).json({ error: "User already exists" })
+        } else {
+            res.status(400).json({ error: error.message })
+        }
 }});
 
 app.post('/login', async (req, res) => {
@@ -101,8 +105,6 @@ app.post('/login', async (req, res) => {
 });
 
 
-        
-
 app.post('/logout', async (req, res) => {
   try {
     const { username } = req.body;
@@ -126,12 +128,12 @@ app.post('/logout', async (req, res) => {
   }
 });
 
-function registerValidators(user, username, password, name, surname){
+function registerValidators(user, username, password, name, surname, email){
     if (user != null) {
       throw new Error('Invalid username');
     }
 
-    // Email validation
+    // UserName validation
     if (username.trim().length < 4) {
         throw new Error('The username must be at least 4 characters long');
     }
@@ -155,5 +157,10 @@ function registerValidators(user, username, password, name, surname){
     // Surname validation
     if (!surname.trim()) {
         throw new Error('The surname cannot be empty or contain only spaces');
+    }
+
+    // Email validation
+    if (!email.trim()) {
+        throw new Error('The email cannot be empty or contain only spaces');
     }
 }
