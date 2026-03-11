@@ -25,7 +25,7 @@ pub mod state;
 pub mod version;
 use axum::response::IntoResponse;
 use std::sync::Arc;
-use tower_http::cors::{CorsLayer, Any};
+use tower_http::cors::CorsLayer;
 pub use choose::MoveResponse;
 pub use error::ErrorResponse;
 pub use version::*;
