@@ -79,6 +79,36 @@ app.post('/logout', async (req, res) => {
   }
 });
 
+app.get('/user/:userId/history', async (req, res) => {
+  try {
+
+    const { userId } = req.params;
+
+    const historyUrl = new URL(`/user/${userId}/history`, userServiceUrl);
+
+    const response = await axios.get(historyUrl.href);
+
+    res.status(200).json(response.data);
+
+  } catch (error) {
+    handleErrors(res, error);
+  }
+});
+
+app.post('/game/finish', async (req, res) => {
+  try {
+
+    const finishUrl = new URL('/game/finish', userServiceUrl);
+
+    const response = await axios.post(finishUrl.href, req.body);
+
+    res.status(201).json(response.data);
+
+  } catch (error) {
+    handleErrors(res, error);
+  }
+});
+
 // ----- Gamey Service Endpoints -----
 
 app.get('/game/status', async (req, res) => {
@@ -100,6 +130,7 @@ app.post('/game/move', async (req, res) => {
     handleErrors(res, error);
   }
 });
+
 
 const server = app.listen(port, () => console.log(`Gateway listening on ${port}`))
 
