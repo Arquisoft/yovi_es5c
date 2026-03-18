@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import '@testing-library/jest-dom'
+import { MemoryRouter } from 'react-router-dom'
 import ProfilePage from '../pages/ProfilePage'
 
 const mockSession = {
@@ -32,7 +33,11 @@ describe('ProfilePage', () => {
       }),
     })
 
-    render(<ProfilePage />)
+    render(
+      <MemoryRouter>
+        <ProfilePage />
+      </MemoryRouter>
+    )
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalled()
@@ -64,7 +69,11 @@ describe('ProfilePage', () => {
         }),
       })
 
-    render(<ProfilePage />)
+    render(
+      <MemoryRouter>
+        <ProfilePage />
+      </MemoryRouter>
+    )
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /edit profile/i })).toBeEnabled()
