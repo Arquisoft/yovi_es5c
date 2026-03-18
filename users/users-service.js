@@ -9,6 +9,7 @@ const promBundle = require('express-prom-bundle');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('./model/user-model');
+const GameSession = require('./model/gameSession-model');
 
 const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/userdb';
 mongoose.connect(mongoUri);
@@ -221,3 +222,41 @@ function validateProfileFields(name, surname, email) {
         throw new Error('The email cannot be empty or contain only spaces');
     }
 }
+
+app.get('/user/:username/history', async (req, res) => {
+  try {
+    const { username } = req.params;
+
+    const user = await User.findOne({ username });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const history = await GameSession
+      .find({ userId: user._id })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(history);
+
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.post('/game/finish', async (req, res) => {
+  try {
+
+    const { userId, rival, level, duration, result } = req.body;
+
+    const game = await GameSession.create({
+      userId,
+      rival,
+      level,
+      duration,
+      result
+    });
+
+    res.status(201).json(game);
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
