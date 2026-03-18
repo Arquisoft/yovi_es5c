@@ -88,11 +88,17 @@ describe('GameHistory', () => {
       expect(axios.get).toHaveBeenCalledWith('http://localhost:8000/user/testuser/history')
     })
 
-    expect(screen.getByText('2')).toBeInTheDocument()
-    expect(screen.getByText('1')).toBeInTheDocument()
+    expect(screen.getByText('Played')).toBeInTheDocument()
+    expect(screen.getByText('Wins')).toBeInTheDocument()
+    expect(screen.getByText('Losses')).toBeInTheDocument()
+    expect(screen.getByText('Win rate')).toBeInTheDocument()
     expect(screen.getByText('50%')).toBeInTheDocument()
     expect(screen.getByText('Win')).toBeInTheDocument()
     expect(screen.getByText('Lose')).toBeInTheDocument()
+    expect(screen.getByText(/Bot/)).toBeInTheDocument()
+    expect(screen.getByText(/Player/)).toBeInTheDocument()
+    expect(screen.getByText('1m 30s')).toBeInTheDocument()
+    expect(screen.getByText('2m 0s')).toBeInTheDocument()
   })
 
   it('falls back to mock history when the backend returns an empty list', async () => {
@@ -107,7 +113,7 @@ describe('GameHistory', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('5')).toBeInTheDocument()
+      expect(screen.getByText('Played')).toBeInTheDocument()
     })
 
     expect(screen.getByText('60%')).toBeInTheDocument()

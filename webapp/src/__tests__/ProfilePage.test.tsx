@@ -116,7 +116,9 @@ describe('ProfilePage', () => {
       )
     })
 
-    expect(screen.getByText('Profile updated successfully.')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Profile updated successfully.')).toBeInTheDocument()
+    })
     expect(screen.getByText('Mario')).toBeInTheDocument()
     expect(screen.getByText('Garcia')).toBeInTheDocument()
     expect(screen.getByText('mario.garcia@uniovi.es')).toBeInTheDocument()
@@ -167,7 +169,9 @@ describe('ProfilePage', () => {
     await user.type(screen.getByLabelText('Surname'), 'Garcia')
     await user.click(screen.getByRole('button', { name: /cancel/i }))
 
-    expect(screen.getByText('Trelles')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Trelles')).toBeInTheDocument()
+    })
     expect(screen.queryByDisplayValue('Garcia')).not.toBeInTheDocument()
   })
 
