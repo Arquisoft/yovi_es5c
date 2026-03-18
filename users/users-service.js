@@ -166,13 +166,15 @@ function registerValidators(user, username, password, name, surname, email){
     }
 }
 
-app.post('/user/:userId/history', async (req, res) => {
-   try {
+app.get('/user/:username/history', async (req, res) => {
+  try {
+    const { username } = req.params;
 
-    const { userId } = req.params;
+    const user = await User.findOne({ username });
+    if (!user) return res.status(404).json({ error: 'User not found' });
 
     const history = await GameSession
-      .find({ userId })
+      .find({ userId: user._id })
       .sort({ createdAt: -1 });
 
     res.status(200).json(history);

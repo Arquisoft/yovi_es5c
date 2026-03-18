@@ -83,6 +83,7 @@ const DifficultyMenu = styled(Menu)({
     border: "1px solid #333",
     borderRadius: 4,
     boxShadow: "0 8px 24px rgba(0, 0, 0, 0.6)",
+    transform: "translateY(-30%)"
   },
 });
 
@@ -128,13 +129,21 @@ const GameSetup = () => {
   const { isLoggedIn } = useSession();
 
   if (!isLoggedIn) {
-      return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   const handleStart = (mode: GameMode) => {
     if (isLoggedIn) {
       navigate("/game", { state: { mode, difficulty } });
       console.log(mode, difficulty);
+    } else {
+      navigate("/login");
+    }
+  };
+
+  const goHistory = () => {
+    if (isLoggedIn) {
+      navigate("/history", {});
     } else {
       navigate("/login");
     }
@@ -163,6 +172,13 @@ const GameSetup = () => {
       />
       <DivRow>
         <DivColumn>
+          <ModeButton variant="outlined" onClick={() => goHistory()}>
+            Historial de partidas
+          </ModeButton>
+          <ModeDescription>Watch your stats</ModeDescription>
+        </DivColumn>
+
+        <DivColumn>
           <ModeButton variant="outlined" onClick={() => handleStart("pvp")}>
             ▲ Player vs Player ▲
           </ModeButton>
@@ -171,10 +187,12 @@ const GameSetup = () => {
 
         <DivColumn>
           <DivRow>
+            <DivColumn>
             <ModeButton variant="outlined" onClick={() => handleStart("bot")}>
               ▲ Player vs Bot 🤖
             </ModeButton>
-
+            <ModeDescription>Challenge the AI at your own pace</ModeDescription>
+            </DivColumn>
             <DifficultyButton onClick={handleDifficultyOpen}>
               {difficulty} ▾
             </DifficultyButton>
@@ -195,7 +213,7 @@ const GameSetup = () => {
               ))}
             </DifficultyMenu>
           </DivRow>
-          <ModeDescription>Challenge the AI at your own pace</ModeDescription>
+          
         </DivColumn>
       </DivRow>
     </PageWrapper>
