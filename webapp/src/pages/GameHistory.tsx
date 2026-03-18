@@ -245,10 +245,6 @@ const GameHistory = () => {
   const navigate = useNavigate();
   const { isLoggedIn, username } = useSession();
 
-  if (!isLoggedIn) {
-    return <Navigate to="/login" replace />;
-  }
-
   useEffect(() => {
     const fetchHistory = async () => {
       try {
@@ -267,6 +263,10 @@ const GameHistory = () => {
 
     if (username) fetchHistory();
   }, [username]);
+
+  if (!isLoggedIn) {
+    return <Navigate to="/login" replace />;
+  }
 
   const wins = history.filter((g) => g.result === "win").length;
   const losses = history.filter((g) => g.result === "lose").length;
