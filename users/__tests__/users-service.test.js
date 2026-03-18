@@ -275,6 +275,61 @@ describe('User Service', () => {
     expect(response.body.error).toBe('User not found');
   });
 
+  it('should update the user profile on PUT /user/:username', async () => {
+    const hashedPassword = await bcrypt.hash('Admin123##', 10);
+    await new User({
+      username: 'profileuser',
+      name: 'Mario',
+      surname: 'Trelles',
+      email: 'mario@uniovi.es',
+      password: hashedPassword,
+    }).save();
+
+    const response = await request(app)
+      .put('/user/profileuser')
+      .send({
+        name: 'Mario Jose',
+        surname: 'Trelles Riestra',
+        email: 'mario.trelles@uniovi.es',
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      username: 'profileuser',
+      name: 'Mario Jose',
+      surname: 'Trelles Riestra',
+      email: 'mario.trelles@uniovi.es',
+      _id: expect.any(String),
+    });
+
+    const updatedUser = await User.findOne({ username: 'profileuser' });
+    expect(updatedUser.name).toBe('Mario Jose');
+    expect(updatedUser.surname).toBe('Trelles Riestra');
+    expect(updatedUser.email).toBe('mario.trelles@uniovi.es');
+  });
+
+  it('should validate empty profile fields on PUT /user/:username', async () => {
+    const hashedPassword = await bcrypt.hash('Admin123##', 10);
+    await new User({
+      username: 'profileuser',
+      name: 'Mario',
+      surname: 'Trelles',
+      email: 'mario@uniovi.es',
+      password: hashedPassword,
+    }).save();
+
+    const response = await request(app)
+      .put('/user/profileuser')
+      .send({
+        name: 'Mario',
+        surname: 'Trelles',
+        email: '   ',
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe('The email cannot be empty or contain only spaces');
+  });
+
 describe('Login endpoints', () => {
     beforeEach(async () => {
       // Creamos un usuario válido antes de probar el login

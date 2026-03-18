@@ -84,4 +84,37 @@ describe('Gateway Service - Login Routing', () => {
             expect.stringContaining('/user/testuser')
         );
     });
+
+    it('should route PUT /user/:username to the user service', async () => {
+        axios.put = vi.fn();
+        axios.put.mockResolvedValueOnce({
+            data: {
+                username: 'testuser',
+                name: 'Mario',
+                surname: 'Trelles',
+                email: 'mario@uniovi.es'
+            }
+        });
+
+        const payload = {
+            name: 'Mario',
+            surname: 'Trelles',
+            email: 'mario@uniovi.es'
+        };
+
+        const res = await request(app).put('/user/testuser').send(payload);
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({
+            username: 'testuser',
+            name: 'Mario',
+            surname: 'Trelles',
+            email: 'mario@uniovi.es'
+        });
+        expect(axios.put).toHaveBeenCalledTimes(1);
+        expect(axios.put).toHaveBeenCalledWith(
+            expect.stringContaining('/user/testuser'),
+            payload
+        );
+    });
 });

@@ -3,7 +3,7 @@ import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded'
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded'
 import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded'
 import { useEffect, useState } from 'react'
-import { Avatar, Box, Button, Paper, Stack, Typography } from '@mui/material'
+import { Alert, Avatar, Box, Button, Paper, Stack, TextField, Typography } from '@mui/material'
 import { useSession } from '../SessionContext'
 
 type ProfileData = {
@@ -13,41 +13,89 @@ type ProfileData = {
   email: string
 }
 
+type ProfileMessage = {
+  severity: 'error' | 'success'
+  text: string
+}
+
+const apiEndpoint = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
+const emptyProfile: ProfileData = {
+  username: '',
+  name: '',
+  surname: '',
+  email: '',
+}
+
+async function loadProfile(username: string): Promise<ProfileData> {
+  const response = await fetch(`${apiEndpoint}/user/${encodeURIComponent(username)}`)
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not load profile information.')
+  }
+
+  return data
+}
+
+async function saveProfile(profile: ProfileData): Promise<ProfileData> {
+  const response = await fetch(`${apiEndpoint}/user/${encodeURIComponent(profile.username)}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      name: profile.name,
+      surname: profile.surname,
+      email: profile.email,
+    }),
+  })
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not update profile information.')
+  }
+
+  return data
+}
+
 export default function ProfilePage() {
   const { username } = useSession()
   const [profile, setProfile] = useState<ProfileData | null>(null)
-  const [error, setError] = useState('')
+  const [formData, setFormData] = useState<ProfileData>(emptyProfile)
+  const [isEditing, setIsEditing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [message, setMessage] = useState<ProfileMessage | null>(null)
 
   useEffect(() => {
     let ignore = false
 
-    const loadProfile = async () => {
+    const fetchProfile = async () => {
       if (!username) {
         setProfile(null)
+        setFormData(emptyProfile)
         return
       }
 
       try {
-        setError('')
-        const apiEndpoint = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-        const response = await fetch(`${apiEndpoint}/user/${encodeURIComponent(username)}`)
-        const data = await response.json()
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Could not load profile information.')
-        }
+        setMessage(null)
+        const data = await loadProfile(username)
 
         if (!ignore) {
           setProfile(data)
+          setFormData(data)
         }
       } catch (fetchError) {
         if (!ignore) {
-          setError(fetchError instanceof Error ? fetchError.message : 'Could not load profile information.')
+          setMessage({
+            severity: 'error',
+            text: fetchError instanceof Error ? fetchError.message : 'Could not load profile information.',
+          })
         }
       }
     }
 
-    loadProfile()
+    fetchProfile()
 
     return () => {
       ignore = true
@@ -55,12 +103,54 @@ export default function ProfilePage() {
   }, [username])
 
   const displayUsername = profile?.username || username
-  const detailRows = [
-    { label: 'Username', value: displayUsername },
-    { label: 'Name', value: profile?.name || 'Loading...' },
-    { label: 'Surname', value: profile?.surname || 'Loading...' },
-    { label: 'Email', value: profile?.email || 'Loading...' },
-  ]
+
+  const handleFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target
+    setFormData((current) => ({ ...current, [name]: value }))
+  }
+
+  const handleEditStart = () => {
+    if (!profile) {
+      return
+    }
+
+    setFormData(profile)
+    setMessage(null)
+    setIsEditing(true)
+  }
+
+  const handleCancel = () => {
+    setFormData(profile || emptyProfile)
+    setMessage(null)
+    setIsEditing(false)
+  }
+
+  const handleSave = async () => {
+    if (!displayUsername) {
+      return
+    }
+
+    try {
+      setIsSaving(true)
+      setMessage(null)
+      const data = await saveProfile({ ...formData, username: displayUsername })
+
+      setProfile(data)
+      setFormData(data)
+      setIsEditing(false)
+      setMessage({
+        severity: 'success',
+        text: 'Profile updated successfully.',
+      })
+    } catch (saveError) {
+      setMessage({
+        severity: 'error',
+        text: saveError instanceof Error ? saveError.message : 'Could not update profile information.',
+      })
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   return (
     <Box
@@ -103,9 +193,20 @@ export default function ProfilePage() {
               </Typography>
             </Box>
 
-            <Button variant="contained" startIcon={<EditRoundedIcon />} disabled>
-              Edit profile
-            </Button>
+            {isEditing ? (
+              <Stack direction="row" spacing={1.5}>
+                <Button variant="outlined" onClick={handleCancel} disabled={isSaving}>
+                  Cancel
+                </Button>
+                <Button variant="contained" onClick={handleSave} disabled={isSaving}>
+                  Save
+                </Button>
+              </Stack>
+            ) : (
+              <Button variant="contained" startIcon={<EditRoundedIcon />} onClick={handleEditStart} disabled={!profile}>
+                Edit profile
+              </Button>
+            )}
           </Box>
 
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
@@ -117,16 +218,58 @@ export default function ProfilePage() {
                 </Typography>
               </Stack>
               <Stack spacing={1.25}>
-                {detailRows.map((detail) => (
-                  <Box key={detail.label}>
-                    <Typography sx={{ fontWeight: 700 }}>{detail.label}</Typography>
-                    <Typography sx={{ color: 'text.secondary' }}>{detail.value}</Typography>
-                  </Box>
-                ))}
-                {error ? (
-                  <Typography sx={{ color: 'error.main' }}>
-                    {error}
-                  </Typography>
+                <Box>
+                  <Typography sx={{ fontWeight: 700 }}>Username</Typography>
+                  <Typography sx={{ color: 'text.secondary' }}>{displayUsername}</Typography>
+                </Box>
+                {isEditing ? (
+                  <>
+                    <TextField
+                      label="Name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleFieldChange}
+                      fullWidth
+                      disabled={isSaving}
+                    />
+                    <TextField
+                      label="Surname"
+                      name="surname"
+                      value={formData.surname}
+                      onChange={handleFieldChange}
+                      fullWidth
+                      disabled={isSaving}
+                    />
+                    <TextField
+                      label="Email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleFieldChange}
+                      fullWidth
+                      disabled={isSaving}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <Box>
+                      <Typography sx={{ fontWeight: 700 }}>Name</Typography>
+                      <Typography sx={{ color: 'text.secondary' }}>{profile?.name || 'Loading...'}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography sx={{ fontWeight: 700 }}>Surname</Typography>
+                      <Typography sx={{ color: 'text.secondary' }}>{profile?.surname || 'Loading...'}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography sx={{ fontWeight: 700 }}>Email</Typography>
+                      <Typography sx={{ color: 'text.secondary' }}>{profile?.email || 'Loading...'}</Typography>
+                    </Box>
+                  </>
+                )}
+                {message ? (
+                  <Alert severity={message.severity}>
+                    {message.text}
+                  </Alert>
                 ) : null}
               </Stack>
             </Paper>
