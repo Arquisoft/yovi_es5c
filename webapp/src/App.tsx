@@ -9,6 +9,7 @@ import LandingPage from './pages/LandingPage'
 import GameSetup from './pages/GameSetup'
 import Login from "./pages/Login"
 import GamePage from './pages/GamePage'
+import ProfilePage from './pages/ProfilePage'
 import { useEffect } from "react";
 import { updateThemeColors } from "./utils/themeController";
 import "./ui.css"
@@ -44,6 +45,7 @@ function App() {
         <Route path="/homepage" element={<PrivateRoute><HomePage /></PrivateRoute>} />
         <Route path="/set" element={<PrivateRoute><GameSetup /></PrivateRoute>} />
         <Route path="/game" element={<PrivateRoute><GamePage /></PrivateRoute>} />
+        <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
