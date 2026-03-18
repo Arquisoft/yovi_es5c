@@ -104,6 +104,27 @@ app.post('/login', async (req, res) => {
     }
 });
 
+app.get('/user/:username', async (req, res) => {
+    try {
+        const requestedUsername = req.params.username?.trim();
+
+        if (!requestedUsername) {
+            return res.status(400).json({ error: 'Username is required.' });
+        }
+
+        const user = await User.findOne({ username: requestedUsername })
+            .select('username name surname email');
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json({ error: 'Internal server error.' });
+    }
+});
+
 
 app.post('/logout', async (req, res) => {
   try {

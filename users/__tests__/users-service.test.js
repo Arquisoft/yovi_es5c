@@ -245,6 +245,36 @@ describe('User Service', () => {
     expect(userInDb.lastLogoutAt).not.toBeNull();
 });
 
+  it('should return the user profile on GET /user/:username', async () => {
+    const hashedPassword = await bcrypt.hash('Admin123##', 10);
+    await new User({
+      username: 'profileuser',
+      name: 'Mario',
+      surname: 'Trelles',
+      email: 'mario@uniovi.es',
+      password: hashedPassword,
+    }).save();
+
+    const response = await request(app).get('/user/profileuser');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      username: 'profileuser',
+      name: 'Mario',
+      surname: 'Trelles',
+      email: 'mario@uniovi.es',
+      _id: expect.any(String),
+    });
+    expect(response.body.password).toBeUndefined();
+  });
+
+  it('should return 404 when requesting a profile that does not exist', async () => {
+    const response = await request(app).get('/user/missinguser');
+
+    expect(response.status).toBe(404);
+    expect(response.body.error).toBe('User not found');
+  });
+
 describe('Login endpoints', () => {
     beforeEach(async () => {
       // Creamos un usuario válido antes de probar el login

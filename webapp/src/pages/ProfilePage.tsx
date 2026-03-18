@@ -1,11 +1,66 @@
 import EditRoundedIcon from '@mui/icons-material/EditRounded'
+import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded'
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded'
 import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded'
+import { useEffect, useState } from 'react'
 import { Avatar, Box, Button, Paper, Stack, Typography } from '@mui/material'
 import { useSession } from '../SessionContext'
 
+type ProfileData = {
+  username: string
+  name: string
+  surname: string
+  email: string
+}
+
 export default function ProfilePage() {
   const { username } = useSession()
+  const [profile, setProfile] = useState<ProfileData | null>(null)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let ignore = false
+
+    const loadProfile = async () => {
+      if (!username) {
+        setProfile(null)
+        return
+      }
+
+      try {
+        setError('')
+        const apiEndpoint = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+        const response = await fetch(`${apiEndpoint}/user/${encodeURIComponent(username)}`)
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Could not load profile information.')
+        }
+
+        if (!ignore) {
+          setProfile(data)
+        }
+      } catch (fetchError) {
+        if (!ignore) {
+          setError(fetchError instanceof Error ? fetchError.message : 'Could not load profile information.')
+        }
+      }
+    }
+
+    loadProfile()
+
+    return () => {
+      ignore = true
+    }
+  }, [username])
+
+  const displayUsername = profile?.username || username
+  const detailRows = [
+    { label: 'Username', value: displayUsername },
+    { label: 'Name', value: profile?.name || 'Loading...' },
+    { label: 'Surname', value: profile?.surname || 'Loading...' },
+    { label: 'Email', value: profile?.email || 'Loading...' },
+  ]
 
   return (
     <Box
@@ -33,7 +88,7 @@ export default function ProfilePage() {
         <Stack spacing={4}>
           <Box sx={{ display: 'flex', alignItems: { xs: 'flex-start', md: 'center' }, gap: 2.5, flexDirection: { xs: 'column', md: 'row' } }}>
             <Avatar sx={{ width: 88, height: 88, bgcolor: '#1976d2', fontSize: '2rem', fontWeight: 700 }}>
-              {username?.slice(0, 1).toUpperCase()}
+              {displayUsername?.slice(0, 1).toUpperCase()}
             </Avatar>
 
             <Box sx={{ flex: 1 }}>
@@ -41,7 +96,7 @@ export default function ProfilePage() {
                 Player profile
               </Typography>
               <Typography variant="h4" sx={{ fontWeight: 800 }}>
-                {username}
+                {displayUsername}
               </Typography>
               <Typography sx={{ mt: 1, color: 'text.secondary', maxWidth: 560 }}>
                 Here you will see your account details and activity.
@@ -61,8 +116,19 @@ export default function ProfilePage() {
                   Account details
                 </Typography>
               </Stack>
-              <Typography sx={{ fontWeight: 700 }}>Username</Typography>
-              <Typography sx={{ color: 'text.secondary' }}>{username}</Typography>
+              <Stack spacing={1.25}>
+                {detailRows.map((detail) => (
+                  <Box key={detail.label}>
+                    <Typography sx={{ fontWeight: 700 }}>{detail.label}</Typography>
+                    <Typography sx={{ color: 'text.secondary' }}>{detail.value}</Typography>
+                  </Box>
+                ))}
+                {error ? (
+                  <Typography sx={{ color: 'error.main' }}>
+                    {error}
+                  </Typography>
+                ) : null}
+              </Stack>
             </Paper>
 
             <Paper variant="outlined" sx={{ flex: 1, p: 2.5, borderRadius: 3 }}>
@@ -80,6 +146,21 @@ export default function ProfilePage() {
               </Button>
             </Paper>
           </Stack>
+
+          <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 3 }}>
+            <Stack direction="row" spacing={1.5} sx={{ mb: 1.5, alignItems: 'center' }}>
+              <HistoryRoundedIcon color="primary" />
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                Match history
+              </Typography>
+            </Stack>
+            <Typography sx={{ color: 'text.secondary', mb: 2 }}>
+              You will be able to review your recent matches here.
+            </Typography>
+            <Button variant="outlined" disabled>
+              View history
+            </Button>
+          </Paper>
         </Stack>
       </Paper>
     </Box>
