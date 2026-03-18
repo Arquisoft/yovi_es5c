@@ -141,14 +141,6 @@ const GameSetup = () => {
     }
   };
 
-  const goHistory = () => {
-    if (isLoggedIn) {
-      navigate("/history", {});
-    } else {
-      navigate("/login");
-    }
-  };
-
   const handleDifficultyOpen = (e: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(e.currentTarget);
   };
@@ -171,13 +163,6 @@ const GameSetup = () => {
         style={{ width: "20vw", height: "20vw" }}
       />
       <DivRow>
-        <DivColumn>
-          <ModeButton variant="outlined" onClick={() => goHistory()}>
-            Historial de partidas
-          </ModeButton>
-          <ModeDescription>Watch your stats</ModeDescription>
-        </DivColumn>
-
         <DivColumn>
           <ModeButton variant="outlined" onClick={() => handleStart("pvp")}>
             ▲ Player vs Player ▲

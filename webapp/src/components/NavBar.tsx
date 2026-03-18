@@ -134,7 +134,7 @@ export default function NavBar() {
                 <ListItemText primary="My profile" />
               </MenuItem>
 
-              <MenuItem disabled>
+              <MenuItem onClick={() => navigateFromMenu('/history')}>
                 <ListItemIcon>
                   <HistoryRounded fontSize="small" />
                 </ListItemIcon>

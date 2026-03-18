@@ -5,6 +5,7 @@ import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded'
 import { useEffect, useState } from 'react'
 import { Alert, Avatar, Box, Button, Paper, Stack, TextField, Typography } from '@mui/material'
 import { useSession } from '../SessionContext'
+import { useNavigate } from 'react-router-dom'
 
 type ProfileData = {
   username: string
@@ -61,6 +62,7 @@ async function saveProfile(profile: ProfileData): Promise<ProfileData> {
 
 export default function ProfilePage() {
   const { username } = useSession()
+  const navigate = useNavigate()
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [formData, setFormData] = useState<ProfileData>(emptyProfile)
   const [isEditing, setIsEditing] = useState(false)
@@ -298,9 +300,9 @@ export default function ProfilePage() {
               </Typography>
             </Stack>
             <Typography sx={{ color: 'text.secondary', mb: 2 }}>
-              You will be able to review your recent matches here.
+              Review your recent matches and results.
             </Typography>
-            <Button variant="outlined" disabled>
+            <Button variant="outlined" onClick={() => navigate('/history')}>
               View history
             </Button>
           </Paper>
