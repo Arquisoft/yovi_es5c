@@ -81,3 +81,112 @@ fn sides_touched(coords: &Coordinates) -> u32 {
     if coords.touches_side_c() { score += 10; }
     score
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{Movement, PlayerId};
+ 
+    #[test]
+    fn test_edge_bot_name() {
+        let bot = EdgeBot;
+        assert_eq!(bot.name(), "edge_bot");
+    }
+ 
+    #[test]
+    fn test_edge_bot_returns_move_on_empty_board() {
+        let bot = EdgeBot;
+        let game = GameY::new(5);
+        assert!(bot.choose_move(&game).is_some());
+    }
+ 
+    #[test]
+    fn test_edge_bot_returns_none_on_full_board() {
+        let bot = EdgeBot;
+        let mut game = GameY::new(2);
+ 
+        let moves = vec![
+            Movement::Placement {
+                player: PlayerId::new(0),
+                coords: Coordinates::new(1, 0, 0),
+            },
+            Movement::Placement {
+                player: PlayerId::new(1),
+                coords: Coordinates::new(0, 1, 0),
+            },
+            Movement::Placement {
+                player: PlayerId::new(0),
+                coords: Coordinates::new(0, 0, 1),
+            },
+        ];
+        for mv in moves {
+            game.add_move(mv).unwrap();
+        }
+ 
+        assert!(game.available_cells().is_empty());
+        assert!(bot.choose_move(&game).is_none());
+    }
+ 
+    #[test]
+    fn test_sides_touched_corner() {
+        // Una esquina toca 2 lados → score 20
+        let corner = Coordinates::new(0, 0, 4); // toca lado A y lado B
+        assert_eq!(sides_touched(&corner), 20);
+    }
+ 
+    #[test]
+    fn test_sides_touched_edge() {
+        // Una celda de borde toca 1 lado → score 10
+        let edge = Coordinates::new(0, 2, 2); // solo toca lado A
+        assert_eq!(sides_touched(&edge), 10);
+    }
+ 
+    #[test]
+    fn test_sides_touched_interior() {
+        // Una celda interior no toca ningún lado → score 0
+        let interior = Coordinates::new(2, 2, 2);
+        assert_eq!(sides_touched(&interior), 0);
+    }
+ 
+    #[test]
+    fn test_edge_bot_prefers_edge_over_interior() {
+        // En un tablero vacío el bot debe elegir una celda de borde
+        // (score 10 o 20) antes que una interior (score 0)
+        let bot = EdgeBot;
+        let game = GameY::new(7);
+        let coords = bot.choose_move(&game).unwrap();
+        assert!(
+            coords.touches_side_a() || coords.touches_side_b() || coords.touches_side_c(),
+            "EdgeBot eligió una celda interior {:?} en lugar de borde",
+            coords
+        );
+    }
+ 
+    #[test]
+    fn test_edge_bot_valid_coordinates() {
+        let bot = EdgeBot;
+        let game = GameY::new(7);
+        let coords = bot.choose_move(&game).unwrap();
+        assert_eq!(coords.x() + coords.y() + coords.z(), 6);
+    }
+ 
+    #[test]
+    fn test_edge_bot_chosen_cell_always_available() {
+        let bot = EdgeBot;
+        let mut game = GameY::new(5);
+ 
+        for turn in 0..8 {
+            let player = PlayerId::new(turn % 2);
+            if let Some(coords) = bot.choose_move(&game) {
+                let idx = coords.to_index(game.board_size());
+                assert!(
+                    game.available_cells().contains(&idx),
+                    "EdgeBot eligió celda no disponible en turno {}",
+                    turn
+                );
+                game.add_move(Movement::Placement { player, coords }).unwrap();
+            }
+        }
+    }
+}
