@@ -10,9 +10,11 @@
 pub mod random;
 pub mod center;
 pub mod greedy;
+pub mod greedy_center;
 pub mod ybot;
 pub mod ybot_registry;
 pub use greedy::*;
+pub use greedy_center::*;
 pub use center::*;
 pub use random::*;
 pub use ybot::*;
