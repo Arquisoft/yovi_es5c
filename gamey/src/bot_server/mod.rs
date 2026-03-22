@@ -30,7 +30,7 @@ pub use choose::MoveResponse;
 pub use error::ErrorResponse;
 pub use version::*;
 
-use crate::{GameYError, EdgeBot, CenterBot, GreedyBot, GreedyCenterBot, RandomBot, YBotRegistry, state::AppState};
+use crate::{GameYError, EdgeBot, CenterBot, RandomBot, YBotRegistry, state::AppState};
 
 /// Creates the Axum router with the given state.
 ///
@@ -54,11 +54,15 @@ pub fn create_router(state: AppState) -> axum::Router {
 /// Also includes the `CenterBot` which prefers center positions.
 pub fn create_default_state() -> AppState {
     let bots = YBotRegistry::new()
-        .with_bot(Arc::new(RandomBot))
-        .with_bot(Arc::new(GreedyBot))
-        .with_bot(Arc::new(GreedyCenterBot))
-        .with_bot(Arc::new(EdgeBot))
-        .with_bot(Arc::new(CenterBot));
+        .with_bot(Arc::new(RandomBot { level: 1 }))
+        .with_bot(Arc::new(RandomBot { level: 2 }))
+        .with_bot(Arc::new(RandomBot { level: 3 }))
+        .with_bot(Arc::new(CenterBot { level: 1 }))
+        .with_bot(Arc::new(CenterBot { level: 2 }))
+        .with_bot(Arc::new(CenterBot { level: 3 }))
+        .with_bot(Arc::new(EdgeBot { level: 1 }))
+        .with_bot(Arc::new(EdgeBot { level: 2 }))
+        .with_bot(Arc::new(EdgeBot { level: 3 }));
     AppState::new(bots)
 }
 
