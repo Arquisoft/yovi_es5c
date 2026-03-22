@@ -92,8 +92,13 @@ app.get('/game/status', async (req, res) => {
 });
 
 // ─── Valores válidos para partidas contra bot ─────────────────────────────────
-const VALID_BOTS        = new Set(['random_bot', 'greedy_bot', 'center_bot', 'edge_bot']);
+const VALID_BOTS        = new Set(['random_bot', 'center_bot', 'edge_bot']);
 const VALID_DIFFICULTIES = new Set(['Easy', 'Medium', 'Hard']);
+const DIFFICULTY_SUFFIX = { Easy: '_1', Medium: '_2', Hard: '' };
+
+function resolveBotName(bot_id, difficulty) {
+  return bot_id + DIFFICULTY_SUFFIX[difficulty];
+}
 
 app.post('/game/move', async (req, res) => {
    try {
@@ -110,7 +115,7 @@ app.post('/game/move', async (req, res) => {
         return res.status(400).json({ error: `Unknown difficulty: ${resolvedDifficulty}` });
       }
  
-      req.body.bot_id     = resolvedBotId;
+      req.body.bot_id = resolveBotName(resolvedBotId, resolvedDifficulty);
       req.body.difficulty = resolvedDifficulty;
     }
  

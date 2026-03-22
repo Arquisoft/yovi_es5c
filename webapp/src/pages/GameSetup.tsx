@@ -24,11 +24,6 @@ const BOT_OPTIONS: BotOption[] = [
     description: "Makes random moves",
   },
   {
-    bot_id: "greedy_bot",
-    label: "Greedy Bot",
-    description: "Picks the locally best move",
-  },
-  {
     bot_id: "center_bot",
     label: "Center bot",
     description: "Controls the center",
