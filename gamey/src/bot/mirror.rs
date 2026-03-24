@@ -37,3 +37,45 @@ impl YBot for MirrorBot {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{Movement, PlayerId};
+
+    #[test]
+    fn test_mirror_bot_names_by_level() {
+        assert_eq!(MirrorBot { level: 1 }.name(), "mirror_bot_1");
+        assert_eq!(MirrorBot { level: 2 }.name(), "mirror_bot_2");
+        assert_eq!(MirrorBot { level: 3 }.name(), "mirror_bot");
+    }
+
+    #[test]
+    fn test_level3_mirrors_opponent() {
+        let bot = MirrorBot { level: 3 };
+        let mut game = GameY::new(5);
+        let player_move = Coordinates::new(4, 0, 0); // Top corner
+
+        // Simulate human move
+        game.add_move(Movement::Placement {
+            player: PlayerId::new(0),
+            coords: player_move,
+        }).unwrap();
+
+        let bot_choice = bot.choose_move(&game).unwrap();
+        // Should be (0, 0, 4) or (0, 4, 0)
+        let expected_1 = Coordinates::new(0, 0, 4);
+        let expected_2 = Coordinates::new(0, 4, 0);
+        
+        assert!(bot_choice == expected_1 || bot_choice == expected_2);
+    }
+
+    #[test]
+    fn test_mirror_bot_fallback_to_center_on_empty_board() {
+        let bot = MirrorBot { level: 3 };
+        let game = GameY::new(7); // Target center is (2,2,2)
+        
+        let choice = bot.choose_move(&game).unwrap();
+        assert_eq!(choice, Coordinates::new(2, 2, 2));
+    }
+}

@@ -836,4 +836,16 @@ mod tests {
             _ => panic!("Game should be ongoing"),
         }
     }
+
+    #[test]
+    fn test_last_placement_coords_retrieval() {
+        let mut game = GameY::new(5);
+        let p0 = PlayerId::new(0);
+        let coords = Coordinates::new(4, 0, 0);
+        
+        // Add a move
+        game.add_move(Movement::Placement { player: p0, coords }).unwrap();
+        
+        assert_eq!(game.last_placement_coords(), Some(coords));
+    }
 }
