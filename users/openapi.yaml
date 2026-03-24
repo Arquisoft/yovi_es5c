@@ -5,7 +5,7 @@ info:
   description: API for managing users
 
 paths:
-  /createuser:
+  /user:
     post:
       summary: Creates a new user
       description: Creates a new user with the given username.
@@ -38,6 +38,52 @@ paths:
           description: Bad request
         '409':
           description: User already exists
+
+  /user/{username}:
+    get:
+      summary: Gets a user profile
+      description: Returns the public account data for the given user.
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '404':
+          description: User not found
+    put:
+      summary: Updates a user profile
+      description: Updates name, surname and email for the given user.
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdate'
+      responses:
+        '200':
+          description: User profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: Invalid profile data
+        '404':
+          description: User not found
 
   /logout:
     post:
@@ -93,3 +139,37 @@ components:
           format: date-time
           nullable: true
           example: "2026-02-24T19:00:12.321Z"
+    UserProfile:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "65cfa4b8f1a2c34d56789abc"
+        username:
+          type: string
+          example: "testuser"
+        name:
+          type: string
+          example: "Mario"
+        surname:
+          type: string
+          example: "Trelles"
+        email:
+          type: string
+          example: "mario@uniovi.es"
+    UserProfileUpdate:
+      type: object
+      required:
+        - name
+        - surname
+        - email
+      properties:
+        name:
+          type: string
+          example: "Mario"
+        surname:
+          type: string
+          example: "Trelles"
+        email:
+          type: string
+          example: "mario@uniovi.es"
