@@ -83,6 +83,7 @@ const DifficultyMenu = styled(Menu)({
     border: "1px solid #333",
     borderRadius: 4,
     boxShadow: "0 8px 24px rgba(0, 0, 0, 0.6)",
+    transform: "translateY(-30%)"
   },
 });
 
@@ -128,7 +129,7 @@ const GameSetup = () => {
   const { isLoggedIn } = useSession();
 
   if (!isLoggedIn) {
-      return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   const handleStart = (mode: GameMode) => {
@@ -171,10 +172,12 @@ const GameSetup = () => {
 
         <DivColumn>
           <DivRow>
+            <DivColumn>
             <ModeButton variant="outlined" onClick={() => handleStart("bot")}>
               ▲ Player vs Bot 🤖
             </ModeButton>
-
+            <ModeDescription>Challenge the AI at your own pace</ModeDescription>
+            </DivColumn>
             <DifficultyButton onClick={handleDifficultyOpen}>
               {difficulty} ▾
             </DifficultyButton>
@@ -195,7 +198,7 @@ const GameSetup = () => {
               ))}
             </DifficultyMenu>
           </DivRow>
-          <ModeDescription>Challenge the AI at your own pace</ModeDescription>
+          
         </DivColumn>
       </DivRow>
     </PageWrapper>

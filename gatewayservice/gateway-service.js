@@ -57,6 +57,26 @@ app.post('/login', async (req, res) => {
   }
 });
 
+app.get('/user/:username', async (req, res) => {
+  try {
+    const profileUrl = new URL(`/user/${encodeURIComponent(req.params.username)}`, userServiceUrl);
+    const profileResponse = await axios.get(profileUrl.href);
+    res.json(profileResponse.data);
+  } catch (error) {
+    handleErrors(res, error);
+  }
+});
+
+app.put('/user/:username', async (req, res) => {
+  try {
+    const profileUrl = new URL(`/user/${encodeURIComponent(req.params.username)}`, userServiceUrl);
+    const profileResponse = await axios.put(profileUrl.href, req.body);
+    res.json(profileResponse.data);
+  } catch (error) {
+    handleErrors(res, error);
+  }
+});
+
 app.post('/logout', async (req, res) => {
   try {
     const { username } = req.body;
@@ -76,6 +96,36 @@ app.post('/logout', async (req, res) => {
     const status = error?.response?.status || 500;
     const data = error?.response?.data || { error: error.message || 'Gateway error' };
     res.status(status).json(data);
+  }
+});
+
+app.get('/user/:username/history', async (req, res) => {
+  try {
+
+    const { username } = req.params;
+
+    const historyUrl = new URL(`/user/${username}/history`, userServiceUrl);
+
+    const response = await axios.get(historyUrl.href);
+
+    res.status(200).json(response.data);
+
+  } catch (error) {
+    handleErrors(res, error);
+  }
+});
+
+app.post('/game/finish', async (req, res) => {
+  try {
+
+    const finishUrl = new URL('/game/finish', userServiceUrl);
+
+    const response = await axios.post(finishUrl.href, req.body);
+
+    res.status(201).json(response.data);
+
+  } catch (error) {
+    handleErrors(res, error);
   }
 });
 
@@ -100,6 +150,7 @@ app.post('/game/move', async (req, res) => {
     handleErrors(res, error);
   }
 });
+
 
 const server = app.listen(port, () => console.log(`Gateway listening on ${port}`))
 
