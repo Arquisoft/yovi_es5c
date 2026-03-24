@@ -226,9 +226,6 @@ export default function GamePage() {
 
   const svgWidth = svgPadding * 2 + (boardSize - 1) * horizontalGap
   const svgHeight = svgPadding * 2 + (boardSize - 1) * verticalGap
-  const top = getPosition(0, 0, boardSize)
-  const left = getPosition(boardSize - 1, 0, boardSize)
-  const right = getPosition(boardSize - 1, boardSize - 1, boardSize)
 
   return (
     <div className="main-content">

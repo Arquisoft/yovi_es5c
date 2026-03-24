@@ -28,7 +28,7 @@ function App() {
         inputOutline: "rgba(0, 0, 0, 0.23)",
         textPrimary: "rgba(0, 0, 0, 0.87)",
         textSecondary: "rgba(0, 0, 0, 0.6)",
-        cardBg: "rgba(255, 255, 255, 0.65)"
+        cardBg: "rgba(255, 255, 255, 0.65)",
       });
   }, []);
 
