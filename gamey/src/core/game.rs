@@ -257,8 +257,16 @@ impl GameY {
         self.board_size
     }
 
+    /// Returns the player occupying a given cell, or `None` if the cell is empty.
+    ///
+    /// This is useful for bots that need to inspect the board state, for example
+    /// to count how many friendly pieces surround a candidate cell.
+    pub fn cell_player(&self, coords: &Coordinates) -> Option<PlayerId> {
+        self.board_map.get(coords).map(|(_, player)| *player)
+    }
+
     /// Returns the neighboring coordinates for a given cell.
-    fn get_neighbors(&self, coords: &Coordinates) -> Vec<Coordinates> {
+    pub fn get_neighbors(&self, coords: &Coordinates) -> Vec<Coordinates> {
         let mut neighbors = Vec::new();
         let x = coords.x();
         let y = coords.y();
