@@ -102,7 +102,7 @@ export default function GamePage() {
   const [winner, setWinner] = useState<Winner>(null)
   const mode = (location.state as { mode?: GameMode } | null)?.mode ?? 'bot'
   const [currentPlayer, setCurrentPlayer] = useState<'B' | 'R'>('B')
-  const [message, setMessage] = useState(mode === 'pvp' ? 'Player B turn.' : 'Your turn. Place a blue piece.')
+  const [message, setMessage] = useState(mode === 'pvp' ? 'Player 1 turn.' : 'Your turn. Place a piece.')
   const [error, setError] = useState('')
 
   const { isLoggedIn } = useSession();
@@ -179,9 +179,9 @@ export default function GamePage() {
       if (moveData.game_over && moveData.winner) {
         setWinner(moveData.winner)
         if (moveData.winner === 'B') {
-          setMessage(mode === 'pvp' ? 'Player B wins.' : 'You win.')
+          setMessage(mode === 'pvp' ? 'Player 1 wins.' : 'You win.')
         } else {
-          setMessage(mode === 'pvp' ? 'Player R wins.' : 'Bot wins.')
+          setMessage(mode === 'pvp' ? 'Player 2 wins.' : 'Bot wins.')
         }
       } else {
         setWinner(null)
@@ -190,7 +190,7 @@ export default function GamePage() {
           setCurrentPlayer(nextPlayer)
           setMessage(`Player ${nextPlayer} turn.`)
         } else {
-          setMessage('Your turn. Place a blue piece.')
+          setMessage('Your turn. Place a piece.')
         }
       }
     } catch (e) {
@@ -209,7 +209,7 @@ export default function GamePage() {
     setWinner(null)
     setCurrentPlayer('B')
     setError('')
-    setMessage(mode === 'pvp' ? 'Player B turn.' : 'Your turn. Place a blue piece.')
+    setMessage(mode === 'pvp' ? 'Player 1 turn.' : 'Your turn. Place a piece.')
   }
 
   const handleSizeChange = (newSize: number) => {
@@ -220,7 +220,7 @@ export default function GamePage() {
       setWinner(null)
       setCurrentPlayer('B')
       setError('')
-      setMessage(mode === 'pvp' ? 'Player B turn.' : 'Your turn. Place a blue piece.')
+      setMessage(mode === 'pvp' ? 'Player 1 turn.' : 'Your turn. Place a piece.')
     }
   }
 
