@@ -33,6 +33,11 @@ const BOT_OPTIONS: BotOption[] = [
     label: "Edge bot",
     description: "Controls the sides",
   },
+  {
+    bot_id: "mirror_bot",
+    label: "Mirror bot",
+    description: "Mirrors the opponent's moves",
+  },
 ];
 
 const DIFFICULTIES: Difficulty[] = ["Easy", "Medium", "Hard"];
