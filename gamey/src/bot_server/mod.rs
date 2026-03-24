@@ -30,7 +30,7 @@ pub use choose::MoveResponse;
 pub use error::ErrorResponse;
 pub use version::*;
 
-use crate::{GameYError, EdgeBot, CenterBot, RandomBot, YBotRegistry, state::AppState};
+use crate::{GameYError, EdgeBot, CenterBot, RandomBot, MirrorBot, YBotRegistry, state::AppState};
 
 /// Creates the Axum router with the given state.
 ///
@@ -62,7 +62,10 @@ pub fn create_default_state() -> AppState {
         .with_bot(Arc::new(CenterBot { level: 3 }))
         .with_bot(Arc::new(EdgeBot { level: 1 }))
         .with_bot(Arc::new(EdgeBot { level: 2 }))
-        .with_bot(Arc::new(EdgeBot { level: 3 }));
+        .with_bot(Arc::new(EdgeBot { level: 3 }))
+        .with_bot(Arc::new(MirrorBot { level: 1 }))
+        .with_bot(Arc::new(MirrorBot { level: 2 }))
+        .with_bot(Arc::new(MirrorBot { level: 3 }));
     AppState::new(bots)
 }
 

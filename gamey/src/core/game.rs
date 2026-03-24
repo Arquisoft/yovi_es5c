@@ -314,6 +314,18 @@ impl GameY {
         }
         result
     }
+
+    /// Searches in the history for the last movement that was a piece placement.
+    pub fn last_placement_coords(&self) -> Option<Coordinates> {
+        self.history.iter().rev().find_map(|m| {
+            if let Movement::Placement { coords, .. } = m {
+                Some(*coords)
+            } else {
+                None
+            }
+        })
+    }
+
     /*pub fn render(&self, options: &RenderOptions) -> String {
         let mut result = String::new();
         let coords_size = self.board_size.to_string().len() as u32;

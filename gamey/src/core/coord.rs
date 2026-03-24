@@ -98,6 +98,13 @@ impl Coordinates {
     pub fn touches_side_c(&self) -> bool {
         self.z == 0
     }
+
+    /// Perform a 120-degree rotation in the barycentric system.
+    /// (x, y, z) -> (y, z, x)
+    pub fn rotate(&self) -> Self {
+        // actual values are rotated in the order of y, z, x
+        Self::new(self.y(), self.z(), self.x())
+    }
 }
 
 impl From<Coordinates> for Vec<u32> {
