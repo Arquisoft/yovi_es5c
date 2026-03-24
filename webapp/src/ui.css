@@ -8,6 +8,12 @@
   --yovi-ui-text-primary: #ffffff;
   --yovi-ui-text-secondary: rgba(255, 255, 255, 0.6);
   --yovi-ui-card-bg: rgba(30, 30, 30, 0.6);
+
+  /* Colores del tablero*/
+  --yovi-board-hex-default: #cccccc;
+  --yovi-board-hex-playerB: #1565c0;
+  --yovi-board-hex-playerR: #c62828;
+  --yovi-board-border: #ffffff;
 }
 
 .login {

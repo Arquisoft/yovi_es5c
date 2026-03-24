@@ -12,6 +12,11 @@ const horizontalGap = 68
 const verticalGap = 58
 const svgPadding = 60 // Aumentamos un poco el padding para que quepan los hexágonos de los bordes
 
+// Constantes para el tamaño máximo y mínimo del tablero
+const maxBoardSize = 15
+const minBoardSize = 3
+
+
 type Cell = '.' | 'B' | 'R'
 type Board = Cell[][]
 type Winner = 'B' | 'R' | null
@@ -208,7 +213,7 @@ export default function GamePage() {
   }
 
   const handleSizeChange = (newSize: number) => {
-    if (newSize >= 3 && newSize <= 15) {
+    if (newSize >= minBoardSize && newSize <= maxBoardSize) {
       setBoardSize(newSize)
       setBoard(makeEmptyBoard(newSize))
       setBusy(false)
@@ -232,39 +237,21 @@ export default function GamePage() {
           Game Y - {mode === 'pvp' ? 'Player vs Player' : 'Player vs Bot'}
         </Typography>
 
-        <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-          <Typography variant="body1">Tamaño del tablero:</Typography>
-          <TextField
-            type="number"
-            size="small"
-            value={boardSize}
-            onChange={(e) => handleSizeChange(parseInt(e.target.value) || 5)}
-            inputProps={{ min: 3, max: 15 }}
-            sx={{ width: 80 }}
-          />
-        </Box>
-
         <Alert severity={error ? 'warning' : 'info'} sx={{ mb: 3 }}>
           {error || message}
         </Alert>
 
         <Box sx={{ mb: 4, width: '100%', display: 'flex', justifyContent: 'center' }}>
-          <Box sx={{ width: '100%', maxWidth: 560, background: '#ffffff', borderRadius: 3, border: '1px solid #d7d7d7', p: 2 }}>
+          <Box sx={{ width: '100%', maxWidth: 560, background: '#ffffff', p: 2 }}>
             <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} width="100%" role="img" aria-label="Y game board">
-              
-              {/* Líneas límite del tablero - Ampliadas para ajustarse a los hexágonos más grandes */}
-              <line x1={top.x} y1={top.y - 45} x2={left.x - 50} y2={left.y + 25} stroke="#2e7d32" strokeWidth="6" strokeLinecap="round" />
-              <line x1={left.x - 50} y1={left.y + 25} x2={right.x + 50} y2={right.y + 25} stroke="#2e7d32" strokeWidth="6" strokeLinecap="round" />
-              <line x1={right.x + 50} y1={right.y + 25} x2={top.x} y2={top.y - 45} stroke="#2e7d32" strokeWidth="6" strokeLinecap="round" />
 
               {board.map((row, rowIndex) =>
                 row.map((cell, cellIndex) => {
                   const { x, y } = getPosition(rowIndex, cellIndex, boardSize)
                   const clickable = isAvailable && !busy && winner === null && cell === '.'
                   
-                  // Lógica de colores: Gris oscuro (#cccccc) para que parezcan agujeros vacíos
-                  const fill = cell === 'B' ? '#1565c0' : cell === 'R' ? '#c62828' : '#cccccc' 
-                  const strokeColor = '#ffffff' // Borde blanco que se funde con el fondo
+                  const fill = cell === 'B' ? 'var(--yovi-board-hex-playerB)' : cell === 'R' ? 'var(--yovi-board-hex-playerR)' : 'var(--yovi-board-hex-default)' 
+                  const strokeColor = 'var(--yovi-board-border)'
                   
                   return (
                     <g
@@ -280,7 +267,7 @@ export default function GamePage() {
                         points={getHexagonPoints(x, y, hexRadius)}
                         fill={fill}
                         stroke={strokeColor}
-                        strokeWidth={6} // Grosor extra para enmarcar bien el hexágono
+                        strokeWidth={6}
                         style={{ 
                           transition: 'fill 0.2s',
                           // Efecto de sombra interior para potenciar la sensación de "hueco" si está vacío
