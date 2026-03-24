@@ -58,4 +58,63 @@ describe('Gateway Service - Login Routing', () => {
         expect(res.status).toBe(401);
         expect(res.body.error).toBe('Invalid credentials');
     });
+
+    it('should route GET /user/:username to the user service', async () => {
+        axios.get = vi.fn();
+        axios.get.mockResolvedValueOnce({
+            data: {
+                username: 'testuser',
+                name: 'Test',
+                surname: 'User',
+                email: 'test@uniovi.es'
+            }
+        });
+
+        const res = await request(app).get('/user/testuser');
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({
+            username: 'testuser',
+            name: 'Test',
+            surname: 'User',
+            email: 'test@uniovi.es'
+        });
+        expect(axios.get).toHaveBeenCalledTimes(1);
+        expect(axios.get).toHaveBeenCalledWith(
+            expect.stringContaining('/user/testuser')
+        );
+    });
+
+    it('should route PUT /user/:username to the user service', async () => {
+        axios.put = vi.fn();
+        axios.put.mockResolvedValueOnce({
+            data: {
+                username: 'testuser',
+                name: 'Mario',
+                surname: 'Trelles',
+                email: 'mario@uniovi.es'
+            }
+        });
+
+        const payload = {
+            name: 'Mario',
+            surname: 'Trelles',
+            email: 'mario@uniovi.es'
+        };
+
+        const res = await request(app).put('/user/testuser').send(payload);
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({
+            username: 'testuser',
+            name: 'Mario',
+            surname: 'Trelles',
+            email: 'mario@uniovi.es'
+        });
+        expect(axios.put).toHaveBeenCalledTimes(1);
+        expect(axios.put).toHaveBeenCalledWith(
+            expect.stringContaining('/user/testuser'),
+            payload
+        );
+    });
 });

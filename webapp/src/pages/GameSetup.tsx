@@ -125,6 +125,7 @@ const StyledMenu = styled(Menu)({
     borderRadius: 4,
     boxShadow: "0 8px 24px rgba(0, 0, 0, 0.6)",
     minWidth: 220,
+    transform: "translateY(-30%)"
   },
 });
 
