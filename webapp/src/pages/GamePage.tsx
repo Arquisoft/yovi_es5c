@@ -82,6 +82,7 @@ export default function GamePage() {
   const [board, setBoard] = useState<Board>(makeEmptyBoard())
   const [busy, setBusy] = useState(false)
   const [winner, setWinner] = useState<Winner>(null)
+  const [isGameOver, setIsGameOver] = useState(false)
   const mode = (location.state as { mode?: GameMode } | null)?.mode ?? 'bot'
   const [currentPlayer, setCurrentPlayer] = useState<'B' | 'R'>('B')
   const [message, setMessage] = useState(mode === 'pvp' ? 'Player B turn.' : 'Your turn. Place a blue piece.')
@@ -161,6 +162,7 @@ export default function GamePage() {
       if (moveData.game_over) {
         const finalWinner = moveData.winner;
         setWinner(finalWinner);
+        setIsGameOver(true);
         
         if (finalWinner === 'B') {
           setMessage(mode === 'pvp' ? 'Player B wins.' : 'You win.')
@@ -171,6 +173,7 @@ export default function GamePage() {
         }
       } else {
         setWinner(null)
+        setIsGameOver(false);
         if (mode === 'pvp') {
           const nextPlayer = moveData.state.turn === 0 ? 'B' : 'R'
           setCurrentPlayer(nextPlayer)
@@ -193,6 +196,7 @@ export default function GamePage() {
     setBoard(makeEmptyBoard())
     setBusy(false)
     setWinner(null)
+    setIsGameOver(false)
     setCurrentPlayer('B')
     setError('')
     setMessage(mode === 'pvp' ? 'Player B turn.' : 'Your turn. Place a blue piece.')
@@ -208,8 +212,8 @@ export default function GamePage() {
   const isPvP = mode === 'pvp';
   const userWon = winner === 'B';
   const dialogTitle = isPvP 
-    ? `¡Victoria para el Jugador ${winner === 'B' ? 'B': 'R'}!` 
-    : (userWon ? '¡Felicidades, has ganado!' : '¡Oh no! El bot ha ganado');
+    ? `Player ${winner === 'B' ? 'B' : 'R'} wins!` 
+    : (userWon ? 'Congratulations, you won!' : 'Oh no! The bot won');
   
   const accentColor = isPvP 
     ? (winner === 'B' ? '#1565c0' : '#c62828') 
@@ -277,7 +281,7 @@ export default function GamePage() {
 
       {/* Diálogo de Fin de Partida */}
       <Dialog 
-        open={winner !== null} 
+        open={isGameOver} 
         onClose={reset}
         slotProps={{
           paper: {
@@ -308,20 +312,20 @@ export default function GamePage() {
             )}
             <Typography variant="body1" color="text.secondary">
               {isPvP 
-                ? `La partida ha terminado. El jugador con las fichas ${winner === 'B' ? 'azules' : 'rojas'} es el vencedor.`
+                ? `The game has ended. Player ${winner === 'B' ? 'blue' : 'red'} wins.`
                 : (userWon 
-                    ? 'Has demostrado ser mejor que la inteligencia artificial. ¡Excelente jugada!' 
-                    : 'El bot ha sido más astuto esta vez. ¡Inténtalo de nuevo!')
+                    ? 'You outsmarted the bot. Great play!' 
+                    : 'The bot was smarter this time. Wanna try again?')
               }
             </Typography>
           </Stack>
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 1 }}>
           <Button variant="contained" onClick={reset} sx={{ bgcolor: accentColor, '&:hover': { bgcolor: accentColor, opacity: 0.9 } }}>
-            Jugar de nuevo
+            Try again
           </Button>
           <Button variant="outlined" onClick={() => navigate('/homepage')} color="inherit">
-            Home
+            Go Home
           </Button>
         </DialogActions>
       </Dialog>
