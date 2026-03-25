@@ -286,7 +286,7 @@ describe('Login endpoints', () => {
       });
       
       expect(response.status).toBe(401);
-      expect(response.body.error).toBe('Incorrect username');
+      expect(response.body.error).toBe('Incorrect username or password');
     });
 
     it('should fail if password is incorrect', async () => {
@@ -296,7 +296,7 @@ describe('Login endpoints', () => {
       });
       
       expect(response.status).toBe(401);
-      expect(response.body.error).toBe('Incorrect password.');
+      expect(response.body.error).toBe('Incorrect username or password');
     });
   });
 
