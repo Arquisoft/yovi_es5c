@@ -82,8 +82,11 @@ export default function GamePage() {
   const [board, setBoard] = useState<Board>(makeEmptyBoard())
   const [busy, setBusy] = useState(false)
   const [winner, setWinner] = useState<Winner>(null)
+  const [startTime, setStartTime] = useState<number | null>(null)
   const [isGameOver, setIsGameOver] = useState(false)
-  const mode = (location.state as { mode?: GameMode } | null)?.mode ?? 'bot'
+  const state = location.state as { mode?: GameMode, difficulty?: string } | null
+  const mode = state?.mode ?? 'bot'
+  const difficulty = state?.difficulty ?? 'Medium'
   const [currentPlayer, setCurrentPlayer] = useState<'B' | 'R'>('B')
   const [message, setMessage] = useState(mode === 'pvp' ? 'Player B turn.' : 'Your turn. Place a blue piece.')
   const [error, setError] = useState('')
@@ -121,6 +124,11 @@ export default function GamePage() {
     }
 
     setError('')
+    // Iniciar cronómetro en el primer movimiento
+    if (!startTime) {
+      setStartTime(Date.now())
+    }
+
     setBusy(true)
     const previousBoard = cloneBoard(board)
     const optimisticBoard = cloneBoard(board)
@@ -163,6 +171,22 @@ export default function GamePage() {
         const finalWinner = moveData.winner;
         setWinner(finalWinner);
         setIsGameOver(true);
+
+        // Calcular duración y guardar partida
+        const duration = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+        const username = localStorage.getItem('username') || 'anonymous';
+
+        void fetch(`${apiEndpoint}/game/finish`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: username,
+            rival: mode === 'pvp' ? 'multiplayer' : 'bot',
+            level: difficulty,
+            duration: duration,
+            result: finalWinner === 'B' ? 'won' : 'lost'
+          })
+        });
         
         if (finalWinner === 'B') {
           setMessage(mode === 'pvp' ? 'Player B wins.' : 'You win.')
@@ -196,6 +220,7 @@ export default function GamePage() {
     setBoard(makeEmptyBoard())
     setBusy(false)
     setWinner(null)
+    setStartTime(null)
     setIsGameOver(false)
     setCurrentPlayer('B')
     setError('')
