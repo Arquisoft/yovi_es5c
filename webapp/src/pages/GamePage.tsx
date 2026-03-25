@@ -20,6 +20,9 @@ const minBoardSize = 3
 type Cell = '.' | 'B' | 'R'
 type Board = Cell[][]
 type Winner = 'B' | 'R' | null
+type GameMode = 'pvp' | 'bot'
+type Difficulty = 'Easy' | 'Medium' | 'Hard'
+
 interface MoveTurnResponse {
   game_over: boolean
   winner: Winner
@@ -31,7 +34,6 @@ interface MoveTurnResponse {
   }
 }
 
-type GameMode = 'pvp' | 'bot'
 
 function makeEmptyBoard(size: number): Board {
   return Array.from({ length: size }, (_, row) => Array.from({ length: row + 1 }, () => '.' as Cell))
@@ -100,7 +102,12 @@ export default function GamePage() {
   const [board, setBoard] = useState<Board>(makeEmptyBoard(boardSize))
   const [busy, setBusy] = useState(false)
   const [winner, setWinner] = useState<Winner>(null)
-  const mode = (location.state as { mode?: GameMode } | null)?.mode ?? 'bot'
+
+  const locationState = location.state as { mode?: GameMode; bot_id?: string; difficulty?: Difficulty } | null
+  const mode       = locationState?.mode       ?? 'bot'
+  const bot_id     = locationState?.bot_id     ?? 'random_bot'
+  const difficulty = locationState?.difficulty ?? 'Medium'
+
   const [currentPlayer, setCurrentPlayer] = useState<'B' | 'R'>('B')
   const [message, setMessage] = useState(mode === 'pvp' ? 'Player 1 turn.' : 'Your turn. Place a piece.')
   const [error, setError] = useState('')
@@ -154,7 +161,8 @@ export default function GamePage() {
         mode,
       }
       if (mode === 'bot') {
-        payload.bot_id = 'random_bot'
+        payload.bot_id = bot_id
+        payload.difficulty = difficulty
       }
 
       const response = await fetch(`${apiEndpoint}/game/move`, {

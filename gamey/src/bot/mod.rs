@@ -6,10 +6,19 @@
 //! - [`YBot`] - A trait that defines the interface for all bots
 //! - [`YBotRegistry`] - A registry for managing multiple bot implementations
 //! - [`RandomBot`] - A simple bot that makes random valid moves
+//! - [`CenterBot`] - A bot that prioritizes central cells on the board
+//! - [`EdgeBot`] - A bot that prioritizes cells touching the board sides
 
+pub mod strategies;
+pub mod edge;
 pub mod random;
+pub mod center;
 pub mod ybot;
 pub mod ybot_registry;
+
+pub use strategies::*;
+pub use edge::*;
+pub use center::*;
 pub use random::*;
 pub use ybot::*;
 pub use ybot_registry::*;
