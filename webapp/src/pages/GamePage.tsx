@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Alert, Box, Button, Paper, Typography } from '@mui/material'
+import { Alert, Box, Button, Paper, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Stack } from '@mui/material'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useSession } from "../SessionContext";
+import TrophyIcon from '@mui/icons-material/EmojiEvents';
+import ErrorIcon from '@mui/icons-material/SentimentVeryDissatisfied';
 
 const apiEndpoint = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 const boardSize = 5
@@ -156,12 +158,16 @@ export default function GamePage() {
       const updated = boardFromLayout(moveData.state.size, moveData.state.layout)
       setBoard(updated)
 
-      if (moveData.game_over && moveData.winner) {
-        setWinner(moveData.winner)
-        if (moveData.winner === 'B') {
+      if (moveData.game_over) {
+        const finalWinner = moveData.winner;
+        setWinner(finalWinner);
+        
+        if (finalWinner === 'B') {
           setMessage(mode === 'pvp' ? 'Player B wins.' : 'You win.')
-        } else {
+        } else if (finalWinner === 'R') {
           setMessage(mode === 'pvp' ? 'Player R wins.' : 'Bot wins.')
+        } else {
+          setMessage('Game Over.')
         }
       } else {
         setWinner(null)
@@ -197,6 +203,17 @@ export default function GamePage() {
   const top = getPosition(0, 0)
   const left = getPosition(boardSize - 1, 0)
   const right = getPosition(boardSize - 1, boardSize - 1)
+
+  // Lógica para el contenido del diálogo de fin de partida
+  const isPvP = mode === 'pvp';
+  const userWon = winner === 'B';
+  const dialogTitle = isPvP 
+    ? `¡Victoria para el Jugador ${winner === 'B' ? 'B': 'R'}!` 
+    : (userWon ? '¡Felicidades, has ganado!' : '¡Oh no! El bot ha ganado');
+  
+  const accentColor = isPvP 
+    ? (winner === 'B' ? '#1565c0' : '#c62828') 
+    : (userWon ? '#2e7d32' : '#d32f2f');
 
   return (
     <div className="main-content">
@@ -257,6 +274,57 @@ export default function GamePage() {
           </Button>
         </Box>
       </Paper>
+
+      {/* Diálogo de Fin de Partida */}
+      <Dialog 
+        open={winner !== null} 
+        onClose={reset}
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 4,
+              p: 2,
+              textAlign: 'center',
+              minWidth: 320,
+              border: `2px solid ${accentColor}`
+            }
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, fontSize: '1.5rem', color: accentColor }}>
+          {dialogTitle}
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} alignItems="center">
+            {/* Imagen/Icono dinámico según resultado en modo Bot */}
+            {!isPvP && (
+              <Box sx={{ mt: 2 }}>
+                {userWon ? (
+                  <TrophyIcon sx={{ fontSize: 80, color: '#fbc02d' }} />
+                ) : (
+                  <ErrorIcon sx={{ fontSize: 80, color: '#d32f2f' }} />
+                )}
+              </Box>
+            )}
+            <Typography variant="body1" color="text.secondary">
+              {isPvP 
+                ? `La partida ha terminado. El jugador con las fichas ${winner === 'B' ? 'azules' : 'rojas'} es el vencedor.`
+                : (userWon 
+                    ? 'Has demostrado ser mejor que la inteligencia artificial. ¡Excelente jugada!' 
+                    : 'El bot ha sido más astuto esta vez. ¡Inténtalo de nuevo!')
+              }
+            </Typography>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 1 }}>
+          <Button variant="contained" onClick={reset} sx={{ bgcolor: accentColor, '&:hover': { bgcolor: accentColor, opacity: 0.9 } }}>
+            Jugar de nuevo
+          </Button>
+          <Button variant="outlined" onClick={() => navigate('/homepage')} color="inherit">
+            Home
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   )
 }
