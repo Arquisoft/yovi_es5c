@@ -89,17 +89,21 @@ app.post('/login', async (req, res) => {
 
         //Checks user exists in database
         if(!user) {
-            return res.status(401).json({ error: 'Incorrect username' });
+            return res.status(401).json({ error: 'Incorrect username or password.' });
         }
 
         //Password match verification
         const passwordMatch = await bcrypt.compare(password, user.password);
 
         if(!passwordMatch) {
-            return res.status(401).json({ error: 'Incorrect password.' });
+            return res.status(401).json({ error: 'Incorrect username or password.' });
         }
 
         //Creates JWT token and returns with success code
+        if(!process.env.JWT_SECRET){
+            throw new Error("Variable de entorno no configurada.");
+        }
+        
         const token = jwt.sign({ userId: user._id, user: username}, process.env.JWT_SECRET, {expiresIn: '24h'});
         res.status(200).json({ token });
 
