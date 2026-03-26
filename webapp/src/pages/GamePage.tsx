@@ -2,19 +2,16 @@ import { useEffect, useState } from 'react'
 import { Alert, Box, Button, Paper, Typography } from '@mui/material'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useSession } from "../SessionContext";
+import { getInitialBoardSize } from "./GameSetup";
 
 const apiEndpoint = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 const botDelayMs = 700
 
 // Constantes de dimensiones
-const hexRadius = 38 // Radio del hexágono para que encajen como un panal
+const hexRadius = 38
 const horizontalGap = 68
 const verticalGap = 58
-const svgPadding = 60 // Aumentamos un poco el padding para que quepan los hexágonos de los bordes
-
-// Constantes para el tamaño máximo y mínimo del tablero
-const maxBoardSize = 15
-const minBoardSize = 3
+const svgPadding = 60
 
 
 type Cell = '.' | 'B' | 'R'
@@ -59,9 +56,8 @@ function getPosition(row: number, col: number, size: number) {
   return { x, y }
 }
 
-// Función para calcular los 6 puntos de un hexágono (punta hacia arriba)
 function getHexagonPoints(cx: number, cy: number, r: number) {
-  const w = r * (Math.sqrt(3) / 2) // Mitad del ancho
+  const w = r * (Math.sqrt(3) / 2)
   return `
     ${cx},${cy - r} 
     ${cx + w},${cy - r / 2} 
@@ -97,7 +93,9 @@ export default function GamePage() {
   const navigate = useNavigate()
   const location = useLocation()
   
-  const [boardSize, setBoardSize] = useState(5)
+  // Usamos directamente la función por referencia para inicializar el estado
+  const [boardSize, setBoardSize] = useState(getInitialBoardSize)
+  
   const [isAvailable, setIsAvailable] = useState(true)
   const [board, setBoard] = useState<Board>(makeEmptyBoard(boardSize))
   const [busy, setBusy] = useState(false)
@@ -220,9 +218,11 @@ export default function GamePage() {
     setMessage(mode === 'pvp' ? 'Player 1 turn.' : 'Your turn. Place a piece.')
   }
 
+  /* Actualmente sin usar, para usar importar minBoardSize y maxBoardSize de GameSetup
   const handleSizeChange = (newSize: number) => {
     if (newSize >= minBoardSize && newSize <= maxBoardSize) {
       setBoardSize(newSize)
+      sessionStorage.setItem('boardSize', newSize.toString())
       setBoard(makeEmptyBoard(newSize))
       setBusy(false)
       setWinner(null)
@@ -231,6 +231,7 @@ export default function GamePage() {
       setMessage(mode === 'pvp' ? 'Player 1 turn.' : 'Your turn. Place a piece.')
     }
   }
+  */
 
   const svgWidth = svgPadding * 2 + (boardSize - 1) * horizontalGap
   const svgHeight = svgPadding * 2 + (boardSize - 1) * verticalGap
@@ -275,7 +276,6 @@ export default function GamePage() {
                         strokeWidth={6}
                         style={{ 
                           transition: 'fill 0.2s',
-                          // Efecto de sombra interior para potenciar la sensación de "hueco" si está vacío
                           filter: cell === '.' ? 'drop-shadow(inset 0px 3px 3px rgba(0,0,0,0.3))' : 'none' 
                         }}
                       />

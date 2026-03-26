@@ -43,6 +43,21 @@ const DIFFICULTY_COLOR: Record<Difficulty, string> = {
   Hard: "#f44336",
 };
 
+export const minBoardSize = 3;
+export const maxBoardSize = 15;
+
+// ─── Helpers ─────────────────────────────────────────────────
+
+export function getInitialBoardSize(): number {
+  const savedSize = sessionStorage.getItem('boardSize');
+  if (!savedSize) return 5;
+
+  const parsedSize = parseInt(savedSize, 10);
+  if (isNaN(parsedSize)) return 5;
+
+  return Math.max(minBoardSize, Math.min(maxBoardSize, parsedSize));
+}
+
 // ─── Styled components ───────────────────────────────────────
 
 const PageWrapper = styled("div")({
@@ -196,9 +211,51 @@ const ModeDescription = styled("p")({
   textAlign: "center",
 });
 
+// ─── Estilos del Spinner Numérico ────────────────────────────
+
+const SpinnerContainer = styled("div")({
+  display: "flex",
+  alignItems: "center",
+  border: "1px solid #c8a84b",
+  borderRadius: "4px",
+  overflow: "hidden",
+  backgroundColor: "#1a1a1a",
+});
+
+const SpinnerBtn = styled("button")({
+  backgroundColor: "transparent",
+  color: "#c8a84b",
+  border: "none",
+  padding: "8px 16px",
+  fontSize: "1.2rem",
+  cursor: "pointer",
+  transition: "all 0.2s ease",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  "&:hover:not(:disabled)": {
+    backgroundColor: "rgba(200, 168, 75, 0.15)",
+    color: "#e8d89a",
+  },
+  "&:disabled": {
+    color: "#444",
+    cursor: "not-allowed",
+  },
+});
+
+const SpinnerValue = styled(Typography)({
+  color: "#e8d89a",
+  fontSize: "0.95rem",
+  minWidth: "48px",
+  textAlign: "center",
+  fontWeight: "bold",
+  letterSpacing: "0.05em",
+  userSelect: "none",
+});
+
 // ─── Component ───────────────────────────────────────────────
 const GameSetup = () => {
-
+  const [boardSize, setBoardSize] = useState(getInitialBoardSize);
   const [botAnchorEl, setBotAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedBot, setSelectedBot] = useState<BotOption | null>(null);
   const [diffAnchorEl, setDiffAnchorEl] = useState<null | HTMLElement>(null);
@@ -209,6 +266,24 @@ const GameSetup = () => {
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
   }
+
+  // ── Tamaño de tablero ───────────────────────────
+
+  const handleDecreaseSize = () => {
+    if (boardSize > minBoardSize) {
+      const newSize = boardSize - 1;
+      setBoardSize(newSize);
+      sessionStorage.setItem("boardSize", newSize.toString());
+    }
+  };
+
+  const handleIncreaseSize = () => {
+    if (boardSize < maxBoardSize) {
+      const newSize = boardSize + 1;
+      setBoardSize(newSize);
+      sessionStorage.setItem("boardSize", newSize.toString());
+    }
+  };
 
   // ── Menú de bots ──────────────────────────────────────────
 
@@ -328,6 +403,41 @@ const GameSetup = () => {
           </StyledMenu>
         </DivColumn>
       </DivRow>
+
+      <DivColumn style={{ marginTop: 20 }}>
+        <Typography
+          sx={{
+            fontSize: "0.75rem",
+            color: "#666",
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            mb: 1,
+          }}
+        >
+          Board Size
+        </Typography>
+        
+        <SpinnerContainer>
+          <SpinnerBtn 
+            onClick={handleDecreaseSize} 
+            disabled={boardSize <= minBoardSize}
+            aria-label="Decrease board size"
+          >
+            −
+          </SpinnerBtn>
+          
+          <SpinnerValue>{boardSize}</SpinnerValue>
+          
+          <SpinnerBtn 
+            onClick={handleIncreaseSize} 
+            disabled={boardSize >= maxBoardSize}
+            aria-label="Increase board size"
+          >
+            +
+          </SpinnerBtn>
+        </SpinnerContainer>
+        
+      </DivColumn>
     </PageWrapper>
   );
 };
