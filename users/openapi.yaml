@@ -39,6 +39,39 @@ paths:
         '409':
           description: User already exists
 
+  /login:
+    post:
+      summary: User login
+      description: Authenticates a user and returns a JWT token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '401':
+          description: Invalid credentials
+        '500':
+          description: Internal server error
+
   /user/{username}:
     get:
       summary: Gets a user profile
@@ -85,6 +118,28 @@ paths:
         '404':
           description: User not found
 
+  /user/{username}/history:
+    get:
+      summary: Get user game history
+      description: Returns a list of game sessions for the given user.
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: History retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GameSession'
+        '404':
+          description: User not found
+
   /logout:
     post:
       summary: Logs out a user
@@ -118,6 +173,26 @@ paths:
           description: Username missing
         '404':
           description: User not found
+
+  /game/finish:
+    post:
+      summary: Save game results
+      description: Stores the details of a finished game session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameSession'
+      responses:
+        '201':
+          description: Game session saved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameSession'
+        '500':
+          description: Internal server error
 
 components:
   schemas:
@@ -157,6 +232,39 @@ components:
         email:
           type: string
           example: "mario@uniovi.es"
+
+    GameSession:
+      type: object
+      required:
+        - userId
+        - rival
+        - level
+        - duration
+        - result
+      properties:
+        userId:
+          type: string
+          example: "testuser"
+        rival:
+          type: string
+          enum: [bot, multiplayer]
+          example: "bot"
+        level:
+          type: string
+          enum: [Easy, Medium, Hard]
+          example: "Medium"
+        duration:
+          type: integer
+          description: Duration of the game in seconds
+          example: 120
+        result:
+          type: string
+          enum: [won, lost]
+          example: "won"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-02-24T18:25:43.511Z"
     UserProfileUpdate:
       type: object
       required:
