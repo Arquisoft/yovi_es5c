@@ -10,7 +10,7 @@ const apiEndpoint = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // ─── Types ───────────────────────────────────────────────────
 type Rival = "bot" | "user";
-type Result = "win" | "lose";
+type Result = "won" | "lost";
 
 interface GameSession {
   _id: string;
@@ -141,7 +141,7 @@ const TableRow = styled("div")<{ result: Result }>(({ result }) => ({
   borderBottom: "1px solid #161616",
   alignItems: "center",
   transition: "background-color 0.15s ease",
-  borderLeft: `2px solid ${result === "win" ? "#4a7c59" : "#7c4a4a"}`,
+  borderLeft: `2px solid ${result === "won" ? "#4a7c59" : "#7c4a4a"}`,
   "&:last-child": {
     borderBottom: "none",
   },
@@ -173,9 +173,9 @@ const ResultBadge = styled("span")<{ result: Result }>(({ result }) => ({
   borderRadius: 2,
   letterSpacing: "0.05em",
   backgroundColor:
-    result === "win" ? "rgba(74, 124, 89, 0.1)" : "rgba(124, 74, 74, 0.1)",
-  color: result === "win" ? "#6aab7e" : "#ab6a6a",
-  border: `1px solid ${result === "win" ? "rgba(74,124,89,0.25)" : "rgba(124,74,74,0.25)"}`,
+    result === "won" ? "rgba(74, 124, 89, 0.1)" : "rgba(124, 74, 74, 0.1)",
+  color: result === "won" ? "#6aab7e" : "#ab6a6a",
+  border: `1px solid ${result === "won" ? "rgba(74,124,89,0.25)" : "rgba(124,74,74,0.25)"}`,
 }));
 
 const EmptyState = styled("div")({
@@ -230,11 +230,11 @@ const LoadingText = styled("p")({
 });
 
 const MOCK_HISTORY: GameSession[] = [
-  { _id: "1", userId: "test", rival: "bot",  level: 1, duration: 90,  result: "win",  createdAt: new Date().toISOString() },
-  { _id: "2", userId: "test", rival: "user", level: 3, duration: 320, result: "lose", createdAt: new Date(Date.now() - 86400000).toISOString() },
-  { _id: "3", userId: "test", rival: "bot",  level: 2, duration: 145, result: "win",  createdAt: new Date(Date.now() - 172800000).toISOString() },
-  { _id: "4", userId: "test", rival: "user", level: 2, duration: 210, result: "win",  createdAt: new Date(Date.now() - 259200000).toISOString() },
-  { _id: "5", userId: "test", rival: "bot",  level: 3, duration: 480, result: "lose", createdAt: new Date(Date.now() - 345600000).toISOString() },
+  { _id: "1", userId: "test", rival: "bot",  level: 1, duration: 90,  result: "won",  createdAt: new Date().toISOString() },
+  { _id: "2", userId: "test", rival: "user", level: 3, duration: 320, result: "lost", createdAt: new Date(Date.now() - 86400000).toISOString() },
+  { _id: "3", userId: "test", rival: "bot",  level: 2, duration: 145, result: "won",  createdAt: new Date(Date.now() - 172800000).toISOString() },
+  { _id: "4", userId: "test", rival: "user", level: 2, duration: 210, result: "won",  createdAt: new Date(Date.now() - 259200000).toISOString() },
+  { _id: "5", userId: "test", rival: "bot",  level: 3, duration: 480, result: "lost", createdAt: new Date(Date.now() - 345600000).toISOString() },
 ];
 
 // ─── Component ───────────────────────────────────────────────
@@ -268,8 +268,8 @@ const GameHistory = () => {
     return <Navigate to="/login" replace />;
   }
 
-  const wins = history.filter((g) => g.result === "win").length;
-  const losses = history.filter((g) => g.result === "lose").length;
+  const wins = history.filter((g) => g.result === "won").length;
+  const losses = history.filter((g) => g.result === "lost").length;
   const winRate =
     history.length > 0 ? Math.round((wins / history.length) * 100) : 0;
 
@@ -338,7 +338,7 @@ const GameHistory = () => {
               <Cell>{formatDuration(game.duration)}</Cell>
               <Cell>
                 <ResultBadge result={game.result}>
-                  {game.result === "win" ? "Win" : "Lose"}
+                  {game.result === "won" ? "Win" : "Lose"}
                 </ResultBadge>
               </Cell>
             </TableRow>
