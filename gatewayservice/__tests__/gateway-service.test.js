@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'; 
 const request = require('supertest');
 const axios = require('axios');
-const { app } = require('../gateway-service');
+const { app, resolvePublicBotConfig } = require('../gateway-service');
 
 vi.mock('axios');
 
@@ -116,5 +116,109 @@ describe('Gateway Service - Login Routing', () => {
             expect.stringContaining('/user/testuser'),
             payload
         );
+    });
+});
+
+describe('Gateway Service - Bot play API', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('should resolve public bot defaults for tournament play', () => {
+        expect(resolvePublicBotConfig()).toEqual({
+            bot_id: 'center_bot',
+            difficulty: 'Hard',
+            registry_bot_id: 'center_bot',
+        });
+    });
+
+    it('should route POST /bot/play to the Rust play endpoint with defaults', async () => {
+        axios.post = vi.fn();
+        const mockResponse = {
+            data: {
+                api_version: 'v1',
+                bot_id: 'center_bot',
+                difficulty: 'Hard',
+                game_over: false,
+                winner: null,
+                position: {
+                    size: 3,
+                    turn: 1,
+                    players: ['B', 'R'],
+                    layout: 'B/../...'
+                }
+            }
+        };
+        axios.post.mockResolvedValueOnce(mockResponse);
+
+        const position = {
+            size: 3,
+            turn: 0,
+            players: ['B', 'R'],
+            layout: './../...'
+        };
+
+        const res = await request(app)
+            .post('/bot/play')
+            .send({ position });
+
+        expect(res.status).toBe(200);
+        expect(res.body.bot_id).toBe('center_bot');
+        expect(res.body.difficulty).toBe('Hard');
+        expect(axios.post).toHaveBeenCalledWith(
+            expect.stringContaining('/v1/ybot/play'),
+            {
+                position,
+                bot_id: 'center_bot',
+                difficulty: 'Hard',
+            }
+        );
+    });
+
+    it('should reject POST /bot/play when position is missing', async () => {
+        const res = await request(app)
+            .post('/bot/play')
+            .send({ bot_id: 'center_bot' });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe('position is required');
+    });
+
+    it('should reject POST /bot/play with unknown difficulty', async () => {
+        const res = await request(app)
+            .post('/bot/play')
+            .send({
+                position: {
+                    size: 3,
+                    turn: 0,
+                    players: ['B', 'R'],
+                    layout: './../...'
+                },
+                difficulty: 'Impossible'
+            });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toContain('Unknown difficulty');
+    });
+
+    it('should forward backend errors from POST /bot/play', async () => {
+        axios.post = vi.fn();
+        axios.post.mockRejectedValueOnce({
+            response: { status: 400, data: { message: 'Invalid YEN format' } }
+        });
+
+        const res = await request(app)
+            .post('/bot/play')
+            .send({
+                position: {
+                    size: 3,
+                    turn: 0,
+                    players: ['B', 'R'],
+                    layout: 'invalid'
+                }
+            });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe('Invalid YEN format');
     });
 });
