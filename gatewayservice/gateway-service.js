@@ -145,9 +145,29 @@ app.get('/game/status', async (req, res) => {
 const VALID_BOTS        = new Set(['random_bot', 'center_bot', 'edge_bot']);
 const VALID_DIFFICULTIES = new Set(['Easy', 'Medium', 'Hard']);
 const DIFFICULTY_SUFFIX = { Easy: '_1', Medium: '_2', Hard: '' };
+const DEFAULT_PUBLIC_BOT_ID = 'center_bot';
+const DEFAULT_PUBLIC_DIFFICULTY = 'Hard';
 
 function resolveBotName(bot_id, difficulty) {
   return bot_id + DIFFICULTY_SUFFIX[difficulty];
+}
+
+function resolvePublicBotConfig(bot_id, difficulty) {
+  const resolvedBotId = bot_id || DEFAULT_PUBLIC_BOT_ID;
+  if (!VALID_BOTS.has(resolvedBotId)) {
+    return { error: `Unknown bot_id: ${resolvedBotId}` };
+  }
+
+  const resolvedDifficulty = difficulty || DEFAULT_PUBLIC_DIFFICULTY;
+  if (!VALID_DIFFICULTIES.has(resolvedDifficulty)) {
+    return { error: `Unknown difficulty: ${resolvedDifficulty}` };
+  }
+
+  return {
+    bot_id: resolvedBotId,
+    difficulty: resolvedDifficulty,
+    registry_bot_id: resolveBotName(resolvedBotId, resolvedDifficulty),
+  };
 }
 
 app.post('/game/move', async (req, res) => {
@@ -155,18 +175,13 @@ app.post('/game/move', async (req, res) => {
     const { mode, bot_id, difficulty } = req.body;
  
     if (mode === 'bot') {
-      const resolvedBotId = bot_id || 'random_bot';
-      if (!VALID_BOTS.has(resolvedBotId)) {
-        return res.status(400).json({ error: `Unknown bot_id: ${resolvedBotId}` });
+      const resolvedBot = resolvePublicBotConfig(bot_id || 'random_bot', difficulty || 'Medium');
+      if (resolvedBot.error) {
+        return res.status(400).json({ error: resolvedBot.error });
       }
  
-      const resolvedDifficulty = difficulty || 'Medium';
-      if (!VALID_DIFFICULTIES.has(resolvedDifficulty)) {
-        return res.status(400).json({ error: `Unknown difficulty: ${resolvedDifficulty}` });
-      }
- 
-      req.body.bot_id = resolveBotName(resolvedBotId, resolvedDifficulty);
-      req.body.difficulty = resolvedDifficulty;
+      req.body.bot_id = resolvedBot.registry_bot_id;
+      req.body.difficulty = resolvedBot.difficulty;
     }
  
     const moveUrl = new URL('/v1/game/move', gameyServiceUrl);
@@ -177,8 +192,34 @@ app.post('/game/move', async (req, res) => {
   }
 });
 
+app.post('/bot/play', async (req, res) => {
+  try {
+    const { position, bot_id, difficulty } = req.body;
+
+    if (!position) {
+      return res.status(400).json({ error: 'position is required' });
+    }
+
+    const resolvedBot = resolvePublicBotConfig(bot_id, difficulty);
+    if (resolvedBot.error) {
+      return res.status(400).json({ error: resolvedBot.error });
+    }
+
+    const playUrl = new URL('/v1/ybot/play', gameyServiceUrl);
+    const response = await axios.post(playUrl.href, {
+      position,
+      bot_id: resolvedBot.bot_id,
+      difficulty: resolvedBot.difficulty,
+    });
+
+    res.status(200).json(response.data);
+  } catch (error) {
+    handleErrors(res, error);
+  }
+});
+
 
 const server = app.listen(port, () => console.log(`Gateway listening on ${port}`))
 
-module.exports = { app, server }
+module.exports = { app, server, resolveBotName, resolvePublicBotConfig }
 
