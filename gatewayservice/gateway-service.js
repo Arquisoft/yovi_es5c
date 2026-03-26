@@ -141,8 +141,34 @@ app.get('/game/status', async (req, res) => {
   }
 });
 
+// ─── Valores válidos para partidas contra bot ─────────────────────────────────
+const VALID_BOTS        = new Set(['random_bot', 'center_bot', 'edge_bot']);
+const VALID_DIFFICULTIES = new Set(['Easy', 'Medium', 'Hard']);
+const DIFFICULTY_SUFFIX = { Easy: '_1', Medium: '_2', Hard: '' };
+
+function resolveBotName(bot_id, difficulty) {
+  return bot_id + DIFFICULTY_SUFFIX[difficulty];
+}
+
 app.post('/game/move', async (req, res) => {
-  try {
+   try {
+    const { mode, bot_id, difficulty } = req.body;
+ 
+    if (mode === 'bot') {
+      const resolvedBotId = bot_id || 'random_bot';
+      if (!VALID_BOTS.has(resolvedBotId)) {
+        return res.status(400).json({ error: `Unknown bot_id: ${resolvedBotId}` });
+      }
+ 
+      const resolvedDifficulty = difficulty || 'Medium';
+      if (!VALID_DIFFICULTIES.has(resolvedDifficulty)) {
+        return res.status(400).json({ error: `Unknown difficulty: ${resolvedDifficulty}` });
+      }
+ 
+      req.body.bot_id = resolveBotName(resolvedBotId, resolvedDifficulty);
+      req.body.difficulty = resolvedDifficulty;
+    }
+ 
     const moveUrl = new URL('/v1/game/move', gameyServiceUrl);
     const response = await axios.post(moveUrl.href, req.body);
     res.status(200).json(response.data);
