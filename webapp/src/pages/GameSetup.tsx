@@ -33,6 +33,11 @@ const BOT_OPTIONS: BotOption[] = [
     label: "Edge bot",
     description: "Controls the sides",
   },
+  {
+    bot_id: "smart_bot",
+    label: "Smart bot",
+    description: "Always searchs the victory",
+  },
 ];
 
 const DIFFICULTIES: Difficulty[] = ["Easy", "Medium", "Hard"];
