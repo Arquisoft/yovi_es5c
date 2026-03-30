@@ -12,6 +12,12 @@ describe('Gateway Service', () => {
     expect(response.body.ok).toBe(true);
     expect(response.body.service).toBe('gateway');
   });
+
+  it('should serve Swagger UI for the public API docs', async () => {
+    const response = await request(app).get('/api-docs/');
+    expect(response.status).toBe(200);
+    expect(response.text).toContain('Swagger UI');
+  });
 });
 
 describe('Gateway Service - Login Routing', () => {

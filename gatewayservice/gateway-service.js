@@ -4,6 +4,10 @@ const morgan = require('morgan')
 const helmet = require('helmet')
 const cors = require('cors')
 const rateLimit = require('express-rate-limit')
+const swaggerUi = require('swagger-ui-express')
+const fs = require('node:fs')
+const path = require('node:path')
+const YAML = require('js-yaml')
 const port = process.env.PORT || 8000
 
 const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3000';
@@ -15,6 +19,15 @@ app.use(helmet())
 app.use(cors())
 app.use(express.json())
 app.use(morgan('combined'))
+
+try {
+  const swaggerDocument = YAML.load(
+    fs.readFileSync(path.join(__dirname, 'openapi.yaml'), 'utf8')
+  )
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
+} catch (error) {
+  console.log(error)
+}
 
 const limiter = rateLimit({ windowMs: 60 * 1000, max: 100 })
 app.use(limiter)
