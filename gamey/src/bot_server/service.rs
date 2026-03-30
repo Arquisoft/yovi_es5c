@@ -139,7 +139,19 @@ pub fn winner_char(game: &GameY) -> Option<char> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{CenterBot, YBotRegistry};
+    use crate::{CenterBot, PlayerId, RandomBot, YBotRegistry};
+
+    struct NoMoveBot;
+
+    impl YBot for NoMoveBot {
+        fn name(&self) -> &str {
+            "no_move_bot"
+        }
+
+        fn choose_move(&self, _board: &GameY) -> Option<Coordinates> {
+            None
+        }
+    }
 
     #[test]
     fn test_resolve_public_bot_selection_uses_defaults() {
@@ -163,9 +175,71 @@ mod tests {
     }
 
     #[test]
+    fn test_resolve_public_bot_selection_rejects_unknown_bot() {
+        let error = resolve_public_bot_selection(Some("unknown_bot"), Some("Hard")).unwrap_err();
+        assert!(error.message.contains("Unknown bot_id"));
+    }
+
+    #[test]
     fn test_find_registered_bot_returns_registered_instance() {
         let state = AppState::new(YBotRegistry::new().with_bot(Arc::new(CenterBot { level: 3 })));
         let bot = find_registered_bot(&state, "v1", "center_bot").unwrap();
         assert_eq!(bot.name(), "center_bot");
+    }
+
+    #[test]
+    fn test_load_game_from_yen_rejects_invalid_layout() {
+        let yen = YEN::new(3, 0, vec!['B', 'R'], "invalid".to_string());
+        let error = load_game_from_yen(yen, "v1", Some("center_bot")).unwrap_err();
+        assert!(error.message.contains("Invalid YEN format"));
+        assert_eq!(error.api_version, Some("v1".to_string()));
+    }
+
+    #[test]
+    fn test_choose_move_or_error_rejects_bot_without_moves() {
+        let bot = NoMoveBot;
+        let game = GameY::new(3);
+        let error = choose_move_or_error(&bot, &game, "v1", "no_move_bot").unwrap_err();
+        assert!(error.message.contains("No valid moves available"));
+        assert_eq!(error.bot_id, Some("no_move_bot".to_string()));
+    }
+
+    #[test]
+    fn test_apply_bot_turn_returns_none_when_game_is_over() {
+        let bot = RandomBot { level: 3 };
+        let game_yen = YEN::new(2, 0, vec!['B', 'R'], "B/RB".to_string());
+        let mut game = GameY::try_from(game_yen).unwrap();
+        let result = apply_bot_turn(&bot, &mut game, "v1", "random_bot").unwrap();
+        assert_eq!(result, None);
+    }
+
+    #[test]
+    fn test_apply_bot_turn_returns_none_when_bot_has_no_move() {
+        let bot = NoMoveBot;
+        let mut game = GameY::new(3);
+        let result = apply_bot_turn(&bot, &mut game, "v1", "no_move_bot").unwrap();
+        assert_eq!(result, None);
+    }
+
+    #[test]
+    fn test_apply_bot_turn_applies_move_and_changes_turn() {
+        let bot = RandomBot { level: 3 };
+        let mut game = GameY::new(3);
+        let chosen = apply_bot_turn(&bot, &mut game, "v1", "random_bot").unwrap();
+        assert!(chosen.is_some());
+        assert_eq!(game.next_player(), Some(PlayerId::new(1)));
+    }
+
+    #[test]
+    fn test_winner_char_returns_none_for_ongoing_game() {
+        let game = GameY::new(3);
+        assert_eq!(winner_char(&game), None);
+    }
+
+    #[test]
+    fn test_winner_char_returns_b_for_finished_game() {
+        let game_yen = YEN::new(2, 0, vec!['B', 'R'], "B/RB".to_string());
+        let game = GameY::try_from(game_yen).unwrap();
+        assert_eq!(winner_char(&game), Some('B'));
     }
 }
