@@ -11,6 +11,8 @@ services:
       - MONGODB_URI=mongodb://mongodb:27017/userdb
     depends_on:
       - mongodb
+    env_file:
+      - .env
 
   gatewayservice:
     build: ./gatewayservice
