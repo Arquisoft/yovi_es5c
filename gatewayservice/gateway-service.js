@@ -9,6 +9,7 @@ const fs = require('node:fs')
 const path = require('node:path')
 const YAML = require('js-yaml')
 const port = process.env.PORT || 8000
+const mongoSanitize = require('express-mongo-sanitize');
 
 const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3000';
 const gameyServiceUrl = process.env.GAMEY_SERVICE_URL || 'http://localhost:4000';
@@ -19,6 +20,7 @@ app.use(helmet())
 app.use(cors())
 app.use(express.json())
 app.use(morgan('combined'))
+app.use(mongoSanitize())
 
 try {
   const swaggerDocument = YAML.load(
