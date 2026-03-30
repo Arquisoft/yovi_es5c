@@ -192,7 +192,7 @@ app.post('/game/move', async (req, res) => {
   }
 });
 
-app.post('/bot/play', async (req, res) => {
+app.post('/play', async (req, res) => {
   try {
     const { position, bot_id, difficulty } = req.body;
 

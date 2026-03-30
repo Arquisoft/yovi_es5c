@@ -139,10 +139,8 @@ async fn test_play_endpoint_with_default_public_bot() {
     let body = response.into_body().collect().await.unwrap().to_bytes();
     let play_response: PlayResponse = serde_json::from_slice(&body).unwrap();
 
-    assert_eq!(play_response.api_version, "v1");
-    assert_eq!(play_response.bot_id, "center_bot");
-    assert_eq!(play_response.difficulty, "Hard");
-    assert_eq!(play_response.position.size(), 3);
+    assert_eq!(play_response.size(), 3);
+    assert_eq!(play_response.turn(), 1);
 }
 
 #[tokio::test]
@@ -176,8 +174,8 @@ async fn test_play_endpoint_with_explicit_public_bot_and_difficulty() {
     let body = response.into_body().collect().await.unwrap().to_bytes();
     let play_response: PlayResponse = serde_json::from_slice(&body).unwrap();
 
-    assert_eq!(play_response.bot_id, "random_bot");
-    assert_eq!(play_response.difficulty, "Medium");
+    assert_eq!(play_response.size(), 3);
+    assert_eq!(play_response.turn(), 1);
 }
 
 #[tokio::test]
@@ -209,9 +207,8 @@ async fn test_play_endpoint_with_finished_game_returns_same_position() {
     let body = response.into_body().collect().await.unwrap().to_bytes();
     let play_response: PlayResponse = serde_json::from_slice(&body).unwrap();
 
-    assert!(play_response.game_over);
-    assert_eq!(play_response.winner, Some('B'));
-    assert_eq!(play_response.position.layout(), "B/RB");
+    assert_eq!(play_response.layout(), "B/RB");
+    assert_eq!(play_response.turn(), 1);
 }
 
 // ============================================================================

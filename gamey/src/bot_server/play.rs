@@ -2,7 +2,7 @@ use axum::{
     Json,
     extract::{Path, State},
 };
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use crate::{YEN, check_api_version};
 
@@ -10,7 +10,6 @@ use super::{
     error::ErrorResponse,
     service::{
         apply_bot_turn, find_registered_bot, load_game_from_yen, resolve_public_bot_selection,
-        winner_char,
     },
     state::AppState,
 };
@@ -27,15 +26,7 @@ pub struct PlayRequest {
     pub difficulty: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct PlayResponse {
-    pub api_version: String,
-    pub bot_id: String,
-    pub difficulty: String,
-    pub game_over: bool,
-    pub winner: Option<char>,
-    pub position: YEN,
-}
+pub type PlayResponse = YEN;
 
 #[axum::debug_handler]
 pub async fn play(
@@ -69,14 +60,5 @@ pub async fn play(
         &selection.registry_bot_id,
     )?;
 
-    let winner = winner_char(&game);
-    let position: YEN = (&game).into();
-    Ok(Json(PlayResponse {
-        api_version: params.api_version,
-        bot_id: selection.public_bot_id,
-        difficulty: selection.difficulty,
-        game_over: winner.is_some(),
-        winner,
-        position,
-    }))
+    Ok(Json((&game).into()))
 }

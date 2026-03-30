@@ -132,21 +132,14 @@ describe('Gateway Service - Bot play API', () => {
         });
     });
 
-    it('should route POST /bot/play to the Rust play endpoint with defaults', async () => {
+    it('should route POST /play to the Rust play endpoint with defaults', async () => {
         axios.post = vi.fn();
         const mockResponse = {
             data: {
-                api_version: 'v1',
-                bot_id: 'center_bot',
-                difficulty: 'Hard',
-                game_over: false,
-                winner: null,
-                position: {
-                    size: 3,
-                    turn: 1,
-                    players: ['B', 'R'],
-                    layout: 'B/../...'
-                }
+                size: 3,
+                turn: 1,
+                players: ['B', 'R'],
+                layout: 'B/../...'
             }
         };
         axios.post.mockResolvedValueOnce(mockResponse);
@@ -159,12 +152,12 @@ describe('Gateway Service - Bot play API', () => {
         };
 
         const res = await request(app)
-            .post('/bot/play')
+            .post('/play')
             .send({ position });
 
         expect(res.status).toBe(200);
-        expect(res.body.bot_id).toBe('center_bot');
-        expect(res.body.difficulty).toBe('Hard');
+        expect(res.body.turn).toBe(1);
+        expect(res.body.layout).toBe('B/../...');
         expect(axios.post).toHaveBeenCalledWith(
             expect.stringContaining('/v1/ybot/play'),
             {
@@ -175,18 +168,18 @@ describe('Gateway Service - Bot play API', () => {
         );
     });
 
-    it('should reject POST /bot/play when position is missing', async () => {
+    it('should reject POST /play when position is missing', async () => {
         const res = await request(app)
-            .post('/bot/play')
+            .post('/play')
             .send({ bot_id: 'center_bot' });
 
         expect(res.status).toBe(400);
         expect(res.body.error).toBe('position is required');
     });
 
-    it('should reject POST /bot/play with unknown difficulty', async () => {
+    it('should reject POST /play with unknown difficulty', async () => {
         const res = await request(app)
-            .post('/bot/play')
+            .post('/play')
             .send({
                 position: {
                     size: 3,
@@ -201,14 +194,14 @@ describe('Gateway Service - Bot play API', () => {
         expect(res.body.error).toContain('Unknown difficulty');
     });
 
-    it('should forward backend errors from POST /bot/play', async () => {
+    it('should forward backend errors from POST /play', async () => {
         axios.post = vi.fn();
         axios.post.mockRejectedValueOnce({
             response: { status: 400, data: { message: 'Invalid YEN format' } }
         });
 
         const res = await request(app)
-            .post('/bot/play')
+            .post('/play')
             .send({
                 position: {
                     size: 3,
