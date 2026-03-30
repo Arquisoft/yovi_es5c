@@ -11,8 +11,11 @@
 //! - [`edge_move`]         — picks the cell touching the most board sides
 //! - [`greedy_move`]       — picks the cell with most friendly neighbors
 //! - [`greedy_center_move`]— greedy with center as tiebreaker
+//! - [`winning_move`]      — picks the cell which gives the win
+//! - [`blocking_move`]     — picks the cell that block rival from winning
+//! - [`win_check_move`]    — picks the winning, if not block, if not the center
 
-use crate::{Coordinates, GameY, PlayerId};
+use crate::{Coordinates, GameY, PlayerId, Movement};
 use rand::prelude::IndexedRandom;
 
 // ─── Strategy functions ───────────────────────────────────────────────────────
@@ -106,8 +109,66 @@ pub fn greedy_center_move(board: &GameY) -> Option<Coordinates> {
             (friendly, u32::MAX - dist)
         })
 }
+ 
+/// Returns the first available cell that wins the game immediately, or `None`.
+///
+/// Simulates placing the current player's piece on each available cell
+/// and checks if the game ends. Uses `GameY::clone()` so the real board
+/// is never modified.
+pub fn winning_move(board: &GameY) -> Option<Coordinates> {
+    let size = board.board_size();
+    let player = board.next_player()?;
+ 
+    board
+        .available_cells()
+        .iter()
+        .map(|&idx| Coordinates::from_index(idx, size))
+        .find(|&coords| is_winning_move_for(board, coords, player))
+}
+ 
+/// Returns the first available cell that blocks an immediate rival win, or `None`.
+///
+/// Simulates placing the rival's piece on each available cell and checks
+/// if that would end the game. If so, that cell must be blocked.
+pub fn blocking_move(board: &GameY) -> Option<Coordinates> {
+    let size = board.board_size();
+    let player = board.next_player()?;
+    let rival = other_player(player);
+ 
+    board
+        .available_cells()
+        .iter()
+        .map(|&idx| Coordinates::from_index(idx, size))
+        .find(|&coords| is_winning_move_for(board, coords, rival))
+}
+ 
+/// WinCheck strategy: winning → blocking → greedy_center fallback.
+///
+/// This is the recommended high-level function to use in a WinCheckBot.
+/// It chains the three steps in priority order using `or_else`, which
+/// only evaluates the next step if the previous one returned `None`.
+pub fn win_check_move(board: &GameY) -> Option<Coordinates> {
+    winning_move(board)
+        .or_else(|| blocking_move(board))
+        .or_else(|| greedy_center_move(board))
+}
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
+
+/// Returns the opponent of `player`.
+/// Assumes a two-player game with IDs 0 and 1.
+pub fn other_player(player: PlayerId) -> PlayerId {
+    if player.id() == 0 { PlayerId::new(1) } else { PlayerId::new(0) }
+}
+ 
+/// Simulates placing `player`'s piece at `coords` and checks if it wins.
+///
+/// Clones the board so the original is never modified.
+pub fn is_winning_move_for(board: &GameY, coords: Coordinates, player: PlayerId) -> bool {
+    let mut copy = board.clone();
+    let mv = Movement::Placement { player, coords };
+    copy.add_move(mv).is_ok() && copy.check_game_over()
+}
 
 /// Counts how many neighbors of `coords` are occupied by `player`.
 pub fn count_friendly_neighbors(board: &GameY, coords: &Coordinates, player: PlayerId) -> usize {
@@ -205,5 +266,79 @@ mod tests {
     #[test]
     fn test_sides_touched_interior() {
         assert_eq!(sides_touched(&Coordinates::new(2, 2, 2)), 0);
+    }
+
+    #[test]
+    fn test_winning_move_detects_immediate_win() {
+        // Tablero tamaño 2: jugador 0 puede ganar colocando en (0,0,1)
+        // ya que ese tablero tiene solo 3 celdas y la pieza toca los 3 lados
+        let mut game = GameY::new(2);
+        // Jugador 0 coloca en (1,0,0) — toca lados B y C
+        game.add_move(Movement::Placement {
+            player: PlayerId::new(0),
+            coords: Coordinates::new(1, 0, 0),
+        }).unwrap();
+        // Jugador 1 coloca en (0,1,0) — toca lados A y C
+        game.add_move(Movement::Placement {
+            player: PlayerId::new(1),
+            coords: Coordinates::new(0, 1, 0),
+        }).unwrap();
+        // Ahora jugador 0 puede ganar en (0,0,1) que toca lados A y B
+        // y conecta con su pieza en (1,0,0) → conecta los 3 lados
+        let result = winning_move(&game);
+        assert!(result.is_some(), "debería detectar el movimiento ganador");
+        assert_eq!(result.unwrap(), Coordinates::new(0, 0, 1));
+    }
+ 
+    #[test]
+    fn test_winning_move_returns_none_when_no_win_available() {
+        let game = GameY::new(5);
+        // En tablero vacío no hay victoria inmediata
+        assert!(winning_move(&game).is_none());
+    }
+
+    #[test]
+    fn test_blocking_move_returns_none_when_no_win_available() {
+        let game = GameY::new(5);
+        // En tablero vacío no hay victoria inmediata
+        assert!(blocking_move(&game).is_none());
+    }
+ 
+   
+    #[test]
+    fn test_win_check_move_returns_winning_over_blocking() {
+        let mut game = GameY::new(2);
+        game.add_move(Movement::Placement {
+            player: PlayerId::new(0),
+            coords: Coordinates::new(1, 0, 0),
+        }).unwrap();
+        game.add_move(Movement::Placement {
+            player: PlayerId::new(1),
+            coords: Coordinates::new(0, 1, 0),
+        }).unwrap();
+        // win_check_move debe elegir la victoria inmediata
+        let result = win_check_move(&game);
+        assert!(result.is_some());
+        assert_eq!(result.unwrap(), Coordinates::new(0, 0, 1));
+    }
+ 
+    #[test]
+    fn test_is_winning_move_for() {
+        let mut game = GameY::new(2);
+        game.add_move(Movement::Placement {
+            player: PlayerId::new(0),
+            coords: Coordinates::new(1, 0, 0),
+        }).unwrap();
+        game.add_move(Movement::Placement {
+            player: PlayerId::new(1),
+            coords: Coordinates::new(0, 1, 0),
+        }).unwrap();
+        assert!(is_winning_move_for(&game, Coordinates::new(0, 0, 1), PlayerId::new(0)));
+    }
+ 
+    #[test]
+    fn test_other_player() {
+        assert_eq!(other_player(PlayerId::new(0)), PlayerId::new(1));
+        assert_eq!(other_player(PlayerId::new(1)), PlayerId::new(0));
     }
 }
