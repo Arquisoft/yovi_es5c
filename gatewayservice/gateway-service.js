@@ -144,7 +144,7 @@ app.get('/game/status', async (req, res) => {
 });
 
 // ─── Valores válidos para partidas contra bot ─────────────────────────────────
-const VALID_BOTS        = new Set(['random_bot', 'center_bot', 'edge_bot']);
+const VALID_BOTS        = new Set(['random_bot', 'center_bot', 'edge_bot', 'mirror_bot']);
 const VALID_DIFFICULTIES = new Set(['Easy', 'Medium', 'Hard']);
 const DIFFICULTY_SUFFIX = { Easy: '_1', Medium: '_2', Hard: '' };
 

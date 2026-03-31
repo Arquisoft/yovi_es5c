@@ -11,6 +11,7 @@
 //! - [`edge_move`]         — picks the cell touching the most board sides
 //! - [`greedy_move`]       — picks the cell with most friendly neighbors
 //! - [`greedy_center_move`]— greedy with center as tiebreaker
+//! - [`mirror_move`]       — copies the opponent's last move using rotational symmetry
 
 use crate::{Coordinates, GameY, PlayerId};
 use rand::prelude::IndexedRandom;
@@ -105,6 +106,30 @@ pub fn greedy_center_move(board: &GameY) -> Option<Coordinates> {
                 + coords.z().abs_diff(target);
             (friendly, u32::MAX - dist)
         })
+}
+
+/// Mirror strategy: Attempts to copy the opponent's last move by 
+/// rotating it 120 or 240 degrees.
+pub fn mirror_move(board: &GameY) -> Option<Coordinates> {
+    let size = board.board_size();
+    
+    // Get the last placement move performed on the board
+    let last_coords = board.last_placement_coords()?;
+
+    // Attempt 1: 120° rotation (x, y, z) -> (y, z, x)
+    let mirror_1 = last_coords.rotate();
+    if board.available_cells().contains(&mirror_1.to_index(size)) {
+        return Some(mirror_1);
+    }
+
+    // Attempt 2: 240° rotation (y, z, x) -> (z, x, y)
+    let mirror_2 = mirror_1.rotate();
+    if board.available_cells().contains(&mirror_2.to_index(size)) {
+        return Some(mirror_2);
+    }
+
+    // If symmetric positions are occupied, fallback to center strategy
+    center_move(board)
 }
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
