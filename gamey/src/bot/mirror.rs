@@ -33,7 +33,7 @@ impl YBot for MirrorBot {
             },
 
             // Level 3: Pure Mirror Strategy with center fallback
-            _ => strategies::mirror_move(board).or_else(|| strategies::center_move(board)),
+            _ => strategies::mirror_move(board)
         }
     }
 }
