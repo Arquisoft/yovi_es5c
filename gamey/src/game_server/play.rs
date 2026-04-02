@@ -1,6 +1,11 @@
 use crate::{
-    Coordinates, GameStatus, GameY, Movement, YEN,
-    bot_server::{check_api_version, error::ErrorResponse, state::AppState},
+    Coordinates, GameY, Movement, YEN,
+    bot_server::{
+        check_api_version,
+        error::ErrorResponse,
+        service::{apply_bot_turn, find_registered_bot, load_game_from_yen, winner_char},
+        state::AppState,
+    },
 };
 use axum::{
     Json,
@@ -37,19 +42,11 @@ pub async fn move_turn(
     Path(params): Path<MoveParams>,
     Json(request): Json<MoveRequest>,
 ) -> Result<Json<MoveTurnResponse>, Json<ErrorResponse>> {
-    check_api_version(&params.api_version)?;
+    check_api_version(&params.api_version).map_err(Json)?;
     let is_bot_mode = request.mode.as_deref().unwrap_or("bot") == "bot";
 
-    let mut game = match GameY::try_from(request.state.clone()) {
-        Ok(game) => game,
-        Err(err) => {
-            return err_response(
-                &format!("Invalid YEN format: {}", err),
-                &params.api_version,
-                None,
-            );
-        }
-    };
+    let mut game =
+        load_game_from_yen(request.state.clone(), &params.api_version, None).map_err(Json)?;
 
     let size = game.board_size();
     if request.row >= size || request.col > request.row {
@@ -101,44 +98,11 @@ pub async fn move_turn(
         }
     };
 
-    let bot = match state.bots().find(&bot_id) {
-        Some(bot) => bot,
-        None => {
-            let available_bots = state.bots().names().join(", ");
-            return err_response(
-                &format!(
-                    "Bot not found: {}, available bots: [{}]",
-                    bot_id, available_bots
-                ),
-                &params.api_version,
-                Some(bot_id),
-            );
-        }
-    };
+    let bot = find_registered_bot(&state, &params.api_version, &bot_id).map_err(Json)?;
+    let bot_coords =
+        apply_bot_turn(bot.as_ref(), &mut game, &params.api_version, &bot_id).map_err(Json)?;
 
-    let bot_coords = match bot.choose_move(&game) {
-        Some(coords) => coords,
-        None => return ok_response(&game, &params.api_version, None),
-    };
-
-    let bot_player = match game.next_player() {
-        Some(player) => player,
-        None => return ok_response(&game, &params.api_version, None),
-    };
-
-    let bot_move = Movement::Placement {
-        player: bot_player,
-        coords: bot_coords,
-    };
-    if let Err(err) = game.add_move(bot_move) {
-        return err_response(
-            &format!("Invalid bot move: {}", err),
-            &params.api_version,
-            None,
-        );
-    }
-
-    ok_response(&game, &params.api_version, Some(bot_coords))
+    ok_response(&game, &params.api_version, bot_coords)
 }
 
 fn row_col_to_coords(size: u32, row: u32, col: u32) -> Coordinates {
@@ -146,13 +110,6 @@ fn row_col_to_coords(size: u32, row: u32, col: u32) -> Coordinates {
     let y = col;
     let z = row - col;
     Coordinates::new(x, y, z)
-}
-
-fn winner_char(game: &GameY) -> Option<char> {
-    match game.status() {
-        GameStatus::Finished { winner } => Some(if winner.id() == 0 { 'B' } else { 'R' }),
-        GameStatus::Ongoing { .. } => None,
-    }
 }
 
 fn ok_response(

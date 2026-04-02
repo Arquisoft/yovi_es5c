@@ -6,6 +6,7 @@
 //! # Endpoints
 //! - `GET /status` - Health check endpoint
 //! - `POST /{api_version}/ybot/choose/{bot_id}` - Request a move from a bot
+//! - `POST /{api_version}/ybot/play` - Apply a bot move and return the resulting YEN position
 //!
 //! # Example
 //! ```no_run
@@ -21,6 +22,8 @@
 
 pub mod choose;
 pub mod error;
+pub mod play;
+pub mod service;
 pub mod state;
 pub mod version;
 use axum::response::IntoResponse;
@@ -28,6 +31,7 @@ use std::sync::Arc;
 use tower_http::cors::CorsLayer;
 pub use choose::MoveResponse;
 pub use error::ErrorResponse;
+pub use play::PlayResponse;
 pub use version::*;
 
 use crate::{GameYError, EdgeBot, CenterBot, RandomBot, MirrorBot, YBotRegistry, state::AppState};
@@ -37,12 +41,16 @@ use crate::{GameYError, EdgeBot, CenterBot, RandomBot, MirrorBot, YBotRegistry, 
 /// This is useful for testing the API without binding to a network port.
 pub fn create_router(state: AppState) -> axum::Router {
     let cors = CorsLayer::permissive();
-    
+
     axum::Router::new()
         .route("/status", axum::routing::get(status))
         .route(
             "/{api_version}/ybot/choose/{bot_id}",
             axum::routing::post(choose::choose),
+        )
+        .route(
+            "/{api_version}/ybot/play",
+            axum::routing::post(play::play),
         )
         .layer(cors)
         .with_state(state)
