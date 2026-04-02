@@ -112,9 +112,10 @@ pub fn greedy_center_move(board: &GameY) -> Option<Coordinates> {
 /// rotating it 120 or 240 degrees.
 pub fn mirror_move(board: &GameY) -> Option<Coordinates> {
     let size = board.board_size();
-    
-    // Get the last placement move performed on the board
-    let last_coords = board.last_placement_coords()?;
+
+    let Some(last_coords) = board.last_placement_coords() else {
+        return center_move(board);
+    };
 
     // Attempt 1: 120° rotation (x, y, z) -> (y, z, x)
     let mirror_1 = last_coords.rotate();
@@ -215,6 +216,13 @@ mod tests {
         assert!(
             coords.touches_side_a() || coords.touches_side_b() || coords.touches_side_c()
         );
+    }
+
+    #[test]
+    fn test_mirror_move_empty_board_falls_back_to_center() {
+        let game = GameY::new(7);
+        let coords = mirror_move(&game).unwrap();
+        assert_eq!(coords, Coordinates::new(2, 2, 2));
     }
 
     #[test]
