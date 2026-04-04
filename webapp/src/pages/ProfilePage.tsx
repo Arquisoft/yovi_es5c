@@ -1,313 +1,373 @@
-import EditRoundedIcon from '@mui/icons-material/EditRounded'
-import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded'
-import PersonRoundedIcon from '@mui/icons-material/PersonRounded'
-import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded'
-import { useEffect, useState } from 'react'
-import { Alert, Avatar, Box, Button, Paper, Stack, TextField, Typography } from '@mui/material'
-import { useSession } from '../SessionContext'
-import { useNavigate } from 'react-router-dom'
+import EditRoundedIcon from "@mui/icons-material/EditRounded";
+import HistoryRoundedIcon from "@mui/icons-material/HistoryRounded";
+import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
+import SecurityRoundedIcon from "@mui/icons-material/SecurityRounded";
+import { useEffect, useState } from "react";
+import { Avatar, Button, Stack, TextField, Typography } from "@mui/material";
+import { styled } from "@mui/material/styles";
+import { useSession } from "../SessionContext";
+import { useNavigate } from "react-router-dom";
+
+// ─── Types ───────────────────────────────────────────────────
 
 type ProfileData = {
-  username: string
-  name: string
-  surname: string
-  email: string
-}
+  username: string;
+  name: string;
+  surname: string;
+  email: string;
+};
 
 type ProfileMessage = {
-  severity: 'error' | 'success'
-  text: string
-}
+  severity: "error" | "success";
+  text: string;
+};
 
-const apiEndpoint = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+// ─── Constants ───────────────────────────────────────────────
 
-const emptyProfile: ProfileData = {
-  username: '',
-  name: '',
-  surname: '',
-  email: '',
-}
+const apiEndpoint = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
+const emptyProfile: ProfileData = { username: "", name: "", surname: "", email: "" };
+
+// ─── API ─────────────────────────────────────────────────────
 
 async function loadProfile(username: string): Promise<ProfileData> {
-  const response = await fetch(`${apiEndpoint}/user/${encodeURIComponent(username)}`)
-  const data = await response.json()
-
-  if (!response.ok) {
-    throw new Error(data.error || 'Could not load profile information.')
-  }
-
-  return data
+  const response = await fetch(`${apiEndpoint}/user/${encodeURIComponent(username)}`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Could not load profile information.");
+  return data;
 }
 
 async function saveProfile(profile: ProfileData): Promise<ProfileData> {
   const response = await fetch(`${apiEndpoint}/user/${encodeURIComponent(profile.username)}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      name: profile.name,
-      surname: profile.surname,
-      email: profile.email,
-    }),
-  })
-  const data = await response.json()
-
-  if (!response.ok) {
-    throw new Error(data.error || 'Could not update profile information.')
-  }
-
-  return data
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: profile.name, surname: profile.surname, email: profile.email }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Could not update profile information.");
+  return data;
 }
 
+// ─── Styled components ───────────────────────────────────────
+
+const PageWrapper = styled("div")({
+  flex: 1,
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  backgroundColor: "#0d0d0d",
+  overflowY: "auto",
+  padding: "40px 16px 20px 16px",
+  gap: 24,
+});
+
+const Title = styled("h1")({
+  fontFamily: "Georgia, serif",
+  fontSize: "1.6rem",
+  color: "#e8d89a",
+  letterSpacing: "0.08em",
+  margin: 0,
+});
+
+const SubTitle = styled("p")({
+  fontFamily: "Georgia, serif",
+  fontSize: "0.85rem",
+  color: "#666",
+  letterSpacing: "0.05em",
+  margin: 0,
+});
+
+const Card = styled("div")({
+  width: "100%",
+  maxWidth: 800,
+  backgroundColor: "#111",
+  border: "1px solid #222",
+  borderRadius: 4,
+  padding: "20px 32px",
+  boxSizing: "border-box",
+  overflow: "hidden",
+});
+
+const CardTitle = styled(Typography)({
+  fontFamily: "Georgia, serif",
+  fontSize: "0.95rem",
+  color: "#c8a84b",
+  letterSpacing: "0.06em",
+  display: "flex",
+  alignItems: "center",
+  gap: 8,
+  marginBottom: 16,
+});
+
+const FieldLabel = styled(Typography)({
+  fontSize: "0.7rem",
+  color: "#444",
+  letterSpacing: "0.1em",
+  textTransform: "uppercase",
+  marginBottom: 2,
+});
+
+const FieldValue = styled(Typography)({
+  fontSize: "0.9rem",
+  color: "#888",
+  letterSpacing: "0.03em",
+});
+
+const GoldButton = styled(Button)({
+  padding: "8px 24px",
+  fontSize: "0.82rem",
+  letterSpacing: "0.06em",
+  borderColor: "#c8a84b",
+  color: "#c8a84b",
+  borderRadius: 4,
+  transition: "all 0.2s ease",
+  "&:hover": {
+    backgroundColor: "rgba(200, 168, 75, 0.07)",
+    borderColor: "#e8d89a",
+    color: "#e8d89a",
+  },
+  "&.Mui-disabled": {
+    borderColor: "#2a2a2a",
+    color: "#333",
+  },
+});
+
+const GoldTextField = styled(TextField)({
+  "& .MuiOutlinedInput-root": {
+    backgroundColor: "rgba(255,255,255,0.03)",
+    borderRadius: 4,
+    color: "#e8d89a",
+    fontSize: "0.9rem",
+    "& fieldset": { borderColor: "rgba(200, 168, 75, 0.3)" },
+    "&:hover fieldset": { borderColor: "#c8a84b" },
+    "&.Mui-focused fieldset": { borderColor: "#c8a84b" },
+  },
+  "& .MuiInputLabel-root": {
+    color: "#555",
+    fontFamily: "Georgia, serif",
+    fontSize: "0.85rem",
+  },
+  "& .MuiInputLabel-root.Mui-focused": { color: "#c8a84b" },
+});
+
+const MessageBadge = styled("p")<{ severity: "error" | "success" }>(({ severity }) => ({
+  fontSize: "0.8rem",
+  color: severity === "success" ? "#6aab7e" : "#ab6a6a",
+  letterSpacing: "0.03em",
+  margin: "8px 0 0",
+  padding: "8px 12px",
+  backgroundColor: severity === "success" ? "rgba(74,124,89,0.1)" : "rgba(124,74,74,0.1)",
+  border: `1px solid ${severity === "success" ? "rgba(74,124,89,0.25)" : "rgba(124,74,74,0.25)"}`,
+  borderRadius: 4,
+}));
+
+const ProfileHeader = styled("div")({
+  width: "100%",
+  maxWidth: 800,
+  display: "flex",
+  alignItems: "center",
+  gap: 24,
+});
+
+const ProfileAvatar = styled(Avatar)({
+  width: 72,
+  height: 72,
+  backgroundColor: "#1a1a1a",
+  border: "2px solid #c8a84b",
+  color: "#c8a84b",
+  fontSize: "1.8rem",
+  fontFamily: "Georgia, serif",
+});
+
+const ProfileInfo = styled("div")({
+  flex: 1,
+  display: "flex",
+  flexDirection: "column",
+  gap: 4,
+});
+
+const ProfileActions = styled(Stack)({
+  flexShrink: 0,
+});
+
+const TwoGrid = styled("div")({
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: 16,
+});
+
+const BottomRow = styled("div")({
+  width: "100%",
+  maxWidth: 800,
+  display: "flex",
+  gap: 16,
+  flexWrap: "wrap",
+});
+
+const BottomCard = styled(Card)({
+  flex: 1,
+  minWidth: 240,
+  maxWidth: "none",
+  display: "flex",
+  flexDirection: "column",
+  gap: 8,
+});
+
+const CardIcon = styled(PersonRoundedIcon)({
+  fontSize: "1rem",
+  color: "#c8a84b",
+});
+
+// ─── Component ───────────────────────────────────────────────
+
 export default function ProfilePage() {
-  const { username } = useSession()
-  const navigate = useNavigate()
-  const [profile, setProfile] = useState<ProfileData | null>(null)
-  const [formData, setFormData] = useState<ProfileData>(emptyProfile)
-  const [isEditing, setIsEditing] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [message, setMessage] = useState<ProfileMessage | null>(null)
+  const { username } = useSession();
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [formData, setFormData] = useState<ProfileData>(emptyProfile);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState<ProfileMessage | null>(null);
 
   useEffect(() => {
-    let ignore = false
-
+    let ignore = false;
     const fetchProfile = async () => {
-      if (!username) {
-        setProfile(null)
-        setFormData(emptyProfile)
-        return
-      }
-
+      if (!username) { setProfile(null); setFormData(emptyProfile); return; }
       try {
-        setMessage(null)
-        const data = await loadProfile(username)
-
-        if (!ignore) {
-          setProfile(data)
-          setFormData(data)
-        }
+        setMessage(null);
+        const data = await loadProfile(username);
+        if (!ignore) { setProfile(data); setFormData(data); }
       } catch (fetchError) {
-        if (!ignore) {
-          setMessage({
-            severity: 'error',
-            text: fetchError instanceof Error ? fetchError.message : 'Could not load profile information.',
-          })
-        }
+        if (!ignore) setMessage({
+          severity: "error",
+          text: fetchError instanceof Error ? fetchError.message : "Could not load profile information.",
+        });
       }
-    }
+    };
+    fetchProfile();
+    return () => { ignore = true; };
+  }, [username]);
 
-    fetchProfile()
-
-    return () => {
-      ignore = true
-    }
-  }, [username])
-
-  const displayUsername = profile?.username || username
+  const displayUsername = profile?.username || username;
 
   const handleFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target
-    setFormData((current) => ({ ...current, [name]: value }))
-  }
+    const { name, value } = event.target;
+    setFormData((current) => ({ ...current, [name]: value }));
+  };
 
   const handleEditStart = () => {
-    if (!profile) {
-      return
-    }
-
-    setFormData(profile)
-    setMessage(null)
-    setIsEditing(true)
-  }
+    if (!profile) return;
+    setFormData(profile); setMessage(null); setIsEditing(true);
+  };
 
   const handleCancel = () => {
-    setFormData(profile || emptyProfile)
-    setMessage(null)
-    setIsEditing(false)
-  }
+    setFormData(profile || emptyProfile); setMessage(null); setIsEditing(false);
+  };
 
   const handleSave = async () => {
-    if (!displayUsername) {
-      return
-    }
-
+    if (!displayUsername) return;
     try {
-      setIsSaving(true)
-      setMessage(null)
-      const data = await saveProfile({ ...formData, username: displayUsername })
-
-      setProfile(data)
-      setFormData(data)
-      setIsEditing(false)
-      setMessage({
-        severity: 'success',
-        text: 'Profile updated successfully.',
-      })
+      setIsSaving(true); setMessage(null);
+      const data = await saveProfile({ ...formData, username: displayUsername });
+      setProfile(data); setFormData(data); setIsEditing(false);
+      setMessage({ severity: "success", text: "Profile updated successfully." });
     } catch (saveError) {
       setMessage({
-        severity: 'error',
-        text: saveError instanceof Error ? saveError.message : 'Could not update profile information.',
-      })
+        severity: "error",
+        text: saveError instanceof Error ? saveError.message : "Could not update profile information.",
+      });
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100%',
-        flex: 1,
-        display: 'flex',
-        justifyContent: 'center',
-        px: 2,
-        py: { xs: 4, md: 7 },
-        background: 'linear-gradient(180deg, #f4f8ff 0%, #eef2f7 100%)',
-      }}
-    >
-      <Paper
-        elevation={0}
-        sx={{
-          width: '100%',
-          maxWidth: 960,
-          p: { xs: 3, md: 5 },
-          borderRadius: 4,
-          border: '1px solid rgba(25, 118, 210, 0.12)',
-          backgroundColor: 'rgba(255,255,255,0.92)',
-        }}
-      >
-        <Stack spacing={4}>
-          <Box sx={{ display: 'flex', alignItems: { xs: 'flex-start', md: 'center' }, gap: 2.5, flexDirection: { xs: 'column', md: 'row' } }}>
-            <Avatar sx={{ width: 88, height: 88, bgcolor: '#1976d2', fontSize: '2rem', fontWeight: 700 }}>
-              {displayUsername?.slice(0, 1).toUpperCase()}
-            </Avatar>
+    <PageWrapper>
 
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="overline" sx={{ color: 'text.secondary', letterSpacing: '0.12em' }}>
-                Player profile
-              </Typography>
-              <Typography variant="h4" sx={{ fontWeight: 800 }}>
-                {displayUsername}
-              </Typography>
-              <Typography sx={{ mt: 1, color: 'text.secondary', maxWidth: 560 }}>
-                Here you will see your account details and activity.
-              </Typography>
-            </Box>
+      {/* ── Header ── */}
+      <ProfileHeader>
+        <ProfileAvatar>
+          {displayUsername?.slice(0, 1).toUpperCase()}
+        </ProfileAvatar>
+        <ProfileInfo>
+          <SubTitle>Player profile</SubTitle>
+          <Title>{displayUsername}</Title>
+        </ProfileInfo>
+        <ProfileActions direction="row" spacing={1.5}>
+          {isEditing ? (
+            <>
+              <GoldButton variant="outlined" onClick={handleCancel} disabled={isSaving}>Cancel</GoldButton>
+              <GoldButton variant="outlined" onClick={handleSave} disabled={isSaving}>Save</GoldButton>
+            </>
+          ) : (
+            <GoldButton variant="outlined" startIcon={<EditRoundedIcon />} onClick={handleEditStart} disabled={!profile}>
+              Edit
+            </GoldButton>
+          )}
+        </ProfileActions>
+      </ProfileHeader>
 
-            {isEditing ? (
-              <Stack direction="row" spacing={1.5}>
-                <Button variant="outlined" onClick={handleCancel} disabled={isSaving}>
-                  Cancel
-                </Button>
-                <Button variant="contained" onClick={handleSave} disabled={isSaving}>
-                  Save
-                </Button>
-              </Stack>
-            ) : (
-              <Button variant="contained" startIcon={<EditRoundedIcon />} onClick={handleEditStart} disabled={!profile}>
-                Edit profile
-              </Button>
-            )}
-          </Box>
+      {/* ── Account details ── */}
+      <Card>
+        <CardTitle>
+          <CardIcon />
+          Account details
+        </CardTitle>
+        <Stack spacing={2}>
+          <TwoGrid>
+            <div>
+              <FieldLabel>Username</FieldLabel>
+              <FieldValue>{displayUsername}</FieldValue>
+            </div>
+          </TwoGrid>
 
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-            <Paper variant="outlined" sx={{ flex: 1, p: 2.5, borderRadius: 3 }}>
-              <Stack direction="row" spacing={1.5} sx={{ mb: 1.5, alignItems: 'center' }}>
-                <PersonRoundedIcon color="primary" />
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                  Account details
-                </Typography>
-              </Stack>
-              <Stack spacing={1.25}>
-                <Box>
-                  <Typography sx={{ fontWeight: 700 }}>Username</Typography>
-                  <Typography sx={{ color: 'text.secondary' }}>{displayUsername}</Typography>
-                </Box>
-                {isEditing ? (
-                  <>
-                    <TextField
-                      label="Name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleFieldChange}
-                      fullWidth
-                      disabled={isSaving}
-                    />
-                    <TextField
-                      label="Surname"
-                      name="surname"
-                      value={formData.surname}
-                      onChange={handleFieldChange}
-                      fullWidth
-                      disabled={isSaving}
-                    />
-                    <TextField
-                      label="Email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleFieldChange}
-                      fullWidth
-                      disabled={isSaving}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <Box>
-                      <Typography sx={{ fontWeight: 700 }}>Name</Typography>
-                      <Typography sx={{ color: 'text.secondary' }}>{profile?.name || 'Loading...'}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography sx={{ fontWeight: 700 }}>Surname</Typography>
-                      <Typography sx={{ color: 'text.secondary' }}>{profile?.surname || 'Loading...'}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography sx={{ fontWeight: 700 }}>Email</Typography>
-                      <Typography sx={{ color: 'text.secondary' }}>{profile?.email || 'Loading...'}</Typography>
-                    </Box>
-                  </>
-                )}
-                {message ? (
-                  <Alert severity={message.severity}>
-                    {message.text}
-                  </Alert>
-                ) : null}
-              </Stack>
-            </Paper>
+          {isEditing ? (
+            <>
+              <TwoGrid>
+                <GoldTextField label="Name" name="name" value={formData.name} onChange={handleFieldChange} disabled={isSaving} size="small" />
+                <GoldTextField label="Surname" name="surname" value={formData.surname} onChange={handleFieldChange} disabled={isSaving} size="small" />
+              </TwoGrid>
+              <TwoGrid>
+                <GoldTextField label="Email" name="email" type="email" value={formData.email} onChange={handleFieldChange} disabled={isSaving} size="small" />
+              </TwoGrid>
+            </>
+          ) : (
+            <>
+              <TwoGrid>
+                <div><FieldLabel>Name</FieldLabel><FieldValue>{profile?.name || "—"}</FieldValue></div>
+                <div><FieldLabel>Surname</FieldLabel><FieldValue>{profile?.surname || "—"}</FieldValue></div>
+              </TwoGrid>
+              <TwoGrid>
+                <div><FieldLabel>Email</FieldLabel><FieldValue>{profile?.email || "—"}</FieldValue></div>
+              </TwoGrid>
+            </>
+          )}
 
-            <Paper variant="outlined" sx={{ flex: 1, p: 2.5, borderRadius: 3 }}>
-              <Stack direction="row" spacing={1.5} sx={{ mb: 1.5, alignItems: 'center' }}>
-                <SecurityRoundedIcon color="primary" />
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                  Change password
-                </Typography>
-              </Stack>
-              <Typography sx={{ color: 'text.secondary', mb: 2 }}>
-                You will be able to change your password here.
-              </Typography>
-              <Button variant="outlined" disabled>
-                Change password
-              </Button>
-            </Paper>
-          </Stack>
-
-          <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 3 }}>
-            <Stack direction="row" spacing={1.5} sx={{ mb: 1.5, alignItems: 'center' }}>
-              <HistoryRoundedIcon color="primary" />
-              <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                Match history
-              </Typography>
-            </Stack>
-            <Typography sx={{ color: 'text.secondary', mb: 2 }}>
-              Review your recent matches and results.
-            </Typography>
-            <Button variant="outlined" onClick={() => navigate('/history')}>
-              View history
-            </Button>
-          </Paper>
+          {message && <MessageBadge severity={message.severity}>{message.text}</MessageBadge>}
         </Stack>
-      </Paper>
-    </Box>
-  )
+      </Card>
+
+      {/* ── Bottom cards ── */}
+      <BottomRow>
+        <BottomCard>
+          <CardTitle>
+            <SecurityRoundedIcon sx={{ fontSize: "1rem", color: "#c8a84b" }} />
+            Change password
+          </CardTitle>
+          <SubTitle>You will be able to change your password here.</SubTitle>
+          <GoldButton variant="outlined" disabled>Change password</GoldButton>
+        </BottomCard>
+
+        <BottomCard>
+          <CardTitle>
+            <HistoryRoundedIcon sx={{ fontSize: "1rem", color: "#c8a84b" }} />
+            Match history
+          </CardTitle>
+          <SubTitle>Review your recent matches and results.</SubTitle>
+          <GoldButton variant="outlined" onClick={() => navigate("/history")}>View history</GoldButton>
+        </BottomCard>
+      </BottomRow>
+
+    </PageWrapper>
+  );
 }

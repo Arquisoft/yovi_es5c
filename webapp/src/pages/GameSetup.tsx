@@ -51,12 +51,13 @@ const DIFFICULTY_COLOR: Record<Difficulty, string> = {
 // ─── Styled components ───────────────────────────────────────
 
 const PageWrapper = styled("div")({
-  minHeight: "100vh",
+  flex: 1,
+  overflowY: "auto",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "flex-start",
-  paddingTop: 60,
+  paddingTop: 40,
   gap: 40,
   backgroundColor: "#0d0d0d",
 });
