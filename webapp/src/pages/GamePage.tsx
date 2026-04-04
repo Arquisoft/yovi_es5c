@@ -94,7 +94,7 @@ export default function GamePage() {
   const location = useLocation()
   
   // Usamos directamente la función por referencia para inicializar el estado
-  const [boardSize, setBoardSize] = useState(getInitialBoardSize)
+  const [boardSize] = useState(getInitialBoardSize) // El setBoardSize se eliminado ya que no esta en uso por ahora.
   
   const [isAvailable, setIsAvailable] = useState(true)
   const [board, setBoard] = useState<Board>(makeEmptyBoard(boardSize))
@@ -254,7 +254,7 @@ export default function GamePage() {
               {board.map((row, rowIndex) =>
                 row.map((cell, cellIndex) => {
                   const { x, y } = getPosition(rowIndex, cellIndex, boardSize)
-                  const clickable = isAvailable && !busy && winner === null && cell === '.'
+                  const clickable = !busy && winner === null && cell === '.'
                   
                   const fill = cell === 'B' ? 'var(--yovi-board-hex-playerB)' : cell === 'R' ? 'var(--yovi-board-hex-playerR)' : 'var(--yovi-board-hex-default)' 
                   const strokeColor = 'var(--yovi-board-border)'

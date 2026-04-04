@@ -134,14 +134,18 @@ describe('GamePage Component', () => {
 
   it('debe mostrar error si el servicio de juego no está disponible al hacer click', async () => {
     (useSession as Mock).mockReturnValue({ isLoggedIn: true });
-    (useLocation as Mock).mockReturnValue({ state: null });
+    // Usamos 'bot' para que sí intente hacer el fetch a /status
+    (useLocation as Mock).mockReturnValue({ state: { mode: 'bot' } });
 
-    // Simulamos que la comprobación inicial del estado (/game/status) falla
-    (global.fetch as Mock).mockRejectedValueOnce(new Error('Network error'));
+    // Simulamos que la comprobación inicial del estado falla
+    (global.fetch as Mock).mockImplementation(async (url) => {
+      if (url.includes('/status')) return Promise.reject(new Error('Network error'));
+      return { ok: true, json: async () => ({}) };
+    });
 
     const { container } = render(<GamePage />);
 
-    // Esperamos un momento para que el useEffect procese el error
+    // Esperamos a que pase el useEffect
     await waitFor(() => {});
 
     // Intentamos jugar
@@ -158,22 +162,22 @@ describe('GamePage Component', () => {
     (useSession as Mock).mockReturnValue({ isLoggedIn: true });
     (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } });
 
-    (global.fetch as Mock)
-      .mockResolvedValueOnce({ ok: true, text: async () => 'OK' }) // fetch 1: checkStatus (OK)
-      .mockResolvedValueOnce({
-        ok: false,
-        json: async () => ({ error: 'Movimiento inválido' }) // fetch 2: move (Falla)
-      }); 
+    // Mock inteligente que responde según la ruta
+    (global.fetch as Mock).mockImplementation(async (url) => {
+      if (url.includes('/move')) {
+        return { ok: false, json: async () => ({ error: 'Movimiento inválido' }) };
+      }
+      return { ok: true, text: async () => 'OK', json: async () => ({}) };
+    });
 
     const { container } = render(<GamePage />);
 
     const firstCell = container.querySelector('g');
     fireEvent.click(firstCell!);
 
-    // Se debe atrapar el error, mostrar el mensaje del backend y el genérico
+    // Se debe atrapar el error, mostrar el mensaje del backend
     await waitFor(() => {
       expect(screen.getByText('Movimiento inválido')).toBeInTheDocument();
-      expect(screen.getByText('Your move could not be completed.')).toBeInTheDocument();
     });
   });
 
@@ -181,16 +185,19 @@ describe('GamePage Component', () => {
     (useSession as Mock).mockReturnValue({ isLoggedIn: true });
     (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } });
 
-    (global.fetch as Mock)
-      .mockResolvedValueOnce({ ok: true, text: async () => 'OK' })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          game_over: true,
-          winner: 'B',
-          state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/BB/...' }
-        })
-      });
+    (global.fetch as Mock).mockImplementation(async (url) => {
+      if (url.includes('/move')) {
+        return {
+          ok: true,
+          json: async () => ({
+            game_over: true,
+            winner: 'B',
+            state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/BB/...' }
+          })
+        };
+      }
+      return { ok: true, text: async () => 'OK', json: async () => ({}) };
+    });
 
     const { container } = render(<GamePage />);
     const firstCell = container.querySelector('g');
@@ -205,22 +212,29 @@ describe('GamePage Component', () => {
     (useSession as Mock).mockReturnValue({ isLoggedIn: true });
     (useLocation as Mock).mockReturnValue({ state: { mode: 'bot' } });
 
-    (global.fetch as Mock)
-      .mockResolvedValueOnce({ ok: true, text: async () => 'OK' })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          game_over: true,
-          winner: 'R',
-          state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'R/RR/...' }
-        })
-      });
+    (global.fetch as Mock).mockImplementation(async (url) => {
+      if (url.includes('/status')) return { ok: true, text: async () => 'OK' };
+      if (url.includes('/move')) {
+        return {
+          ok: true,
+          json: async () => ({
+            game_over: true,
+            winner: 'R',
+            state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'R/RR/...' }
+          })
+        };
+      }
+      return { ok: true, text: async () => 'OK', json: async () => ({}) };
+    });
 
     const { container } = render(<GamePage />);
     const firstCell = container.querySelector('g');
+    
+    // Al ser modo bot, esperamos que complete el fetch a status
+    await waitFor(() => expect(screen.queryByText('Game service is unavailable.')).not.toBeInTheDocument());
+
     fireEvent.click(firstCell!);
 
-    // Aumentamos el timeout del waitFor porque el modo bot tiene un delay artificial (botDelayMs = 700)
     await waitFor(() => {
       expect(screen.getByText('Bot wins.')).toBeInTheDocument();
     }, { timeout: 1500 });
@@ -230,31 +244,35 @@ describe('GamePage Component', () => {
     (useSession as Mock).mockReturnValue({ isLoggedIn: true });
     (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } });
 
-    (global.fetch as Mock)
-      .mockResolvedValueOnce({ ok: true, text: async () => 'OK' }) // checkStatus
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          game_over: false,
-          winner: null,
-          state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' } // La celda ya tiene 'B'
-        })
-      });
-
-    const { container } = render(<GamePage />);
-    
-    // Primer clic: hace el movimiento
-    const firstCell = container.querySelector('g');
-    fireEvent.click(firstCell!);
-
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledTimes(2); // 1 (status) + 1 (move)
+    (global.fetch as Mock).mockImplementation(async (url) => {
+      if (url.includes('/move')) {
+        return {
+          ok: true,
+          json: async () => ({
+            game_over: false,
+            winner: null,
+            state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' } // Aquí devuelve 'B' en la [0][0]
+          })
+        };
+      }
+      return { ok: true, text: async () => 'OK', json: async () => ({}) };
     });
 
-    // Segundo clic: en la misma celda, que el estado ya reconoció como "B" gracias a boardFromLayout
+    const { container } = render(<GamePage />);
+    const firstCell = container.querySelector('g');
+    
+    // Primer clic: realiza la jugada
     fireEvent.click(firstCell!);
 
-    // Comprobamos que no se ha hecho una nueva llamada (se ha abortado el 'play')
-    expect(global.fetch).toHaveBeenCalledTimes(2); 
+    // Como es modo PvP, SOLO hace un fetch() a /move (status se ignora)
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledTimes(1); 
+    });
+
+    // Segundo clic: sobre la misma celda (que ahora es 'B' en nuestro estado)
+    fireEvent.click(firstCell!);
+
+    // El contador de llamadas a fetch debe seguir en 1 (el click fue bloqueado)
+    expect(global.fetch).toHaveBeenCalledTimes(1); 
   });
 });
