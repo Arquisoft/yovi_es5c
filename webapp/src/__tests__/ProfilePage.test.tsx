@@ -87,12 +87,12 @@ describe('ProfilePage', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /edit profile/i })).toBeEnabled()
+      expect(screen.getByRole('button', { name: /edit/i })).toBeEnabled()
     })
 
     const user = userEvent.setup()
 
-    await user.click(screen.getByRole('button', { name: /edit profile/i }))
+    await user.click(screen.getByRole('button', { name: /edit/i }))
     await user.clear(screen.getByLabelText('Name'))
     await user.type(screen.getByLabelText('Name'), 'Mario')
     await user.clear(screen.getByLabelText('Surname'))
@@ -161,10 +161,10 @@ describe('ProfilePage', () => {
     const user = userEvent.setup()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /edit profile/i })).toBeEnabled()
+      expect(screen.getByRole('button', { name: /edit/i })).toBeEnabled()
     })
 
-    await user.click(screen.getByRole('button', { name: /edit profile/i }))
+    await user.click(screen.getByRole('button', { name: /edit/i }))
     await user.clear(screen.getByLabelText('Surname'))
     await user.type(screen.getByLabelText('Surname'), 'Garcia')
     await user.click(screen.getByRole('button', { name: /cancel/i }))
@@ -202,10 +202,10 @@ describe('ProfilePage', () => {
     const user = userEvent.setup()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /edit profile/i })).toBeEnabled()
+      expect(screen.getByRole('button', { name: /edit/i })).toBeEnabled()
     })
 
-    await user.click(screen.getByRole('button', { name: /edit profile/i }))
+    await user.click(screen.getByRole('button', { name: /edit/i }))
     await user.click(screen.getByRole('button', { name: /save/i }))
 
     expect(await screen.findByText('Could not update profile information.')).toBeInTheDocument()

@@ -57,7 +57,7 @@ const PageWrapper = styled("div")({
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "flex-start",
-  paddingTop: 40,
+  paddingTop: 20,
   gap: 40,
   backgroundColor: "#0d0d0d",
 });
