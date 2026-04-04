@@ -1,0 +1,145 @@
+openapi: 3.0.0
+info:
+  title: Gateway Bot API
+  version: 1.0.0
+  description: API publica del sistema para interactuar con el bot de Game Y.
+
+servers:
+  - url: http://localhost:8000
+    description: Gateway local
+
+paths:
+  /play:
+    post:
+      summary: Ejecuta un turno del bot sobre una posicion YEN
+      description: >
+        Recibe una posicion del tablero en notacion YEN y devuelve la nueva
+        posicion YEN tras aplicar la jugada del bot. Si no se indican
+        bot_id y difficulty, se usan center_bot y Hard por defecto.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlayRequest'
+            examples:
+              defaultBot:
+                summary: Solicitud minima con bot por defecto
+                value:
+                  position:
+                    size: 5
+                    turn: 0
+                    players:
+                      - B
+                      - R
+                    layout: ./../.../..../.....
+              customBot:
+                summary: Solicitud indicando bot y dificultad
+                value:
+                  position:
+                    size: 5
+                    turn: 0
+                    players:
+                      - B
+                      - R
+                    layout: ./../.../..../.....
+                  bot_id: random_bot
+                  difficulty: Medium
+      responses:
+        '200':
+          description: Nueva posicion tras jugar el bot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/YEN'
+              examples:
+                nextPosition:
+                  summary: Estado del tablero tras la jugada del bot
+                  value:
+                    size: 5
+                    turn: 1
+                    players:
+                      - B
+                      - R
+                    layout: ./B./.../..../.....
+        '400':
+          description: Peticion invalida o error propagado desde el bot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingPosition:
+                  summary: Falta la posicion
+                  value:
+                    error: "position is required"
+                unknownBot:
+                  summary: Bot desconocido
+                  value:
+                    error: "Unknown bot_id: smart_bot"
+                invalidYen:
+                  summary: YEN invalido
+                  value:
+                    error: "Invalid YEN format"
+
+components:
+  schemas:
+    PlayRequest:
+      type: object
+      required:
+        - position
+      properties:
+        position:
+          $ref: '#/components/schemas/YEN'
+        bot_id:
+          type: string
+          description: Identificador publico del bot.
+          enum:
+            - random_bot
+            - center_bot
+            - edge_bot
+          default: center_bot
+        difficulty:
+          type: string
+          description: Nivel de dificultad del bot.
+          enum:
+            - Easy
+            - Medium
+            - Hard
+          default: Hard
+
+    YEN:
+      type: object
+      required:
+        - size
+        - turn
+        - players
+        - layout
+      properties:
+        size:
+          type: integer
+          minimum: 1
+          example: 5
+        turn:
+          type: integer
+          minimum: 0
+          example: 0
+        players:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            type: string
+            example: B
+        layout:
+          type: string
+          example: ./../.../..../.....
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          example: "position is required"

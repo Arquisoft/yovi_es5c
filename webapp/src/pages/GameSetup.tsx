@@ -33,6 +33,11 @@ const BOT_OPTIONS: BotOption[] = [
     label: "Edge bot",
     description: "Controls the sides",
   },
+  {
+    bot_id: "mirror_bot",
+    label: "Mirror bot",
+    description: "Mirrors the opponent's moves",
+  },
 ];
 
 const DIFFICULTIES: Difficulty[] = ["Easy", "Medium", "Hard"];
@@ -135,7 +140,6 @@ const StyledMenu = styled(Menu)({
     borderRadius: 4,
     boxShadow: "0 8px 24px rgba(0, 0, 0, 0.6)",
     minWidth: 220,
-
   },
 });
 

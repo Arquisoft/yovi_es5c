@@ -314,6 +314,18 @@ impl GameY {
         }
         result
     }
+
+    /// Searches in the history for the last movement that was a piece placement.
+    pub fn last_placement_coords(&self) -> Option<Coordinates> {
+        self.history.iter().rev().find_map(|m| {
+            if let Movement::Placement { coords, .. } = m {
+                Some(*coords)
+            } else {
+                None
+            }
+        })
+    }
+
     /*pub fn render(&self, options: &RenderOptions) -> String {
         let mut result = String::new();
         let coords_size = self.board_size.to_string().len() as u32;
@@ -823,5 +835,17 @@ mod tests {
             }
             _ => panic!("Game should be ongoing"),
         }
+    }
+
+    #[test]
+    fn test_last_placement_coords_retrieval() {
+        let mut game = GameY::new(5);
+        let p0 = PlayerId::new(0);
+        let coords = Coordinates::new(4, 0, 0);
+        
+        // Add a move
+        game.add_move(Movement::Placement { player: p0, coords }).unwrap();
+        
+        assert_eq!(game.last_placement_coords(), Some(coords));
     }
 }
