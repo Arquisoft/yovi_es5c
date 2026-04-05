@@ -157,7 +157,7 @@ app.get('/game/status', async (req, res) => {
 });
 
 
-const VALID_BOTS        = new Set(['random_bot', 'center_bot', 'edge_bot','smart_bot', 'mirror_bot']);
+const VALID_BOTS        = new Set(['random_bot', 'center_bot', 'edge_bot','smart_bot', 'mirror_bot','alpha_bot']);
 const VALID_DIFFICULTIES = new Set(['Easy', 'Medium', 'Hard']);
 const DIFFICULTY_SUFFIX = { Easy: '_1', Medium: '_2', Hard: '' };
 const DEFAULT_PUBLIC_BOT_ID = 'center_bot';
