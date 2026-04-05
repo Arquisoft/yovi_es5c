@@ -16,6 +16,7 @@ pub mod center;
 pub mod ybot;
 pub mod ybot_registry;
 pub mod smart;
+pub mod alpha;
 
 pub use strategies::*;
 pub use edge::*;
@@ -24,3 +25,4 @@ pub use random::*;
 pub use ybot::*;
 pub use ybot_registry::*;
 pub use smart::*;
+pub use alpha::*;
