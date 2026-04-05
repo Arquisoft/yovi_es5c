@@ -98,6 +98,13 @@ impl Coordinates {
     pub fn touches_side_c(&self) -> bool {
         self.z == 0
     }
+
+    /// Perform a 120-degree rotation in the barycentric system.
+    /// (x, y, z) -> (y, z, x)
+    pub fn rotate(&self) -> Self {
+        // actual values are rotated in the order of y, z, x
+        Self::new(self.y(), self.z(), self.x())
+    }
 }
 
 impl From<Coordinates> for Vec<u32> {
@@ -199,6 +206,31 @@ mod tests {
         assert!(!interior.touches_side_a());
         assert!(!interior.touches_side_b());
         assert!(!interior.touches_side_c());
+    }
+
+    #[test]
+    fn test_coordinates_rotation_120_degrees() {
+        // Top corner (size 5) is (4, 0, 0)
+        let top_corner = Coordinates::new(4, 0, 0);
+        let rotated = top_corner.rotate();
+        // (x, y, z) -> (y, z, x) => (0, 0, 4)
+        assert_eq!(rotated, Coordinates::new(0, 0, 4));
+    }
+
+    #[test]
+    fn test_coordinates_rotation_240_degrees() {
+        let top_corner = Coordinates::new(4, 0, 0);
+        let rotated_once = top_corner.rotate(); // (0, 0, 4)
+        let rotated_twice = rotated_once.rotate();
+        // (0, 0, 4) -> (0, 4, 0)
+        assert_eq!(rotated_twice, Coordinates::new(0, 4, 0));
+    }
+
+    #[test]
+    fn test_coordinates_full_rotation_returns_to_start() {
+        let coords = Coordinates::new(2, 1, 1);
+        let full_circle = coords.rotate().rotate().rotate();
+        assert_eq!(coords, full_circle);
     }
 
     // Property-based tests using proptest

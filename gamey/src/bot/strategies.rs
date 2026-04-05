@@ -14,6 +14,8 @@
 //! - [`winning_move`]      — picks the cell which gives the win
 //! - [`blocking_move`]     — picks the cell that block rival from winning
 //! - [`win_check_move`]    — picks the winning, if not block, if not the center
+//! - [`mirror_move`]       — copies the opponent's last move using rotational symmetry
+
 
 use crate::{Coordinates, GameY, PlayerId, Movement};
 use rand::prelude::IndexedRandom;
@@ -451,6 +453,31 @@ fn connected_groups_bfs(board: &GameY, player: PlayerId) -> Vec<(bool, bool, boo
  
 
 
+/// Mirror strategy: Attempts to copy the opponent's last move by 
+/// rotating it 120 or 240 degrees.
+pub fn mirror_move(board: &GameY) -> Option<Coordinates> {
+    let size = board.board_size();
+
+    let Some(last_coords) = board.last_placement_coords() else {
+        return center_move(board);
+    };
+
+    // Attempt 1: 120° rotation (x, y, z) -> (y, z, x)
+    let mirror_1 = last_coords.rotate();
+    if board.available_cells().contains(&mirror_1.to_index(size)) {
+        return Some(mirror_1);
+    }
+
+    // Attempt 2: 240° rotation (y, z, x) -> (z, x, y)
+    let mirror_2 = mirror_1.rotate();
+    if board.available_cells().contains(&mirror_2.to_index(size)) {
+        return Some(mirror_2);
+    }
+
+    // If symmetric positions are occupied, fallback to center strategy
+    center_move(board)
+}
+
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
 /// Returns the opponent of `player`.
@@ -549,6 +576,13 @@ mod tests {
         assert!(
             coords.touches_side_a() || coords.touches_side_b() || coords.touches_side_c()
         );
+    }
+
+    #[test]
+    fn test_mirror_move_empty_board_falls_back_to_center() {
+        let game = GameY::new(7);
+        let coords = mirror_move(&game).unwrap();
+        assert_eq!(coords, Coordinates::new(2, 2, 2));
     }
 
     #[test]
@@ -797,3 +831,4 @@ mod tests {
             score_center, score_corner);
     }
 }
+
