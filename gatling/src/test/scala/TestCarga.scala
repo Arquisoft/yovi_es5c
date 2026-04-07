@@ -13,7 +13,7 @@ class SimpleFlowSimulation extends Simulation {
 
   val csvFeeder = csv("users.csv").random()
 
-  val scn = scenario("Login + Partida + Logout")
+  val scn = scenario("Registro + Login + Partida + Logout")
 
 
     // Previo: Registro
