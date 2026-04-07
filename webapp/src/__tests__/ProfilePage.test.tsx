@@ -70,7 +70,7 @@ describe('ProfilePage', () => {
 
   it('allows editing and saving the profile', async () => {
     // Usamos mockImplementation para diferenciar el GET inicial del PUT al guardar
-    global.fetch = vi.fn().mockImplementation(async (url, options) => {
+    global.fetch = vi.fn().mockImplementation(async (options) => {
       if (options?.method === 'PUT') {
         return {
           ok: true,
@@ -191,7 +191,7 @@ describe('ProfilePage', () => {
 
   it('shows an error message when saving the profile fails', async () => {
     // Igual que antes, separamos el PUT del GET
-    global.fetch = vi.fn().mockImplementation(async (url, options) => {
+    global.fetch = vi.fn().mockImplementation(async (options) => {
       if (options?.method === 'PUT') {
         return {
           ok: false,
