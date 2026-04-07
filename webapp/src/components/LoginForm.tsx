@@ -4,22 +4,19 @@ import { Link, useNavigate } from "react-router-dom";
 import { useSession } from "../SessionContext"; // Ajusta la ruta si es necesario
 
 const LoginForm = () => {
-  // Estados para capturar las entradas del usuario y manejar errores
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  // Hook para crear la sesión y hook para redirigir
   const { createSession } = useSession();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Evita que la página se recargue
-    setError(""); // Reiniciamos los errores previos
+    setError("");
 
     try {
-      // Petición POST al Gateway (usualmente puerto 8000 en base a tu archivo gateway-service.js)
-      const gatewayUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'; // O usa import.meta.env.VITE_GATEWAY_URL si usas Vite
+      const gatewayUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
       const response = await fetch(`${gatewayUrl}/login`, {
         method: "POST",
@@ -32,16 +29,11 @@ const LoginForm = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Si el login es exitoso (código 200), creamos la sesión
-        createSession(username);
-        
-        // Opcional: Si necesitas guardar el token JWT (data.token) devuelto por el users-service, puedes hacerlo aquí
-        // localStorage.setItem("jwtToken", data.token);
 
-        // Redirigir a la vista principal
+        createSession(username, data.token);
         navigate("/"); 
+
       } else {
-        // En caso de credenciales incorrectas, capturamos el mensaje de tu backend
         setError(data.error || "Error al iniciar sesión");
       }
     } catch (err) {
