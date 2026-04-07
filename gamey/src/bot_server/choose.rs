@@ -1,9 +1,11 @@
-use crate::{Coordinates, GameY, YEN, check_api_version, error::ErrorResponse, state::AppState};
+use crate::{Coordinates, YEN, check_api_version, error::ErrorResponse, state::AppState};
 use axum::{
     Json,
     extract::{Path, State},
 };
 use serde::{Deserialize, Serialize};
+
+use super::service::{choose_move_or_error, find_registered_bot, load_game_from_yen};
 
 /// Path parameters extracted from the choose endpoint URL.
 #[derive(Deserialize)]
@@ -48,42 +50,13 @@ pub async fn choose(
     Path(params): Path<ChooseParams>,
     Json(yen): Json<YEN>,
 ) -> Result<Json<MoveResponse>, Json<ErrorResponse>> {
-    check_api_version(&params.api_version)?;
-    let game_y = match GameY::try_from(yen) {
-        Ok(game) => game,
-        Err(err) => {
-            return Err(Json(ErrorResponse::error(
-                &format!("Invalid YEN format: {}", err),
-                Some(params.api_version),
-                Some(params.bot_id),
-            )));
-        }
-    };
-    let bot = match state.bots().find(&params.bot_id) {
-        Some(bot) => bot,
-        None => {
-            let available_bots = state.bots().names().join(", ");
-            return Err(Json(ErrorResponse::error(
-                &format!(
-                    "Bot not found: {}, available bots: [{}]",
-                    params.bot_id, available_bots
-                ),
-                Some(params.api_version),
-                Some(params.bot_id),
-            )));
-        }
-    };
-    let coords = match bot.choose_move(&game_y) {
-        Some(coords) => coords,
-        None => {
-            // Handle the case where the bot has no valid moves
-            return Err(Json(ErrorResponse::error(
-                "No valid moves available for the bot",
-                Some(params.api_version),
-                Some(params.bot_id),
-            )));
-        }
-    };
+    check_api_version(&params.api_version).map_err(Json)?;
+    let game_y =
+        load_game_from_yen(yen, &params.api_version, Some(&params.bot_id)).map_err(Json)?;
+    let bot = find_registered_bot(&state, &params.api_version, &params.bot_id).map_err(Json)?;
+    let coords =
+        choose_move_or_error(bot.as_ref(), &game_y, &params.api_version, &params.bot_id)
+            .map_err(Json)?;
     let response = MoveResponse {
         api_version: params.api_version,
         bot_id: params.bot_id,
