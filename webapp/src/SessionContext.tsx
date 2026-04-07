@@ -1,10 +1,11 @@
 import React, { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
 interface SessionContextType {
   sessionId: string;
   username: string;
   isLoggedIn: boolean;
-  createSession: (username: string, token: string) => void;
+  createSession: (username: string) => void;
   destroySession: () => void;
 }
 
@@ -31,13 +32,14 @@ const SessionProvider: React.FC<SessionProviderProps> = ({ children }) => {
     }
   }, []);
 
-  const createSession = (username: string, token: string): void => {
-    setSessionId(token);
-    setUsername(username);
+  const createSession = (user: string): void => {
+    const newSessionId = uuidv4();
+    setSessionId(newSessionId);
+    setUsername(user);
     setIsLoggedIn(true);
 
-    localStorage.setItem('sessionId', token);
-    localStorage.setItem('username', username);
+    localStorage.setItem('sessionId', newSessionId);
+    localStorage.setItem('username', user);
   };
 
   const destroySession = (): void => {
