@@ -1,145 +1,215 @@
 openapi: 3.0.0
 info:
-  title: Gateway Bot API
+  title: API Gateway Service
   version: 1.0.0
-  description: API publica del sistema para interactuar con el bot de Game Y.
-
-servers:
-  - url: http://localhost:8000
-    description: Gateway local
+  description: API Gateway que enruta las peticiones a los microservicios de Usuarios (User Service) y Juego (Gamey Service).
 
 paths:
-  /play:
+  /health:
+    get:
+      summary: Comprueba el estado de salud del Gateway
+      tags:
+        - Health
+      responses:
+        '200':
+          description: El servicio está funcionando correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  service:
+                    type: string
+                    example: gateway
+
+  /user:
     post:
-      summary: Ejecuta un turno del bot sobre una posicion YEN
-      description: >
-        Recibe una posicion del tablero en notacion YEN y devuelve la nueva
-        posicion YEN tras aplicar la jugada del bot. Si no se indican
-        bot_id y difficulty, se usan center_bot y Hard por defecto.
+      summary: Registra un nuevo usuario
+      description: Enruta la petición de registro al User Service.
+      tags:
+        - User Service
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PlayRequest'
-            examples:
-              defaultBot:
-                summary: Solicitud minima con bot por defecto
-                value:
-                  position:
-                    size: 5
-                    turn: 0
-                    players:
-                      - B
-                      - R
-                    layout: ./../.../..../.....
-              customBot:
-                summary: Solicitud indicando bot y dificultad
-                value:
-                  position:
-                    size: 5
-                    turn: 0
-                    players:
-                      - B
-                      - R
-                    layout: ./../.../..../.....
-                  bot_id: random_bot
-                  difficulty: Medium
+              type: object
+              description: Datos del usuario a registrar (depende del User Service).
       responses:
         '200':
-          description: Nueva posicion tras jugar el bot
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/YEN'
-              examples:
-                nextPosition:
-                  summary: Estado del tablero tras la jugada del bot
-                  value:
-                    size: 5
-                    turn: 1
-                    players:
-                      - B
-                      - R
-                    layout: ./B./.../..../.....
-        '400':
-          description: Peticion invalida o error propagado desde el bot
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                missingPosition:
-                  summary: Falta la posicion
-                  value:
-                    error: "position is required"
-                unknownBot:
-                  summary: Bot desconocido
-                  value:
-                    error: "Unknown bot_id: smart_bot"
-                invalidYen:
-                  summary: YEN invalido
-                  value:
-                    error: "Invalid YEN format"
+          description: Usuario registrado exitosamente
+        '500':
+          description: Error del Gateway o del servicio interno
 
-components:
-  schemas:
-    PlayRequest:
-      type: object
-      required:
-        - position
-      properties:
-        position:
-          $ref: '#/components/schemas/YEN'
-        bot_id:
-          type: string
-          description: Identificador publico del bot.
-          enum:
-            - random_bot
-            - center_bot
-            - edge_bot
-          default: center_bot
-        difficulty:
-          type: string
-          description: Nivel de dificultad del bot.
-          enum:
-            - Easy
-            - Medium
-            - Hard
-          default: Hard
+  /login:
+    post:
+      summary: Inicia sesión de usuario
+      description: Enruta la petición de inicio de sesión al User Service.
+      tags:
+        - User Service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Inicio de sesión exitoso
+        '401':
+          description: Credenciales inválidas (propagado desde el backend)
 
-    YEN:
-      type: object
-      required:
-        - size
-        - turn
-        - players
-        - layout
-      properties:
-        size:
-          type: integer
-          minimum: 1
-          example: 5
-        turn:
-          type: integer
-          minimum: 0
-          example: 0
-        players:
-          type: array
-          minItems: 2
-          maxItems: 2
-          items:
+  /user/{username}:
+    get:
+      summary: Obtiene el perfil de un usuario
+      tags:
+        - User Service
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
             type: string
-            example: B
-        layout:
-          type: string
-          example: ./../.../..../.....
+          description: Nombre de usuario
+      responses:
+        '200':
+          description: Perfil del usuario obtenido correctamente
+        '404':
+          description: Usuario no encontrado
+    put:
+      summary: Actualiza el perfil de un usuario
+      tags:
+        - User Service
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+          description: Nombre de usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Datos a actualizar del usuario
+      responses:
+        '200':
+          description: Perfil actualizado correctamente
 
-    ErrorResponse:
-      type: object
-      required:
-        - error
-      properties:
-        error:
-          type: string
-          example: "position is required"
+  /logout:
+    post:
+      summary: Cierra la sesión del usuario
+      description: Envía la petición de cierre de sesión al Users Service.
+      tags:
+        - User Service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+              properties:
+                username:
+                  type: string
+                  description: Nombre de usuario obligatorio para cerrar sesión
+      responses:
+        '200':
+          description: Sesión cerrada exitosamente
+        '400':
+          description: Falta el nombre de usuario o está vacío
+
+  /user/{username}/history:
+    get:
+      summary: Obtiene el historial de partidas de un usuario
+      tags:
+        - User Service
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+          description: Nombre del usuario cuyo historial se desea consultar
+      responses:
+        '200':
+          description: Historial de partidas recuperado
+        '500':
+          description: Error al obtener el historial
+
+  /game/finish:
+    post:
+      summary: Finaliza una partida y guarda los resultados
+      tags:
+        - User Service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Datos de la partida finalizada
+      responses:
+        '201':
+          description: Resultados de la partida guardados exitosamente
+
+  /game/status:
+    get:
+      summary: Obtiene el estado del servicio Gamey
+      tags:
+        - Gamey Service
+      responses:
+        '200':
+          description: Estado del servicio de juegos
+
+  /game/move:
+    post:
+      summary: Realiza un movimiento en la partida
+      description: Enruta el movimiento al Gamey Service. Si se juega contra un bot, valida y resuelve el nombre del bot y la dificultad antes de enviar la petición.
+      tags:
+        - Gamey Service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mode:
+                  type: string
+                  description: Modo de juego, por ejemplo 'bot'
+                  example: bot
+                bot_id:
+                  type: string
+                  enum:
+                    - random_bot
+                    - center_bot
+                    - edge_bot
+                  default: random_bot
+                  description: Identificador del bot (obligatorio y validado si el mode es 'bot')
+                difficulty:
+                  type: string
+                  enum:
+                    - Easy
+                    - Medium
+                    - Hard
+                  default: Medium
+                  description: Dificultad del bot (validado si el mode es 'bot')
+      responses:
+        '200':
+          description: Movimiento procesado exitosamente
+        '400':
+          description: bot_id o difficulty desconocidos/inválidos
+        '500':
+          description: Error interno del servidor
