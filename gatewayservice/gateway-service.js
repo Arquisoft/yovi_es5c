@@ -75,7 +75,9 @@ app.post('/login', async (req, res) => {
 app.get('/user/:username', async (req, res) => {
   try {
     const profileUrl = new URL(`/user/${encodeURIComponent(req.params.username)}`, userServiceUrl);
-    const profileResponse = await axios.get(profileUrl.href);
+    const profileResponse = await axios.get(profileUrl.href, {
+      headers: { Authorization: req.headers.authorization }
+    });
     res.json(profileResponse.data);
   } catch (error) {
     handleErrors(res, error);
@@ -85,7 +87,15 @@ app.get('/user/:username', async (req, res) => {
 app.put('/user/:username', async (req, res) => {
   try {
     const profileUrl = new URL(`/user/${encodeURIComponent(req.params.username)}`, userServiceUrl);
-    const profileResponse = await axios.put(profileUrl.href, req.body);
+    
+    const profileResponse = await axios.put(
+      profileUrl.href, 
+      req.body,
+      {
+        headers: { Authorization: req.headers.authorization }
+      }
+    );
+    
     res.json(profileResponse.data);
   } catch (error) {
     handleErrors(res, error);
@@ -101,9 +111,14 @@ app.post('/logout', async (req, res) => {
 
     const usersServiceUrl = process.env.USERS_SERVICE_URL || 'http://users:3000';
 
-    const response = await axios.post(`${usersServiceUrl}/logout`, {
-      username: username.trim(),
-    });
+    const response = await axios.post(`${usersServiceUrl}/logout`,
+      {
+        username: username.trim(),
+      },
+      {
+        headers: { Authorization: req.headers.authorization }
+      }
+    );
 
     res.status(200).json(response.data);
   } catch (error) {
@@ -121,7 +136,9 @@ app.get('/user/:username/history', async (req, res) => {
 
     const historyUrl = new URL(`/user/${username}/history`, userServiceUrl);
 
-    const response = await axios.get(historyUrl.href);
+    const response = await axios.get(historyUrl.href, {
+      headers: { Authorization: req.headers.authorization }
+    });
 
     res.status(200).json(response.data);
 
@@ -135,7 +152,9 @@ app.post('/game/finish', async (req, res) => {
 
     const finishUrl = new URL('/game/finish', userServiceUrl);
 
-    const response = await axios.post(finishUrl.href, req.body);
+    const response = await axios.post(finishUrl.href, req.body, {
+      headers: { Authorization: req.headers.authorization }
+    });
 
     res.status(201).json(response.data);
 
