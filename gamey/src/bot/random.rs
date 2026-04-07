@@ -12,13 +12,6 @@ pub struct RandomBot {
     pub level: u8,
 }
 
-impl RandomBot {
-    pub fn new() -> Self { Self { level: 3 } }
-}
-
-impl Default for RandomBot {
-    fn default() -> Self { Self::new() }
-}
 
 impl YBot for RandomBot {
     fn name(&self) -> &str {

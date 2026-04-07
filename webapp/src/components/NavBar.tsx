@@ -53,10 +53,11 @@ export default function NavBar() {
   return (
     <header
       style={{
+        height: 'clamp(52px, 8vh, 72px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '12px 16px',
+        padding: '0 16px',
         borderBottom: '1px solid #ddd',
         background: 'rgba(15, 15, 39, 0.75)',
         backdropFilter: 'blur(6px)',

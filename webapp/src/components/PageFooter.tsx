@@ -2,7 +2,8 @@ export default function PageFooter() {
   return (
     <footer
       style={{
-        padding: '12px 16px',
+        height: 'clamp(20px, 5vh, 72px)',
+        padding: '0px 16px',
         borderTop: '1px solid #dddddd',
         background: 'rgba(15, 15, 39, 0.75)',
         marginTop: 0,
