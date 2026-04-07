@@ -134,19 +134,23 @@ const handleSubmit = async (e: React.FormEvent) => {
         email: formData.email
       });
 
-      const loginResponse = await axios.post(`${apiEndpoint}/login`, { 
-        username: formData.username, 
-        password: formData.password 
-      });
-      createSession(formData.username, loginResponse.data.token);
+      // automatic login after registration 
+      //await axios.post(`${apiEndpoint}/login`, { 
+       // username: formData.username, 
+       // password: formData.password 
+      //})
+
+      // create session and navigate to homepage
+      createSession(formData.username);
       navigate('/homepage');
 
     } catch (err: any) {
       const backendError = err.response?.data?.error || "An unexpected error occurred during registration";
       setError(backendError);
-    } finally {
+    }finally{
       setLoading(false);
     }
+
 };
 
   return (
