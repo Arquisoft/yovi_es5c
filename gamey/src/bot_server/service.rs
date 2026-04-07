@@ -7,7 +7,7 @@ use super::{error::ErrorResponse, state::AppState};
 pub const DEFAULT_PUBLIC_BOT_ID: &str = "center_bot";
 pub const DEFAULT_PUBLIC_DIFFICULTY: &str = "Hard";
 
-const VALID_PUBLIC_BOTS: [&str; 3] = ["random_bot", "center_bot", "edge_bot"];
+const VALID_PUBLIC_BOTS: [&str; 4] = ["random_bot", "center_bot", "edge_bot", "mirror_bot"];
 const VALID_DIFFICULTIES: [&str; 3] = ["Easy", "Medium", "Hard"];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
