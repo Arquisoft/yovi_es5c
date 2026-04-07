@@ -1,13 +1,14 @@
-import { Navigate } from 'react-router-dom'
+import { Navigate } from 'react-router-dom';
+import { useSession } from '../SessionContext';
 
 interface PrivateRouteProps {
   children: React.ReactNode
 }
 
 const PrivateRoute = ({ children }: PrivateRouteProps) => {
-  const storedSessionId = localStorage.getItem('sessionId')
+  const { isLoggedIn } = useSession();
 
-  return storedSessionId ? <>{children}</> : <Navigate to="/login" replace />
+  return isLoggedIn ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
-export default PrivateRoute
+export default PrivateRoute;

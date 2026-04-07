@@ -18,17 +18,47 @@ const SessionProvider: React.FC<SessionProviderProps> = ({ children }) => {
   const [sessionId, setSessionId] = useState<string>('');
   const [username, setUsername] = useState<string>('');
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [_, setIsReady] = useState<boolean>(false); // Nuevo estado para saber si ya validamos
 
-  // Retrieves data from localstorage on startup
+  const destroySession = (): void => {
+    localStorage.removeItem('sessionId');
+    localStorage.removeItem('username');
+    setSessionId('');
+    setUsername('');
+    setIsLoggedIn(false);
+  };
+
   useEffect(() => {
-    const storedSessionId = localStorage.getItem('sessionId');
-    const storedUsername = localStorage.getItem('username');
+    const validateSession = async () => {
+      const storedSessionId = localStorage.getItem('sessionId');
+      const storedUsername = localStorage.getItem('username');
 
-    if (storedSessionId && storedUsername) {
-      setSessionId(storedSessionId);
-      setUsername(storedUsername);
-      setIsLoggedIn(true);
-    }
+      if (storedSessionId && storedUsername) {
+        try {
+          // Validamos el token intentando obtener el perfil del usuario
+          const response = await fetch(`http://localhost:8000/user/${storedUsername}`, {
+            headers: {
+              'Authorization': `Bearer ${storedSessionId}`
+            }
+          });
+
+          if (response.ok) {
+            setSessionId(storedSessionId);
+            setUsername(storedUsername);
+            setIsLoggedIn(true);
+          } else {
+            // El token es falso o expiró: destruimos la sesión
+            destroySession();
+          }
+        } catch (error) {
+          console.error('Error al validar la sesión:', error);
+          destroySession();
+        }
+      }
+      setIsReady(true); // Validación completada
+    };
+
+    validateSession();
   }, []);
 
   const createSession = (username: string, token: string): void => {
@@ -38,14 +68,6 @@ const SessionProvider: React.FC<SessionProviderProps> = ({ children }) => {
 
     localStorage.setItem('sessionId', token);
     localStorage.setItem('username', username);
-  };
-
-  const destroySession = (): void => {
-    localStorage.removeItem('sessionId');
-    localStorage.removeItem('username');
-    setSessionId('');
-    setUsername('');
-    setIsLoggedIn(false);
   };
 
   return (
