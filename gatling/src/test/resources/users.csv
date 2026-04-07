@@ -1,4 +1,4 @@
-username,password
-loadUser1,pass1
-loadUser2,pass2
-loadUser3,pass3
+username,password,name,surname,email
+loadUser1,Alice123**,Alice,User1,alice1@example.com
+loadUser2,Alice123**,Bob,User2,bob2@example.com
+loadUser3,Alice123**,Charlie,User3,charlie3@example.com
