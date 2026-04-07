@@ -205,7 +205,6 @@ pub fn alpha_beta_move(board: &GameY, depth: u8) -> Option<Coordinates> {
         alpha = alpha.max(best_score);
     }
  
-    eprintln!("[alpha_beta] Mejor movimiento: {:?} con score={}", best_coords, best_score);
     best_coords
 }
  
@@ -404,11 +403,54 @@ fn score_for(board: &GameY, player: PlayerId) -> i32 {
     group_score + positional_score
 }
 
-/// Discovers all connected groups of `player` using BFS.
+/// Performs a BFS from `start` for a given `player`, returning
+/// whether the group touches each of the three sides and its total size.
 ///
-/// Returns a Vec of tuples (touches_a, touches_b, touches_c, size), one per
-/// connected component. Uses only public methods get_neighbors and
-/// cell_player, so it does not need access to the internal Union-Find.
+/// # Arguments
+/// - `board` - The game board
+/// - `player` - The player whose cells are explored
+/// - `start` - Starting coordinate of the group
+/// - `visited` - Shared set of already processed cells
+///
+/// # Returns
+/// A tuple `(touches_a, touches_b, touches_c, size)`.
+fn bfs_group(
+    board: &GameY,
+    player: PlayerId,
+    start: Coordinates,
+    visited: &mut std::collections::HashSet<Coordinates>,
+) -> (bool, bool, bool, usize) {
+    let mut queue = vec![start];
+    let mut touches = (false, false, false);
+    let mut group_size = 0usize;
+
+    while let Some(current) = queue.pop() {
+        // insert() returns false if the element already existed → cell already visited
+        if !visited.insert(current) { continue; }
+        group_size += 1;
+
+        // |= means: touches.0 = touches.0 || current.touches_side_a()
+        // Once true, stays true regardless of remaining cells
+        touches.0 |= current.touches_side_a();
+        touches.1 |= current.touches_side_b();
+        touches.2 |= current.touches_side_c();
+
+        // filter discards invalid neighbors, extend pushes them all at once
+        queue.extend(
+            board.get_neighbors(&current)
+                .into_iter()
+                .filter(|n| board.cell_player(n) == Some(player) && !visited.contains(n))
+        );
+    }
+
+    (touches.0, touches.1, touches.2, group_size)
+}
+
+/// Returns all connected groups of `player` on the board,
+/// indicating which sides each group touches and how many cells it contains.
+///
+/// # Returns
+/// A `Vec` of `(touches_a, touches_b, touches_c, size)` tuples, one per group.
 fn connected_groups_bfs(board: &GameY, player: PlayerId) -> Vec<(bool, bool, bool, usize)> {
     let size = board.board_size();
     let total_cells = (size * (size + 1)) / 2;
@@ -417,35 +459,9 @@ fn connected_groups_bfs(board: &GameY, player: PlayerId) -> Vec<(bool, bool, boo
 
     for idx in 0..total_cells {
         let start = Coordinates::from_index(idx, size);
-
         if board.cell_player(&start) != Some(player) { continue; }
         if visited.contains(&start) { continue; }
-
-        let mut queue = vec![start];
-        let mut touches_a = false;
-        let mut touches_b = false;
-        let mut touches_c = false;
-        let mut group_size = 0usize;
-
-        while let Some(current) = queue.pop() {
-            if visited.contains(&current) { continue; }
-            visited.insert(current);
-            group_size += 1;
-
-            if current.touches_side_a() { touches_a = true; }
-            if current.touches_side_b() { touches_b = true; }
-            if current.touches_side_c() { touches_c = true; }
-
-            for neighbor in board.get_neighbors(&current) {
-                if board.cell_player(&neighbor) == Some(player)
-                    && !visited.contains(&neighbor)
-                {
-                    queue.push(neighbor);
-                }
-            }
-        }
-
-        groups.push((touches_a, touches_b, touches_c, group_size));
+        groups.push(bfs_group(board, player, start, &mut visited));
     }
 
     groups
