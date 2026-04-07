@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, afterEach, beforeEach, vi } 
 import request from 'supertest'
 import mongoose from 'mongoose'
 import { MongoMemoryServer } from 'mongodb-memory-server'
+const jwt = require('jsonwebtoken');
 
 import User from '../model/user-model.js'
 const bcrypt = require('bcrypt');
@@ -14,6 +15,8 @@ beforeAll(async () => {
 
   const mongoUri = mongoServer.getUri()
   process.env.MONGODB_URI = mongoUri
+  
+  process.env.JWT_SECRET = 'mi-secreto-seguro-para-tests' 
 
   app = require('../users-service') 
 })
@@ -219,18 +222,19 @@ describe('User Service', () => {
   });
 
   it('should logout a user on POST /logout', async () => {
-    const user = new User({
+    const user = await new User({
       username: 'testuser',
       name: 'test',
       surname: 'user',
       email: 'test@uniovi.es',
       password: 'hashedpassword',
-    });
+    }).save();
 
-    await user.save();
+    const token = jwt.sign({ userId: user._id, user: 'testuser' }, process.env.JWT_SECRET);
 
     const response = await request(app)
       .post('/logout')
+      .set('Authorization', `Bearer ${token}`) // <-- AÑADIDO
       .send({ username: 'testuser' });
 
     expect(response.status).toBe(200);
@@ -243,11 +247,11 @@ describe('User Service', () => {
 
     expect(userInDb).not.toBeNull();
     expect(userInDb.lastLogoutAt).not.toBeNull();
-});
+  });
 
   it('should return the user profile on GET /user/:username', async () => {
     const hashedPassword = await bcrypt.hash('Admin123##', 10);
-    await new User({
+    const user = await new User({
       username: 'profileuser',
       name: 'Mario',
       surname: 'Trelles',
@@ -255,7 +259,11 @@ describe('User Service', () => {
       password: hashedPassword,
     }).save();
 
-    const response = await request(app).get('/user/profileuser');
+    const token = jwt.sign({ userId: user._id, user: 'profileuser' }, process.env.JWT_SECRET);
+
+    const response = await request(app)
+      .get('/user/profileuser')
+      .set('Authorization', `Bearer ${token}`);
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
@@ -269,7 +277,11 @@ describe('User Service', () => {
   });
 
   it('should return 404 when requesting a profile that does not exist', async () => {
-    const response = await request(app).get('/user/missinguser');
+    const token = jwt.sign({ userId: 'dummyId', user: 'dummyuser' }, process.env.JWT_SECRET);
+
+    const response = await request(app)
+      .get('/user/missinguser')
+      .set('Authorization', `Bearer ${token}`);
 
     expect(response.status).toBe(404);
     expect(response.body.error).toBe('User not found');
@@ -277,7 +289,8 @@ describe('User Service', () => {
 
   it('should update the user profile on PUT /user/:username', async () => {
     const hashedPassword = await bcrypt.hash('Admin123##', 10);
-    await new User({
+    
+    const user = await new User({
       username: 'profileuser',
       name: 'Mario',
       surname: 'Trelles',
@@ -285,8 +298,11 @@ describe('User Service', () => {
       password: hashedPassword,
     }).save();
 
+    const token = jwt.sign({ userId: user._id, user: 'profileuser' }, process.env.JWT_SECRET);
+
     const response = await request(app)
       .put('/user/profileuser')
+      .set('Authorization', `Bearer ${token}`) // <-- AÑADIMOS ESTA LÍNEA
       .send({
         name: 'Mario Jose',
         surname: 'Trelles Riestra',
@@ -310,7 +326,7 @@ describe('User Service', () => {
 
   it('should validate empty profile fields on PUT /user/:username', async () => {
     const hashedPassword = await bcrypt.hash('Admin123##', 10);
-    await new User({
+    const user = await new User({
       username: 'profileuser',
       name: 'Mario',
       surname: 'Trelles',
@@ -318,8 +334,11 @@ describe('User Service', () => {
       password: hashedPassword,
     }).save();
 
+    const token = jwt.sign({ userId: user._id, user: 'profileuser' }, process.env.JWT_SECRET);
+
     const response = await request(app)
       .put('/user/profileuser')
+      .set('Authorization', `Bearer ${token}`) 
       .send({
         name: 'Mario',
         surname: 'Trelles',
