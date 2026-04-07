@@ -43,11 +43,6 @@ endif::arc42help[]
 |Media
 |Seguir utilizando issues, pull requests y ramas de corta duración, y revisar cuidadosamente las fusiones antes de integrar cambios en las ramas principales.
 
-|Brechas de seguridad
-|El sistema actual todavía presenta puntos débiles en autenticación y control de acceso. El frontend guarda la sesión localmente y la autenticación del backend no se aplica de forma completa en todas las operaciones protegidas, lo que podría permitir usos no autorizados.
-|Alta
-|Centralizar la autenticación en el backend, validar tokens en el gateway y en los endpoints protegidos, y mover secretos y configuración sensible fuera del código fuente.
-
 |Punto único de fallo en el gateway
 |El API Gateway es el punto principal de entrada para todo el tráfico externo. Si falla, la aplicación web y el acceso de bots quedan indisponibles, ya que el despliegue actual no cuenta con réplicas ni mecanismos de tolerancia a fallos.
 |Media
@@ -74,9 +69,3 @@ endif::arc42help[]
 |Prometheus y Grafana están presentes en el proyecto, pero su configuración todavía es básica y se centra sobre todo en el servicio de usuarios. Esto deja una observabilidad limitada para el resto de la arquitectura.
 |Media
 |Extender la recogida de métricas al resto de servicios y mejorar progresivamente dashboards y alertas.
-
-|Autenticación gestionada parcialmente en cliente
-|Aunque el backend genera tokens JWT, la aplicación web sigue dependiendo de una sesión generada en cliente y almacenada en `localStorage`. Este atajo de implementación debería sustituirse por un modelo de autenticación extremo a extremo más sólido.
-|Alta
-|Refactorizar el flujo de login para que el frontend use el token real emitido por el backend y las rutas protegidas dependan de autenticación validada por el servidor.
-|===
