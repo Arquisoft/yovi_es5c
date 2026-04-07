@@ -249,8 +249,15 @@ const GameHistory = () => {
     const fetchHistory = async () => {
       try {
         setLoading(true);
+        const token = localStorage.getItem('sessionId'); // Obtenemos el token
+        
         const res = await axios.get<GameSession[]>(
-          `${apiEndpoint}/user/${username}/history`
+          `${apiEndpoint}/user/${username}/history`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}` // Lo enviamos como configuración de axios
+            }
+          }
         );
         setHistory(res.data.length > 0 ? res.data : MOCK_HISTORY);
       } catch (err: any) {

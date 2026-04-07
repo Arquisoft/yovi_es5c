@@ -29,7 +29,12 @@ const emptyProfile: ProfileData = {
 }
 
 async function loadProfile(username: string): Promise<ProfileData> {
-  const response = await fetch(`${apiEndpoint}/user/${encodeURIComponent(username)}`)
+  const token = localStorage.getItem('sessionId'); // Obtenemos el token
+  const response = await fetch(`${apiEndpoint}/user/${encodeURIComponent(username)}`, {
+    headers: {
+      'Authorization': `Bearer ${token}` // Lo enviamos al Gateway
+    }
+  })
   const data = await response.json()
 
   if (!response.ok) {
@@ -40,10 +45,12 @@ async function loadProfile(username: string): Promise<ProfileData> {
 }
 
 async function saveProfile(profile: ProfileData): Promise<ProfileData> {
+  const token = localStorage.getItem('sessionId'); // Obtenemos el token
   const response = await fetch(`${apiEndpoint}/user/${encodeURIComponent(profile.username)}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}` // Lo enviamos al Gateway
     },
     body: JSON.stringify({
       name: profile.name,
