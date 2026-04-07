@@ -79,7 +79,7 @@ describe('GamePage Completion Logic', () => {
 
     // Verificamos que aparece el mensaje de victoria en el diálogo
     await waitFor(() => {
-      expect(screen.getByText(/Congratulations, you won!/i)).toBeInTheDocument()
+      expect(screen.getByText((content) => content.includes('Congratulations, you won!'))).toBeInTheDocument()
     }, { timeout: 2000 })
 
     // Verificamos que se llamó al endpoint de guardado con los datos correctos
@@ -117,7 +117,7 @@ describe('GamePage Completion Logic', () => {
     fireEvent.click(circles[0])
 
     await waitFor(() => {
-      expect(screen.getByText(/Oh no! The bot won/i)).toBeInTheDocument()
+      expect(screen.getByText((content) => content.includes('Oh no! The bot won'))).toBeInTheDocument()
     })
 
     expect(global.fetch).toHaveBeenCalledWith(
@@ -152,7 +152,7 @@ describe('GamePage Completion Logic', () => {
     fireEvent.click(circles[0])
 
     await waitFor(() => {
-      expect(screen.getByText(/Player B wins!/i)).toBeInTheDocument()
+      expect(screen.getByText((content) => content.includes('Player B wins!'))).toBeInTheDocument()
     })
 
     expect(global.fetch).toHaveBeenCalledWith(
