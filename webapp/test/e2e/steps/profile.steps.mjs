@@ -19,12 +19,18 @@ Given('a registered profile user', async function () {
 })
 
 Given('the profile page is open', async function () {
+  await this.page.evaluate((username) => {
+    window.localStorage.setItem('sessionId', 'e2e-profile-session')
+    window.localStorage.setItem('username', username)
+  }, this.profileUsername)
+
   await this.page.goto(`${BASE_URL}/profile`)
-  await this.page.getByRole('button', { name: 'Edit profile' }).waitFor({ state: 'visible', timeout: 15000 })
+  await this.page.waitForURL('**/profile', { timeout: 15000 })
+  await this.page.getByRole('button', { name: 'Edit' }).waitFor({ state: 'visible', timeout: 15000 })
 })
 
 When('I update the profile with name {string} surname {string} and email {string}', async function (name, surname, email) {
-  await this.page.getByRole('button', { name: 'Edit profile' }).click()
+  await this.page.getByRole('button', { name: 'Edit' }).click()
   await this.page.locator('input[name="name"]').fill(name)
   await this.page.locator('input[name="surname"]').fill(surname)
   await this.page.locator('input[name="email"]').fill(email)
