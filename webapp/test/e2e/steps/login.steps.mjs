@@ -17,7 +17,17 @@ Given('a registered user {string} with password {string}', async function (usern
   await page.click('button:has-text("Register")')
   
   // Esperamos la redirección para garantizar que el registro finalizó
-  await page.waitForURL('**/homepage', { timeout: 15000 })
+  const registered = await page.waitForURL('**/homepage', { timeout: 15000 })
+    .then(() => true)
+    .catch(() => false)
+
+  if (!registered) {
+    const errorText = await page.locator('.MuiAlert-message').textContent({ timeout: 5000 }).catch(() => '')
+
+    if (!errorText.includes('User already exists')) {
+      throw new Error(`Expected registration to succeed or user to already exist, got: "${errorText}"`)
+    }
+  }
 
   // IMPORTANTE: Limpiamos la sesión del navegador para que el siguiente 
   // paso empiece como un usuario anónimo (sin estar logueado).
