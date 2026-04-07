@@ -11,10 +11,13 @@
     "axios": "^1.13.5",
     "cors": "^2.8.6",
     "express": "^4.18.2",
+    "express-mongo-sanitize": "^2.2.0",
     "express-rate-limit": "^8.2.1",
     "helmet": "^8.1.0",
     "http-proxy-middleware": "^2.0.6",
-    "morgan": "^1.10.1"
+    "js-yaml": "^4.1.1",
+    "morgan": "^1.10.1",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.0.15",

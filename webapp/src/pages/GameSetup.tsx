@@ -33,6 +33,21 @@ const BOT_OPTIONS: BotOption[] = [
     label: "Edge bot",
     description: "Controls the sides",
   },
+  {
+    bot_id: "smart_bot",
+    label: "Smart bot",
+    description: "Always searchs the victory",
+  },
+  {
+    bot_id: "mirror_bot",
+    label: "Mirror bot",
+    description: "Mirrors the opponent's moves",
+  },
+  {
+    bot_id: "alpha_bot",
+    label: "Alpha bot",
+    description: "The best bot, try to win it",
+  },
 ];
 
 const DIFFICULTIES: Difficulty[] = ["Easy", "Medium", "Hard"];
@@ -46,12 +61,13 @@ const DIFFICULTY_COLOR: Record<Difficulty, string> = {
 // ─── Styled components ───────────────────────────────────────
 
 const PageWrapper = styled("div")({
-  minHeight: "100vh",
+  flex: 1,
+  overflowY: "auto",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "flex-start",
-  paddingTop: 60,
+  paddingTop: 20,
   gap: 40,
   backgroundColor: "#0d0d0d",
 });
@@ -120,7 +136,6 @@ const StyledMenu = styled(Menu)({
     borderRadius: 4,
     boxShadow: "0 8px 24px rgba(0, 0, 0, 0.6)",
     minWidth: 220,
-
   },
 });
 
