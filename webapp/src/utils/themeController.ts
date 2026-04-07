@@ -3,10 +3,15 @@ export interface LoginThemeParams {
   buttonColor?: string;
   buttonText?: string;
   inputBg?: string;
-  inputOutline?: string,
+  inputOutline?: string;
   textPrimary?: string;
   textSecondary?: string;
   cardBg?: string;
+
+  boardHexEmptyColor?: string;
+  boardHexPlayerBColor?: string;
+  boardHexPlayerRColor?: string;
+  boardHexBorderColor?: string;
 }
 
 /**
@@ -38,5 +43,17 @@ export const updateThemeColors = (themeParams: LoginThemeParams) => {
   }
   if (themeParams.cardBg) {
     root.style.setProperty('--yovi-ui-card-bg', themeParams.cardBg);
+  }
+  if (themeParams.boardHexEmptyColor) {
+    root.style.setProperty('--yovi-board-hex-default',themeParams.boardHexEmptyColor)
+  }
+  if (themeParams.boardHexPlayerBColor) {
+    root.style.setProperty('--yovi-board-hex-playerB',themeParams.boardHexPlayerBColor)
+  }
+  if (themeParams.boardHexPlayerRColor) {
+    root.style.setProperty('--yovi-board-hex-playerR',themeParams.boardHexPlayerRColor)
+  }
+  if (themeParams.boardHexBorderColor) {
+    root.style.setProperty('--yovi-board-border',themeParams.boardHexBorderColor)
   }
 };
