@@ -24,22 +24,6 @@ try {
   console.log(e);
 }
 
-const authMiddleware = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Token no proporcionado o inválido' });
-  }
-  
-  const token = authHeader.split(' ')[1];
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (error) {
-    res.status(401).json({ error: 'Token expirado o inválido' });
-  }
-};
-
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,OPTIONS');
@@ -125,7 +109,7 @@ app.post('/login', async (req, res) => {
     }
 });
 
-app.get('/user/:username', authMiddleware, async (req, res) => {
+app.get('/user/:username', async (req, res) => {
     try {
         const requestedUsername = req.params.username?.trim();
 
@@ -146,7 +130,7 @@ app.get('/user/:username', authMiddleware, async (req, res) => {
     }
 });
 
-app.put('/user/:username', authMiddleware, async (req, res) => {
+app.put('/user/:username', async (req, res) => {
     try {
         const requestedUsername = req.params.username?.trim();
         const { name, surname, email } = req.body;
@@ -182,7 +166,7 @@ app.put('/user/:username', authMiddleware, async (req, res) => {
 });
 
 
-app.post('/logout', authMiddleware, async (req, res) => {
+app.post('/logout', async (req, res) => {
   try {
     const { username } = req.body;
     if (!username || !username.trim()) {
@@ -243,7 +227,7 @@ function validateProfileFields(name, surname, email) {
     }
 }
 
-app.get('/user/:username/history', authMiddleware, async (req, res) => {
+app.get('/user/:username/history', async (req, res) => {
   try {
     const { username } = req.params;
 
@@ -261,7 +245,7 @@ app.get('/user/:username/history', authMiddleware, async (req, res) => {
   }
 });
 
-app.post('/game/finish', authMiddleware, async (req, res) => {
+app.post('/game/finish', async (req, res) => {
   try {
 
     const { userId, rival, level, duration, result } = req.body;
