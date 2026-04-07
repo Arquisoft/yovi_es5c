@@ -67,8 +67,8 @@ export function getInitialBoardSize(): number {
   const savedSize = sessionStorage.getItem('boardSize');
   if (!savedSize) return 5;
 
-  const parsedSize = parseInt(savedSize, 10);
-  if (isNaN(parsedSize)) return 5;
+  const parsedSize = Number.parseInt(savedSize, 10);
+  if (Number.isNaN(parsedSize)) return 5;
 
   return Math.max(minBoardSize, Math.min(maxBoardSize, parsedSize));
 }

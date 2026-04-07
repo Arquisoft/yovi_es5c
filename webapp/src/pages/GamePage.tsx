@@ -256,7 +256,12 @@ export default function GamePage() {
                   const { x, y } = getPosition(rowIndex, cellIndex, boardSize)
                   const clickable = !busy && winner === null && cell === '.'
                   
-                  const fill = cell === 'B' ? 'var(--yovi-board-hex-playerB)' : cell === 'R' ? 'var(--yovi-board-hex-playerR)' : 'var(--yovi-board-hex-default)' 
+                  let fill = 'var(--yovi-board-hex-default)';
+                  if (cell === 'B') {
+                    fill = 'var(--yovi-board-hex-playerB)';
+                  } else if (cell === 'R') {
+                    fill = 'var(--yovi-board-hex-playerR)';
+                  }
                   const strokeColor = 'var(--yovi-board-border)'
                   
                   return (
