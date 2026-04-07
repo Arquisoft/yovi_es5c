@@ -253,7 +253,10 @@ app.post('/play', async (req, res) => {
 });
 
 
-const server = app.listen(port, () => console.log(`Gateway listening on ${port}`))
+let server;
+if (require.main === module) {
+  server = app.listen(port, () => console.log(`Gateway listening on ${port}`));
+}
 
-module.exports = { app, server, resolveBotName, resolvePublicBotConfig }
+module.exports = { app, server, resolveBotName, resolvePublicBotConfig };
 

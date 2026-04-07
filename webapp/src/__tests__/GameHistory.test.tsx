@@ -36,10 +36,19 @@ describe('GameHistory', () => {
     mockNavigate.mockReset()
     mockSession.isLoggedIn = true
     mockSession.username = 'testuser'
+    
+    // Mock del localStorage
+    vi.stubGlobal('localStorage', {
+      getItem: vi.fn(() => 'fake-token-123'),
+      setItem: vi.fn(),
+      clear: vi.fn(),
+      removeItem: vi.fn()
+    })
   })
 
   afterEach(() => {
     vi.clearAllMocks()
+    vi.unstubAllGlobals()
   })
 
   it('redirects to login when the user is not logged in', () => {
@@ -85,7 +94,14 @@ describe('GameHistory', () => {
     )
 
     await waitFor(() => {
-      expect(axios.get).toHaveBeenCalledWith('http://localhost:8000/user/testuser/history')
+      expect(axios.get).toHaveBeenCalledWith(
+        'http://localhost:8000/user/testuser/history',
+        expect.objectContaining({
+          headers: {
+            Authorization: 'Bearer fake-token-123'
+          }
+        })
+      )
     })
 
     expect(screen.getByText('Played')).toBeInTheDocument()

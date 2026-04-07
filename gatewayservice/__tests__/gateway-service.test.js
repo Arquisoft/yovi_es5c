@@ -1,9 +1,15 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'; 
+import { describe, it, expect, vi, afterEach, afterAll } from 'vitest'; 
 const request = require('supertest');
 const axios = require('axios');
-const { app, resolvePublicBotConfig } = require('../gateway-service');
+const { app, server, resolvePublicBotConfig } = require('../gateway-service');
 
 vi.mock('axios');
+
+afterAll(() => {
+  if (server) {
+    server.close();
+  }
+});
 
 describe('Gateway Service', () => {
   it('should respond with status 200 for /health endpoint', async () => {
@@ -26,10 +32,8 @@ describe('Gateway Service - Login Routing', () => {
     });
 
     it('should route POST /login to the user service', async () => {
-        // Inicializamos el mock aquí dentro para no necesitar beforeEach
         axios.post = vi.fn();
         
-        // Simulamos la respuesta correcta del microservicio de usuarios
         const mockResponse = { data: { token: 'fake-jwt-token', username: 'testuser' } };
         axios.post.mockResolvedValueOnce(mockResponse);
 
@@ -40,7 +44,6 @@ describe('Gateway Service - Login Routing', () => {
         expect(res.status).toBe(200);
         expect(res.body.token).toBe('fake-jwt-token');
         
-        // Verificamos que el gateway usó axios para llamar al microservicio correcto
         expect(axios.post).toHaveBeenCalledTimes(1);
         expect(axios.post).toHaveBeenCalledWith(
             expect.stringContaining('/login'), 
@@ -49,10 +52,8 @@ describe('Gateway Service - Login Routing', () => {
     });
 
     it('should forward errors from the user service', async () => {
-        // Inicializamos el mock aquí dentro también
         axios.post = vi.fn();
 
-        // Simulamos un error 401 desde el microservicio
         axios.post.mockRejectedValueOnce({
             response: { status: 401, data: { error: 'Invalid credentials' } }
         });
@@ -76,7 +77,10 @@ describe('Gateway Service - Login Routing', () => {
             }
         });
 
-        const res = await request(app).get('/user/testuser');
+        // Simulamos que el frontend envía la cabecera
+        const res = await request(app)
+            .get('/user/testuser')
+            .set('Authorization', 'Bearer fake-token-123');
 
         expect(res.status).toBe(200);
         expect(res.body).toEqual({
@@ -86,8 +90,10 @@ describe('Gateway Service - Login Routing', () => {
             email: 'test@uniovi.es'
         });
         expect(axios.get).toHaveBeenCalledTimes(1);
+        // Ahora esperamos que axios reciba también los headers configurados
         expect(axios.get).toHaveBeenCalledWith(
-            expect.stringContaining('/user/testuser')
+            expect.stringContaining('/user/testuser'),
+            { headers: { Authorization: 'Bearer fake-token-123' } }
         );
     });
 
@@ -108,7 +114,11 @@ describe('Gateway Service - Login Routing', () => {
             email: 'mario@uniovi.es'
         };
 
-        const res = await request(app).put('/user/testuser').send(payload);
+        // Simulamos que el frontend envía la cabecera
+        const res = await request(app)
+            .put('/user/testuser')
+            .set('Authorization', 'Bearer fake-token-123')
+            .send(payload);
 
         expect(res.status).toBe(200);
         expect(res.body).toEqual({
@@ -118,9 +128,11 @@ describe('Gateway Service - Login Routing', () => {
             email: 'mario@uniovi.es'
         });
         expect(axios.put).toHaveBeenCalledTimes(1);
+        // Ahora esperamos que axios reciba los datos Y los headers
         expect(axios.put).toHaveBeenCalledWith(
             expect.stringContaining('/user/testuser'),
-            payload
+            payload,
+            { headers: { Authorization: 'Bearer fake-token-123' } }
         );
     });
 });
