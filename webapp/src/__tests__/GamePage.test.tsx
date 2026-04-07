@@ -130,21 +130,16 @@ describe('GamePage Completion Logic', () => {
 
   it('records a multiplayer game correctly when Player B wins', async () => {
     mockLocationState = { mode: 'pvp', bot_id: '', difficulty: 'Medium' }
+
+
     
-    // Usamos mockImplementation para que este test sea independiente de la cola del beforeEach.
-    // Esto es necesario porque en modo PvP no se realiza la llamada inicial a /game/status.
-    vi.mocked(global.fetch).mockImplementation(async (url: string) => {
-      if (url.includes('/game/move')) {
-        return {
-          ok: true,
-          json: async () => ({
-            game_over: true,
-            winner: 'B',
-            state: { size: 5, layout: 'B..../...../...../...../.....', turn: 1 }
-          })
-        }
-      }
-      return { ok: true, json: async () => ({}) }
+    ;(global.fetch as any).mockReset().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        game_over: true,
+        winner: 'B',
+        state: { size: 5, layout: 'B..../...../...../...../.....', turn: 1 }
+      })
     })
 
     render(
