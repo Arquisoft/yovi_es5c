@@ -23,15 +23,15 @@ function App() {
 
   useEffect(() => {
     updateThemeColors({
-      accentColor: "#1976d2",
-      buttonColor: "#1976d2",
-      buttonText: "#ffffff",
-      inputBg: "rgba(255, 255, 255, 0.5)",
-      inputOutline: "rgba(0, 0, 0, 0.23)",
-      textPrimary: "rgba(0, 0, 0, 0.87)",
-      textSecondary: "rgba(0, 0, 0, 0.6)",
-      cardBg: "rgba(255, 255, 255, 0.65)",
-    });
+        accentColor: "#1976d2",
+        buttonColor: "#1976d2",
+        buttonText: "#ffffff",
+        inputBg: "rgba(255, 255, 255, 0.5)",
+        inputOutline: "rgba(0, 0, 0, 0.23)",
+        textPrimary: "rgba(0, 0, 0, 0.87)",
+        textSecondary: "rgba(0, 0, 0, 0.6)",
+        cardBg: "rgba(255, 255, 255, 0.65)",
+      });
   }, []);
 
   return (
