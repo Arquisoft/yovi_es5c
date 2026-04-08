@@ -40,14 +40,14 @@ mod tests {
 
     #[test]
     fn test_state_with_bot() {
-        let registry = YBotRegistry::new().with_bot(Arc::new(RandomBot));
+        let registry = YBotRegistry::new().with_bot(Arc::new(RandomBot{level:3}));
         let state = AppState::new(registry);
         assert!(state.bots().names().contains(&"random_bot".to_string()));
     }
 
     #[test]
     fn test_state_clone() {
-        let registry = YBotRegistry::new().with_bot(Arc::new(RandomBot));
+        let registry = YBotRegistry::new().with_bot(Arc::new(RandomBot{level:1}));
         let state = AppState::new(registry);
         let cloned = state.clone();
         // Both should reference the same underlying data
@@ -56,7 +56,7 @@ mod tests {
 
     #[test]
     fn test_bots_arc_clone() {
-        let registry = YBotRegistry::new().with_bot(Arc::new(RandomBot));
+        let registry = YBotRegistry::new().with_bot(Arc::new(RandomBot{level:1}));
         let state = AppState::new(registry);
         let bots1 = state.bots();
         let bots2 = state.bots();

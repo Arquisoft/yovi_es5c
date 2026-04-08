@@ -6,6 +6,7 @@
 //! # Endpoints
 //! - `GET /status` - Health check endpoint
 //! - `POST /{api_version}/ybot/choose/{bot_id}` - Request a move from a bot
+//! - `POST /{api_version}/ybot/play` - Apply a bot move and return the resulting YEN position
 //!
 //! # Example
 //! ```no_run
@@ -21,6 +22,8 @@
 
 pub mod choose;
 pub mod error;
+pub mod play;
+pub mod service;
 pub mod state;
 pub mod version;
 use axum::response::IntoResponse;
@@ -28,21 +31,28 @@ use std::sync::Arc;
 use tower_http::cors::CorsLayer;
 pub use choose::MoveResponse;
 pub use error::ErrorResponse;
+pub use play::PlayResponse;
 pub use version::*;
 
-use crate::{GameYError, RandomBot, YBotRegistry, state::AppState};
+
+use crate::{GameYError, EdgeBot, CenterBot, RandomBot, SmartBot, AlphaBot, MirrorBot, YBotRegistry, state::AppState};
+
 
 /// Creates the Axum router with the given state.
 ///
 /// This is useful for testing the API without binding to a network port.
 pub fn create_router(state: AppState) -> axum::Router {
     let cors = CorsLayer::permissive();
-    
+
     axum::Router::new()
         .route("/status", axum::routing::get(status))
         .route(
             "/{api_version}/ybot/choose/{bot_id}",
             axum::routing::post(choose::choose),
+        )
+        .route(
+            "/{api_version}/ybot/play",
+            axum::routing::post(play::play),
         )
         .layer(cors)
         .with_state(state)
@@ -51,8 +61,28 @@ pub fn create_router(state: AppState) -> axum::Router {
 /// Creates the default application state with the standard bot registry.
 ///
 /// The default state includes the `RandomBot` which selects moves randomly.
+/// Also includes the `CenterBot` which prefers center positions.
 pub fn create_default_state() -> AppState {
-    let bots = YBotRegistry::new().with_bot(Arc::new(RandomBot));
+    let bots = YBotRegistry::new()
+        .with_bot(Arc::new(RandomBot { level: 1 }))
+        .with_bot(Arc::new(RandomBot { level: 2 }))
+        .with_bot(Arc::new(RandomBot { level: 3 }))
+        .with_bot(Arc::new(CenterBot { level: 1 }))
+        .with_bot(Arc::new(CenterBot { level: 2 }))
+        .with_bot(Arc::new(CenterBot { level: 3 }))
+        .with_bot(Arc::new(EdgeBot { level: 1 }))
+        .with_bot(Arc::new(EdgeBot { level: 2 }))
+        .with_bot(Arc::new(EdgeBot { level: 3 }))
+
+        .with_bot(Arc::new(SmartBot { level: 1 }))
+        .with_bot(Arc::new(SmartBot { level: 2 }))
+        .with_bot(Arc::new(SmartBot { level: 3 }))
+        .with_bot(Arc::new(AlphaBot { level: 1 }))
+        .with_bot(Arc::new(AlphaBot { level: 2 }))
+        .with_bot(Arc::new(AlphaBot { level: 3 }))
+        .with_bot(Arc::new(MirrorBot { level: 1 }))
+        .with_bot(Arc::new(MirrorBot { level: 2 }))
+        .with_bot(Arc::new(MirrorBot { level: 3 }));
     AppState::new(bots)
 }
 

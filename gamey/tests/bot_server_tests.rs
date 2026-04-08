@@ -2,7 +2,10 @@ use axum::{
     body::Body,
     http::{Request, StatusCode},
 };
-use gamey::{YBotRegistry, YEN, create_default_state, create_router, state::AppState, RandomBot, MoveResponse, ErrorResponse};
+use gamey::{
+    ErrorResponse, MoveResponse, PlayResponse, RandomBot, YBotRegistry, YEN, create_default_state,
+    create_router, state::AppState,
+};
 use http_body_util::BodyExt;
 use std::sync::Arc;
 use tower::ServiceExt;
@@ -101,6 +104,147 @@ async fn test_choose_endpoint_with_partially_filled_board() {
 
     assert_eq!(move_response.api_version, "v1");
     assert_eq!(move_response.bot_id, "random_bot");
+}
+
+// ============================================================================
+// Play endpoint tests - Success cases
+// ============================================================================
+
+#[tokio::test]
+async fn test_play_endpoint_with_default_public_bot() {
+    let app = test_app();
+    let request_body = serde_json::json!({
+        "position": {
+            "size": 3,
+            "turn": 0,
+            "players": ["B", "R"],
+            "layout": "./../..."
+        }
+    });
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/v1/ybot/play")
+                .header("content-type", "application/json")
+                .body(Body::from(request_body.to_string()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let body = response.into_body().collect().await.unwrap().to_bytes();
+    let play_response: PlayResponse = serde_json::from_slice(&body).unwrap();
+
+    assert_eq!(play_response.size(), 3);
+    assert_eq!(play_response.turn(), 1);
+}
+
+#[tokio::test]
+async fn test_play_endpoint_with_explicit_public_bot_and_difficulty() {
+    let app = test_app();
+    let request_body = serde_json::json!({
+        "position": {
+            "size": 3,
+            "turn": 0,
+            "players": ["B", "R"],
+            "layout": "./../..."
+        },
+        "bot_id": "random_bot",
+        "difficulty": "Medium"
+    });
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/v1/ybot/play")
+                .header("content-type", "application/json")
+                .body(Body::from(request_body.to_string()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let body = response.into_body().collect().await.unwrap().to_bytes();
+    let play_response: PlayResponse = serde_json::from_slice(&body).unwrap();
+
+    assert_eq!(play_response.size(), 3);
+    assert_eq!(play_response.turn(), 1);
+}
+
+#[tokio::test]
+async fn test_play_endpoint_with_finished_game_returns_same_position() {
+    let app = test_app();
+    let request_body = serde_json::json!({
+        "position": {
+            "size": 2,
+            "turn": 0,
+            "players": ["B", "R"],
+            "layout": "B/RB"
+        }
+    });
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/v1/ybot/play")
+                .header("content-type", "application/json")
+                .body(Body::from(request_body.to_string()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let body = response.into_body().collect().await.unwrap().to_bytes();
+    let play_response: PlayResponse = serde_json::from_slice(&body).unwrap();
+
+    assert_eq!(play_response.layout(), "B/RB");
+    assert_eq!(play_response.turn(), 1);
+}
+
+// ============================================================================
+// Play endpoint tests - Error cases
+// ============================================================================
+
+#[tokio::test]
+async fn test_play_endpoint_rejects_unknown_difficulty() {
+    let app = test_app();
+    let request_body = serde_json::json!({
+        "position": {
+            "size": 3,
+            "turn": 0,
+            "players": ["B", "R"],
+            "layout": "./../..."
+        },
+        "difficulty": "Impossible"
+    });
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/v1/ybot/play")
+                .header("content-type", "application/json")
+                .body(Body::from(request_body.to_string()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+    let body = response.into_body().collect().await.unwrap().to_bytes();
+    let error_response: ErrorResponse = serde_json::from_slice(&body).unwrap();
+    assert!(error_response.message.contains("Unknown difficulty"));
 }
 
 // ============================================================================
@@ -211,7 +355,7 @@ async fn test_choose_endpoint_with_missing_content_type() {
 #[tokio::test]
 async fn test_choose_with_custom_bot_registry() {
     // Create a custom registry with only the random bot
-    let bots = YBotRegistry::new().with_bot(Arc::new(RandomBot));
+    let bots = YBotRegistry::new().with_bot(Arc::new(RandomBot { level: 1 }));
     let state = AppState::new(bots);
     let app = test_app_with_state(state);
 

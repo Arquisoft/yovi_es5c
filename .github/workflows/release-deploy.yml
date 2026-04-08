@@ -10,16 +10,12 @@ permissions:
 
 env:
   IMAGE_TAG: ${{ github.event.release.tag_name }}
+  JWT_SECRET : ${{ secrets.JWT_SECRET }}
 
 jobs:
   test-node:
     name: Run node unit tests
     runs-on: ubuntu-latest
-    services:
-      mongodb:
-        image: mongo:latest
-        ports:
-          - 27017:27017
     strategy:
       matrix:
         service: [webapp, users, gatewayservice]

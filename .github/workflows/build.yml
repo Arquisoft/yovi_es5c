@@ -8,11 +8,8 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
-    services:
-      mongodb:
-        image: mongo:latest
-        ports:
-          - 27017:27017
+    env:
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
     steps:
     - uses: actions/checkout@v4
       with:

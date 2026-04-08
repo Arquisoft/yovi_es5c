@@ -257,8 +257,16 @@ impl GameY {
         self.board_size
     }
 
+    /// Returns the player occupying a given cell, or `None` if the cell is empty.
+    ///
+    /// This is useful for bots that need to inspect the board state, for example
+    /// to count how many friendly pieces surround a candidate cell.
+    pub fn cell_player(&self, coords: &Coordinates) -> Option<PlayerId> {
+        self.board_map.get(coords).map(|(_, player)| *player)
+    }
+
     /// Returns the neighboring coordinates for a given cell.
-    fn get_neighbors(&self, coords: &Coordinates) -> Vec<Coordinates> {
+    pub fn get_neighbors(&self, coords: &Coordinates) -> Vec<Coordinates> {
         let mut neighbors = Vec::new();
         let x = coords.x();
         let y = coords.y();
@@ -306,6 +314,18 @@ impl GameY {
         }
         result
     }
+
+    /// Searches in the history for the last movement that was a piece placement.
+    pub fn last_placement_coords(&self) -> Option<Coordinates> {
+        self.history.iter().rev().find_map(|m| {
+            if let Movement::Placement { coords, .. } = m {
+                Some(*coords)
+            } else {
+                None
+            }
+        })
+    }
+
     /*pub fn render(&self, options: &RenderOptions) -> String {
         let mut result = String::new();
         let coords_size = self.board_size.to_string().len() as u32;
@@ -815,5 +835,17 @@ mod tests {
             }
             _ => panic!("Game should be ongoing"),
         }
+    }
+
+    #[test]
+    fn test_last_placement_coords_retrieval() {
+        let mut game = GameY::new(5);
+        let p0 = PlayerId::new(0);
+        let coords = Coordinates::new(4, 0, 0);
+        
+        // Add a move
+        game.add_move(Movement::Placement { player: p0, coords }).unwrap();
+        
+        assert_eq!(game.last_placement_coords(), Some(coords));
     }
 }

@@ -1,20 +1,27 @@
 import { useEffect, useState } from 'react'
-import { Alert, Box, Button, Paper, Typography } from '@mui/material'
+import { Alert, Box, Button, Paper, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Stack } from '@mui/material'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useSession } from "../SessionContext";
+import TrophyIcon from '@mui/icons-material/EmojiEvents';
+import ErrorIcon from '@mui/icons-material/SentimentVeryDissatisfied';
+import { getInitialBoardSize } from "./GameSetup";
 
 const apiEndpoint = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-const boardSize = 5
 const botDelayMs = 700
 
-const cellRadius = 22
+// Constantes de dimensiones
+const hexRadius = 38
 const horizontalGap = 68
 const verticalGap = 58
-const svgPadding = 40
+const svgPadding = 60
+
 
 type Cell = '.' | 'B' | 'R'
 type Board = Cell[][]
 type Winner = 'B' | 'R' | null
+type GameMode = 'pvp' | 'bot'
+type Difficulty = 'Easy' | 'Medium' | 'Hard'
+
 interface MoveTurnResponse {
   game_over: boolean
   winner: Winner
@@ -26,10 +33,9 @@ interface MoveTurnResponse {
   }
 }
 
-type GameMode = 'pvp' | 'bot'
 
-function makeEmptyBoard(): Board {
-  return Array.from({ length: boardSize }, (_, row) => Array.from({ length: row + 1 }, () => '.' as Cell))
+function makeEmptyBoard(size: number): Board {
+  return Array.from({ length: size }, (_, row) => Array.from({ length: row + 1 }, () => '.' as Cell))
 }
 
 function cloneBoard(board: Board): Board {
@@ -45,11 +51,23 @@ function toYen(board: Board) {
   }
 }
 
-function getPosition(row: number, col: number) {
+function getPosition(row: number, col: number, size: number) {
   const rowWidth = row * horizontalGap
-  const x = svgPadding + ((boardSize - 1) * horizontalGap) / 2 - rowWidth / 2 + col * horizontalGap
+  const x = svgPadding + ((size - 1) * horizontalGap) / 2 - rowWidth / 2 + col * horizontalGap
   const y = svgPadding + row * verticalGap
   return { x, y }
+}
+
+function getHexagonPoints(cx: number, cy: number, r: number) {
+  const w = r * (Math.sqrt(3) / 2)
+  return `
+    ${cx},${cy - r} 
+    ${cx + w},${cy - r / 2} 
+    ${cx + w},${cy + r / 2} 
+    ${cx},${cy + r} 
+    ${cx - w},${cy + r / 2} 
+    ${cx - w},${cy - r / 2}
+  `.trim()
 }
 
 function delay(ms: number) {
@@ -76,13 +94,22 @@ function boardFromLayout(size: number, layout: string): Board {
 export default function GamePage() {
   const navigate = useNavigate()
   const location = useLocation()
+  
+  // Usamos directamente la función por referencia para inicializar el estado
+  const [boardSize] = useState(getInitialBoardSize) // El setBoardSize se eliminado ya que no esta en uso por ahora.
+  
   const [isAvailable, setIsAvailable] = useState(true)
-  const [board, setBoard] = useState<Board>(makeEmptyBoard())
+  const [board, setBoard] = useState<Board>(makeEmptyBoard(boardSize))
   const [busy, setBusy] = useState(false)
   const [winner, setWinner] = useState<Winner>(null)
-  const mode = (location.state as { mode?: GameMode } | null)?.mode ?? 'bot'
+  const [startTime, setStartTime] = useState<number | null>(null)
+  const [isGameOver, setIsGameOver] = useState(false)
+  const state = location.state as { mode?: GameMode; bot_id?: string; difficulty?: Difficulty } | null
+  const mode = state?.mode ?? 'bot'
+  const difficulty = state?.difficulty ?? 'Medium'
+  const bot_id     = state?.bot_id     ?? 'random_bot'
   const [currentPlayer, setCurrentPlayer] = useState<'B' | 'R'>('B')
-  const [message, setMessage] = useState(mode === 'pvp' ? 'Player B turn.' : 'Your turn. Place a blue piece.')
+  const [message, setMessage] = useState(mode === 'pvp' ? 'Player 1 turn.' : 'Your turn. Place a piece.')
   const [error, setError] = useState('')
 
   const { isLoggedIn } = useSession();
@@ -118,6 +145,11 @@ export default function GamePage() {
     }
 
     setError('')
+    // Iniciar cronómetro en el primer movimiento
+    if (!startTime) {
+      setStartTime(Date.now())
+    }
+
     setBusy(true)
     const previousBoard = cloneBoard(board)
     const optimisticBoard = cloneBoard(board)
@@ -134,7 +166,8 @@ export default function GamePage() {
         mode,
       }
       if (mode === 'bot') {
-        payload.bot_id = 'random_bot'
+        payload.bot_id = bot_id
+        payload.difficulty = difficulty
       }
 
       const response = await fetch(`${apiEndpoint}/game/move`, {
@@ -156,21 +189,43 @@ export default function GamePage() {
       const updated = boardFromLayout(moveData.state.size, moveData.state.layout)
       setBoard(updated)
 
-      if (moveData.game_over && moveData.winner) {
-        setWinner(moveData.winner)
-        if (moveData.winner === 'B') {
-          setMessage(mode === 'pvp' ? 'Player B wins.' : 'You win.')
+      if (moveData.game_over) {
+        const finalWinner = moveData.winner;
+        setWinner(finalWinner);
+        setIsGameOver(true);
+
+        // Calcular duración y guardar partida
+        const duration = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+        const username = localStorage.getItem('username') || 'anonymous';
+
+        void fetch(`${apiEndpoint}/game/finish`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: username,
+            rival: mode === 'pvp' ? 'multiplayer' : 'bot',
+            level: difficulty,
+            duration: duration,
+            result: finalWinner === 'B' ? 'won' : 'lost'
+          })
+        });
+        
+        if (finalWinner === 'B') {
+          setMessage(mode === 'pvp' ? 'Player 1 wins.' : 'You win.')
+        } else if (finalWinner === 'R') {
+          setMessage(mode === 'pvp' ? 'Player 2 wins.' : 'Bot wins.')
         } else {
-          setMessage(mode === 'pvp' ? 'Player R wins.' : 'Bot wins.')
+          setMessage('Game Over.')
         }
       } else {
         setWinner(null)
+        setIsGameOver(false);
         if (mode === 'pvp') {
           const nextPlayer = moveData.state.turn === 0 ? 'B' : 'R'
           setCurrentPlayer(nextPlayer)
           setMessage(`Player ${nextPlayer} turn.`)
         } else {
-          setMessage('Your turn. Place a blue piece.')
+          setMessage('Your turn. Place a piece.')
         }
       }
     } catch (e) {
@@ -184,19 +239,44 @@ export default function GamePage() {
   }
 
   const reset = () => {
-    setBoard(makeEmptyBoard())
+    setBoard(makeEmptyBoard(boardSize))
     setBusy(false)
     setWinner(null)
+    setStartTime(null)
+    setIsGameOver(false)
     setCurrentPlayer('B')
     setError('')
-    setMessage(mode === 'pvp' ? 'Player B turn.' : 'Your turn. Place a blue piece.')
+    setMessage(mode === 'pvp' ? 'Player 1 turn.' : 'Your turn. Place a piece.')
   }
+
+  /* Actualmente sin usar, para usar importar minBoardSize y maxBoardSize de GameSetup
+  const handleSizeChange = (newSize: number) => {
+    if (newSize >= minBoardSize && newSize <= maxBoardSize) {
+      setBoardSize(newSize)
+      sessionStorage.setItem('boardSize', newSize.toString())
+      setBoard(makeEmptyBoard(newSize))
+      setBusy(false)
+      setWinner(null)
+      setCurrentPlayer('B')
+      setError('')
+      setMessage(mode === 'pvp' ? 'Player 1 turn.' : 'Your turn. Place a piece.')
+    }
+  }
+  */
 
   const svgWidth = svgPadding * 2 + (boardSize - 1) * horizontalGap
   const svgHeight = svgPadding * 2 + (boardSize - 1) * verticalGap
-  const top = getPosition(0, 0)
-  const left = getPosition(boardSize - 1, 0)
-  const right = getPosition(boardSize - 1, boardSize - 1)
+
+  // Lógica para el contenido del diálogo de fin de partida
+  const isPvP = mode === 'pvp';
+  const userWon = winner === 'B';
+  const dialogTitle = isPvP 
+    ? `Player ${winner === 'B' ? 'B' : 'R'} wins!` 
+    : (userWon ? 'Congratulations, you won!' : 'Oh no! The bot won');
+  
+  const accentColor = isPvP 
+    ? (winner === 'B' ? '#1565c0' : '#c62828') 
+    : (userWon ? '#2e7d32' : '#d32f2f');
 
   return (
     <div className="main-content">
@@ -210,18 +290,22 @@ export default function GamePage() {
         </Alert>
 
         <Box sx={{ mb: 4, width: '100%', display: 'flex', justifyContent: 'center' }}>
-          <Box sx={{ width: '100%', maxWidth: 560, background: '#fff', borderRadius: 3, border: '1px solid #d7d7d7', p: 2 }}>
+          <Box sx={{ width: '100%', maxWidth: 560, background: '#ffffff', p: 2 }}>
             <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} width="100%" role="img" aria-label="Y game board">
-              <line x1={top.x} y1={top.y - 20} x2={left.x - 22} y2={left.y + 12} stroke="#2e7d32" strokeWidth="6" strokeLinecap="round" />
-              <line x1={left.x - 22} y1={left.y + 12} x2={right.x + 22} y2={right.y + 12} stroke="#2e7d32" strokeWidth="6" strokeLinecap="round" />
-              <line x1={right.x + 22} y1={right.y + 12} x2={top.x} y2={top.y - 20} stroke="#2e7d32" strokeWidth="6" strokeLinecap="round" />
 
               {board.map((row, rowIndex) =>
                 row.map((cell, cellIndex) => {
-                  const { x, y } = getPosition(rowIndex, cellIndex)
-                  const clickable = isAvailable && !busy && winner === null && cell === '.'
-                  const fill = cell === 'B' ? '#1565c0' : cell === 'R' ? '#c62828' : '#fffaf0'
-
+                  const { x, y } = getPosition(rowIndex, cellIndex, boardSize)
+                  const clickable = !busy && winner === null && cell === '.'
+                  
+                  let fill = 'var(--yovi-board-hex-default)';
+                  if (cell === 'B') {
+                    fill = 'var(--yovi-board-hex-playerB)';
+                  } else if (cell === 'R') {
+                    fill = 'var(--yovi-board-hex-playerR)';
+                  }
+                  const strokeColor = 'var(--yovi-board-border)'
+                  
                   return (
                     <g
                       key={`${rowIndex}-${cellIndex}`}
@@ -232,13 +316,15 @@ export default function GamePage() {
                       }}
                       style={{ cursor: clickable ? 'pointer' : 'default' }}
                     >
-                      <circle
-                        cx={x}
-                        cy={y}
-                        r={cellRadius}
+                      <polygon
+                        points={getHexagonPoints(x, y, hexRadius)}
                         fill={fill}
-                        stroke={clickable ? '#2e7d32' : '#4e3d20'}
-                        strokeWidth={clickable ? 3 : 2}
+                        stroke={strokeColor}
+                        strokeWidth={6}
+                        style={{ 
+                          transition: 'fill 0.2s',
+                          filter: cell === '.' ? 'drop-shadow(inset 0px 3px 3px rgba(0,0,0,0.3))' : 'none' 
+                        }}
                       />
                     </g>
                   )
@@ -257,6 +343,57 @@ export default function GamePage() {
           </Button>
         </Box>
       </Paper>
+
+      {/* Diálogo de Fin de Partida */}
+      <Dialog 
+        open={isGameOver} 
+        onClose={reset}
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 4,
+              p: 2,
+              textAlign: 'center',
+              minWidth: 320,
+              border: `2px solid ${accentColor}`
+            }
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, fontSize: '1.5rem', color: accentColor }}>
+          {dialogTitle}
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} alignItems="center">
+            {/* Imagen/Icono dinámico según resultado en modo Bot */}
+            {!isPvP && (
+              <Box sx={{ mt: 2 }}>
+                {userWon ? (
+                  <TrophyIcon sx={{ fontSize: 80, color: '#fbc02d' }} />
+                ) : (
+                  <ErrorIcon sx={{ fontSize: 80, color: '#d32f2f' }} />
+                )}
+              </Box>
+            )}
+            <Typography variant="body1" color="text.secondary">
+              {isPvP 
+                ? `The game has ended. Player ${winner === 'B' ? 'blue' : 'red'} wins.`
+                : (userWon 
+                    ? 'You outsmarted the bot. Great play!' 
+                    : 'The bot was smarter this time. Wanna try again?')
+              }
+            </Typography>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 1 }}>
+          <Button variant="contained" onClick={reset} sx={{ bgcolor: accentColor, '&:hover': { bgcolor: accentColor, opacity: 0.9 } }}>
+            Try again
+          </Button>
+          <Button variant="outlined" onClick={() => navigate('/homepage')} color="inherit">
+            Go Home
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   )
 }
