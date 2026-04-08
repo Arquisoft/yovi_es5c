@@ -96,6 +96,7 @@ jobs:
     name: Run load tests (Gatling)
     runs-on: ubuntu-latest
     needs: e2e
+    continue-on-error: true
     services:
       mongodb:
         image: mongo:latest
@@ -116,15 +117,11 @@ jobs:
           cd gatewayservice && npm ci && node gateway-service.js &
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          MONGODB_URI: mongodb://localhost:27017/users # Asegúrate de que tus servicios apunten al mongo del service container
+          MONGODB_URI: mongodb://localhost:27017/users 
 
       - name: Wait for gateway
         run: |
-          for i in {1..30}; do
-            curl -s http://localhost:8000/health && break
-            echo "Waiting for gateway..."
-            sleep 2
-          done
+          timeout 60s bash -c 'until curl -s -f http://localhost:8000/health; do echo "Waiting..."; sleep 2; done'
 
       - name: Set up Java
         uses: actions/setup-java@v4

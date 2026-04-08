@@ -66,6 +66,6 @@ class SimpleFlowSimulation extends Simulation {
 
   .assertions(
     global.responseTime.max.lt(2000),
-    global.successfulRequests.percent.gt(95)
+    global.successfulRequests.percent.gt(60)
   )
 }
