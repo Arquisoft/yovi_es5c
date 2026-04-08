@@ -123,6 +123,31 @@ describe('Gateway Service - Login Routing', () => {
             payload
         );
     });
+
+    it('should route POST /game/finish to the user service', async () => {
+        axios.post = vi.fn();
+        const mockResponse = { data: { success: true } };
+        axios.post.mockResolvedValueOnce(mockResponse);
+
+        const gameData = {
+            userId: 'testuser',
+            rival: 'bot',
+            level: 'Medium',
+            duration: 120,
+            result: 'won'
+        };
+
+        const res = await request(app)
+            .post('/game/finish')
+            .send(gameData);
+
+        expect(res.status).toBe(201);
+        expect(res.body).toEqual({ success: true });
+        expect(axios.post).toHaveBeenCalledWith(
+            expect.stringContaining('/game/finish'),
+            gameData
+        );
+    });
 });
 
 describe('Gateway Service - Bot play API', () => {

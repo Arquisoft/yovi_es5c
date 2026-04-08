@@ -63,7 +63,7 @@ describe('GameHistory', () => {
           rival: 'bot',
           level: 1,
           duration: 90,
-          result: 'win',
+          result: 'won',
           createdAt: '2026-03-01T12:00:00.000Z',
         },
         {

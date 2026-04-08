@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Alert, Box, Button, Paper, Typography } from '@mui/material'
+import { Alert, Box, Button, Paper, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Stack } from '@mui/material'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useSession } from "../SessionContext";
+import TrophyIcon from '@mui/icons-material/EmojiEvents';
+import ErrorIcon from '@mui/icons-material/SentimentVeryDissatisfied';
 import { getInitialBoardSize } from "./GameSetup";
 
 const apiEndpoint = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -100,12 +102,12 @@ export default function GamePage() {
   const [board, setBoard] = useState<Board>(makeEmptyBoard(boardSize))
   const [busy, setBusy] = useState(false)
   const [winner, setWinner] = useState<Winner>(null)
-
-  const locationState = location.state as { mode?: GameMode; bot_id?: string; difficulty?: Difficulty } | null
-  const mode       = locationState?.mode       ?? 'bot'
-  const bot_id     = locationState?.bot_id     ?? 'random_bot'
-  const difficulty = locationState?.difficulty ?? 'Medium'
-
+  const [startTime, setStartTime] = useState<number | null>(null)
+  const [isGameOver, setIsGameOver] = useState(false)
+  const state = location.state as { mode?: GameMode; bot_id?: string; difficulty?: Difficulty } | null
+  const mode = state?.mode ?? 'bot'
+  const difficulty = state?.difficulty ?? 'Medium'
+  const bot_id     = state?.bot_id     ?? 'random_bot'
   const [currentPlayer, setCurrentPlayer] = useState<'B' | 'R'>('B')
   const [message, setMessage] = useState(mode === 'pvp' ? 'Player 1 turn.' : 'Your turn. Place a piece.')
   const [error, setError] = useState('')
@@ -143,6 +145,11 @@ export default function GamePage() {
     }
 
     setError('')
+    // Iniciar cronómetro en el primer movimiento
+    if (!startTime) {
+      setStartTime(Date.now())
+    }
+
     setBusy(true)
     const previousBoard = cloneBoard(board)
     const optimisticBoard = cloneBoard(board)
@@ -182,15 +189,37 @@ export default function GamePage() {
       const updated = boardFromLayout(moveData.state.size, moveData.state.layout)
       setBoard(updated)
 
-      if (moveData.game_over && moveData.winner) {
-        setWinner(moveData.winner)
-        if (moveData.winner === 'B') {
+      if (moveData.game_over) {
+        const finalWinner = moveData.winner;
+        setWinner(finalWinner);
+        setIsGameOver(true);
+
+        // Calcular duración y guardar partida
+        const duration = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+        const username = localStorage.getItem('username') || 'anonymous';
+
+        void fetch(`${apiEndpoint}/game/finish`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: username,
+            rival: mode === 'pvp' ? 'multiplayer' : 'bot',
+            level: difficulty,
+            duration: duration,
+            result: finalWinner === 'B' ? 'won' : 'lost'
+          })
+        });
+        
+        if (finalWinner === 'B') {
           setMessage(mode === 'pvp' ? 'Player 1 wins.' : 'You win.')
-        } else {
+        } else if (finalWinner === 'R') {
           setMessage(mode === 'pvp' ? 'Player 2 wins.' : 'Bot wins.')
+        } else {
+          setMessage('Game Over.')
         }
       } else {
         setWinner(null)
+        setIsGameOver(false);
         if (mode === 'pvp') {
           const nextPlayer = moveData.state.turn === 0 ? 'B' : 'R'
           setCurrentPlayer(nextPlayer)
@@ -213,6 +242,8 @@ export default function GamePage() {
     setBoard(makeEmptyBoard(boardSize))
     setBusy(false)
     setWinner(null)
+    setStartTime(null)
+    setIsGameOver(false)
     setCurrentPlayer('B')
     setError('')
     setMessage(mode === 'pvp' ? 'Player 1 turn.' : 'Your turn. Place a piece.')
@@ -235,6 +266,17 @@ export default function GamePage() {
 
   const svgWidth = svgPadding * 2 + (boardSize - 1) * horizontalGap
   const svgHeight = svgPadding * 2 + (boardSize - 1) * verticalGap
+
+  // Lógica para el contenido del diálogo de fin de partida
+  const isPvP = mode === 'pvp';
+  const userWon = winner === 'B';
+  const dialogTitle = isPvP 
+    ? `Player ${winner === 'B' ? 'B' : 'R'} wins!` 
+    : (userWon ? 'Congratulations, you won!' : 'Oh no! The bot won');
+  
+  const accentColor = isPvP 
+    ? (winner === 'B' ? '#1565c0' : '#c62828') 
+    : (userWon ? '#2e7d32' : '#d32f2f');
 
   return (
     <div className="main-content">
@@ -301,6 +343,57 @@ export default function GamePage() {
           </Button>
         </Box>
       </Paper>
+
+      {/* Diálogo de Fin de Partida */}
+      <Dialog 
+        open={isGameOver} 
+        onClose={reset}
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 4,
+              p: 2,
+              textAlign: 'center',
+              minWidth: 320,
+              border: `2px solid ${accentColor}`
+            }
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, fontSize: '1.5rem', color: accentColor }}>
+          {dialogTitle}
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} alignItems="center">
+            {/* Imagen/Icono dinámico según resultado en modo Bot */}
+            {!isPvP && (
+              <Box sx={{ mt: 2 }}>
+                {userWon ? (
+                  <TrophyIcon sx={{ fontSize: 80, color: '#fbc02d' }} />
+                ) : (
+                  <ErrorIcon sx={{ fontSize: 80, color: '#d32f2f' }} />
+                )}
+              </Box>
+            )}
+            <Typography variant="body1" color="text.secondary">
+              {isPvP 
+                ? `The game has ended. Player ${winner === 'B' ? 'blue' : 'red'} wins.`
+                : (userWon 
+                    ? 'You outsmarted the bot. Great play!' 
+                    : 'The bot was smarter this time. Wanna try again?')
+              }
+            </Typography>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 1 }}>
+          <Button variant="contained" onClick={reset} sx={{ bgcolor: accentColor, '&:hover': { bgcolor: accentColor, opacity: 0.9 } }}>
+            Try again
+          </Button>
+          <Button variant="outlined" onClick={() => navigate('/homepage')} color="inherit">
+            Go Home
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   )
 }
