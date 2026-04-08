@@ -1,7 +1,7 @@
 ifndef::imagesdir[:imagesdir: ../images]
 
 [[section-design-decisions]]
-=== Decisiones Arquitectónicas
+== Decisiones Arquitectónicas
 
 
 ifdef::arc42help[]
