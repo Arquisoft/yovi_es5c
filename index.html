@@ -500,25 +500,28 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_persistencia_de_datos">8.3. Persistencia de datos</a></li>
 <li><a href="#_conceptos_de_desarrollo">8.4. Conceptos de desarrollo</a></li>
 <li><a href="#_seguridad">8.5. Seguridad</a></li>
-<li><a href="#section-design-decisions">8.6. Decisiones Arquitectónicas</a></li>
-<li><a href="#_base_de_datos">8.7. Base de Datos</a></li>
-<li><a href="#_estrategia_de_control_de_versiones">8.8. Estrategia de Control de Versiones</a></li>
-<li><a href="#_centralización_de_endpoints">8.9. Centralización de Endpoints</a></li>
 </ul>
 </li>
-<li><a href="#section-quality-scenarios">9. Requisitos de Calidad</a>
+<li><a href="#section-design-decisions">9. Decisiones Arquitectónicas</a>
 <ul class="sectlevel2">
-<li><a href="#_árbol_de_calidad">9.1. Árbol de Calidad</a></li>
-<li><a href="#_escenarios_de_calidad">9.2. Escenarios de Calidad</a></li>
+<li><a href="#_base_de_datos">9.1. Base de Datos</a></li>
+<li><a href="#_estrategia_de_control_de_versiones">9.2. Estrategia de Control de Versiones</a></li>
+<li><a href="#_centralización_de_endpoints">9.3. Centralización de Endpoints</a></li>
 </ul>
 </li>
-<li><a href="#section-technical-risks">10. Riesgos y Deuda Técnica</a>
+<li><a href="#section-quality-scenarios">10. Requisitos de Calidad</a>
 <ul class="sectlevel2">
-<li><a href="#_11_1_riesgos">10.1. 11.1 Riesgos</a></li>
-<li><a href="#_11_2_deuda_técnica">10.2. 11.2 Deuda técnica</a></li>
+<li><a href="#_árbol_de_calidad">10.1. Árbol de Calidad</a></li>
+<li><a href="#_escenarios_de_calidad">10.2. Escenarios de Calidad</a></li>
 </ul>
 </li>
-<li><a href="#section-glossary">11. Glossary</a></li>
+<li><a href="#section-technical-risks">11. Riesgos y Deuda Técnica</a>
+<ul class="sectlevel2">
+<li><a href="#_11_1_riesgos">11.1. 11.1 Riesgos</a></li>
+<li><a href="#_11_2_deuda_técnica">11.2. 11.2 Deuda técnica</a></li>
+</ul>
+</li>
+<li><a href="#section-glossary">12. Glossary</a></li>
 </ul>
 </div>
 </div>
@@ -2034,8 +2037,11 @@ La base de datos no se expone directamente al exterior y solo es accesible desde
 </div>
 <div style="page-break-after: always;"></div>
 </div>
-<div class="sect2">
-<h3 id="section-design-decisions">8.6. Decisiones Arquitectónicas</h3>
+</div>
+</div>
+<div class="sect1">
+<h2 id="section-design-decisions">9. Decisiones Arquitectónicas</h2>
+<div class="sectionbody">
 <div class="sidebarblock arc42help">
 <div class="content">
 <div class="paragraph">
@@ -2080,9 +2086,8 @@ There you will find links and examples about ADR.</p>
 </div>
 </div>
 </div>
-</div>
 <div class="sect2">
-<h3 id="_base_de_datos">8.7. Base de Datos</h3>
+<h3 id="_base_de_datos">9.1. Base de Datos</h3>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -2120,7 +2125,7 @@ There you will find links and examples about ADR.</p>
 </table>
 </div>
 <div class="sect2">
-<h3 id="_estrategia_de_control_de_versiones">8.8. Estrategia de Control de Versiones</h3>
+<h3 id="_estrategia_de_control_de_versiones">9.2. Estrategia de Control de Versiones</h3>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -2158,7 +2163,7 @@ There you will find links and examples about ADR.</p>
 </table>
 </div>
 <div class="sect2">
-<h3 id="_centralización_de_endpoints">8.9. Centralización de Endpoints</h3>
+<h3 id="_centralización_de_endpoints">9.3. Centralización de Endpoints</h3>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -2203,7 +2208,7 @@ There you will find links and examples about ADR.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="section-quality-scenarios">9. Requisitos de Calidad</h2>
+<h2 id="section-quality-scenarios">10. Requisitos de Calidad</h2>
 <div class="sectionbody">
 <div class="sidebarblock arc42help">
 <div class="content">
@@ -2228,7 +2233,7 @@ concrete and measurable.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_árbol_de_calidad">9.1. Árbol de Calidad</h3>
+<h3 id="_árbol_de_calidad">10.1. Árbol de Calidad</h3>
 <div class="sidebarblock arc42help">
 <div class="content">
 <div class="paragraph">
@@ -2265,9 +2270,9 @@ concrete and measurable.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_escenarios_de_calidad">9.2. Escenarios de Calidad</h3>
+<h3 id="_escenarios_de_calidad">10.2. Escenarios de Calidad</h3>
 <div class="sect3">
-<h4 id="_escenario_1_exactitud_en_movimientos">9.2.1. Escenario 1: Exactitud en Movimientos</h4>
+<h4 id="_escenario_1_exactitud_en_movimientos">10.2.1. Escenario 1: Exactitud en Movimientos</h4>
 <div class="imageblock">
 <div class="content">
 <img src="./images/escenarioCalidadExactitud1.png" alt="escenarioCalidadExactitud1" width="784" height="134">
@@ -2275,7 +2280,7 @@ concrete and measurable.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_escenario_2_exactitud_en_estado_de_la_partida">9.2.2. Escenario 2: Exactitud en estado de la partida</h4>
+<h4 id="_escenario_2_exactitud_en_estado_de_la_partida">10.2.2. Escenario 2: Exactitud en estado de la partida</h4>
 <div class="imageblock">
 <div class="content">
 <img src="./images/escenarioCalidadExactitud2.png" alt="escenarioCalidadExactitud2" width="784" height="149">
@@ -2283,7 +2288,7 @@ concrete and measurable.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_escenario_3_usabilidad_de_la_aplicación">9.2.3. Escenario 3: Usabilidad de la aplicación</h4>
+<h4 id="_escenario_3_usabilidad_de_la_aplicación">10.2.3. Escenario 3: Usabilidad de la aplicación</h4>
 <div class="imageblock">
 <div class="content">
 <img src="./images/escenarioCalidadUsabilidad1.png" alt="escenarioCalidadUsabilidad1" width="784" height="144">
@@ -2291,7 +2296,7 @@ concrete and measurable.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_escenario_4_rendimiento_en_tiempos_de_respuesta">9.2.4. Escenario 4: Rendimiento en tiempos de respuesta</h4>
+<h4 id="_escenario_4_rendimiento_en_tiempos_de_respuesta">10.2.4. Escenario 4: Rendimiento en tiempos de respuesta</h4>
 <div class="imageblock">
 <div class="content">
 <img src="./images/escenarioCalidadRendimiento1.png" alt="escenarioCalidadRendimiento1" width="784" height="164">
@@ -2299,7 +2304,7 @@ concrete and measurable.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_escenario_5_protección_contra_inyecciones_sql">9.2.5. Escenario 5: Protección contra inyecciones SQL</h4>
+<h4 id="_escenario_5_protección_contra_inyecciones_sql">10.2.5. Escenario 5: Protección contra inyecciones SQL</h4>
 <div class="imageblock">
 <div class="content">
 <img src="./images/escenarioCalidadSeguridad1.png" alt="escenarioCalidadSeguridad1" width="784" height="134">
@@ -2307,7 +2312,7 @@ concrete and measurable.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_escenario_6_disponibilidad_de_la_aplicación_en_mantenimientos">9.2.6. Escenario 6: Disponibilidad de la aplicación en mantenimientos</h4>
+<h4 id="_escenario_6_disponibilidad_de_la_aplicación_en_mantenimientos">10.2.6. Escenario 6: Disponibilidad de la aplicación en mantenimientos</h4>
 <div class="imageblock">
 <div class="content">
 <img src="./images/escenarioCalidadDisponibilidad1.png" alt="escenarioCalidadDisponibilidad1" width="784" height="221">
@@ -2319,7 +2324,7 @@ concrete and measurable.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="section-technical-risks">10. Riesgos y Deuda Técnica</h2>
+<h2 id="section-technical-risks">11. Riesgos y Deuda Técnica</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>En esta sección se recogen los principales riesgos y deudas técnicas identificados durante el desarrollo del proyecto. Se han ordenado por prioridad y se incluye una breve propuesta de mitigación para cada caso.</p>
@@ -2348,7 +2353,7 @@ concrete and measurable.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_11_1_riesgos">10.1. 11.1 Riesgos</h3>
+<h3 id="_11_1_riesgos">11.1. 11.1 Riesgos</h3>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 16.6666%;">
@@ -2393,7 +2398,7 @@ concrete and measurable.</p>
 </table>
 </div>
 <div class="sect2">
-<h3 id="_11_2_deuda_técnica">10.2. 11.2 Deuda técnica</h3>
+<h3 id="_11_2_deuda_técnica">11.2. 11.2 Deuda técnica</h3>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 16.6666%;">
@@ -2429,7 +2434,7 @@ concrete and measurable.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="section-glossary">11. Glossary</h2>
+<h2 id="section-glossary">12. Glossary</h2>
 <div class="sectionbody">
 <div class="sidebarblock arc42help">
 <div class="content">
