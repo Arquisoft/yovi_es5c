@@ -67,6 +67,16 @@ Los principales conceptos de dominio son:
 * Estado de partida: representación del tablero en un instante dado.
 * Estrategia: algoritmo utilizado por el sistema para calcular el siguiente movimiento.
 
+.Diferentes estrategias
+****
+- Random: el sistema juega posiciones aleatorias.
+- Centro: el sistema juega las posiciones más cerca del centro del tablero.
+- Borde: el sistema juega las posiciones más lejanas al centro del tablero.
+- Ansioso: el sistema juega las posiciones más cercanas al resto de sus piezas.
+- Alpha : el sistema juega las posiciones más beneficiosas para conseguir ganar la partida.
+- Mirror: el sistema juega las posiciones espejo a las jugadas previamente.
+****
+
 El estado del juego se representa mediante la notación YEN, que permite serializar una partida en formato JSON.
 Esta notación es utilizada tanto en la comunicación entre servicios como en el API para bots, garantizando coherencia en todo el sistema.
 
