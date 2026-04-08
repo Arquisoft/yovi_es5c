@@ -60,6 +60,7 @@ class SimpleFlowSimulation extends Simulation {
     )
 
   setUp(
+    //Se inyectan 2 usuarios por segundo durante 60 segundos
     scn.inject(constantUsersPerSec(2).during(60.seconds).randomized)
   ).protocols(httpProtocol)
 
