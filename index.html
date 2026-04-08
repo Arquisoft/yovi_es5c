@@ -512,7 +512,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_escenarios_de_calidad">9.2. Escenarios de Calidad</a></li>
 </ul>
 </li>
-<li><a href="#section-technical-risks">10. Risks and Technical Debts</a></li>
+<li><a href="#section-technical-risks">10. Riesgos y Deuda Técnica</a>
+<ul class="sectlevel2">
+<li><a href="#_11_1_riesgos">10.1. 11.1 Riesgos</a></li>
+<li><a href="#_11_2_deuda_técnica">10.2. 11.2 Deuda técnica</a></li>
+</ul>
+</li>
 <li><a href="#section-glossary">11. Glossary</a></li>
 </ul>
 </div>
@@ -2314,8 +2319,11 @@ concrete and measurable.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="section-technical-risks">10. Risks and Technical Debts</h2>
+<h2 id="section-technical-risks">10. Riesgos y Deuda Técnica</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>En esta sección se recogen los principales riesgos y deudas técnicas identificados durante el desarrollo del proyecto. Se han ordenado por prioridad y se incluye una breve propuesta de mitigación para cada caso.</p>
+</div>
 <div class="sidebarblock arc42help">
 <div class="content">
 <div class="paragraph">
@@ -2339,7 +2347,85 @@ concrete and measurable.</p>
 </div>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_11_1_riesgos">10.1. 11.1 Riesgos</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 41.6666%;">
+<col style="width: 8.3333%;">
+<col style="width: 33.3335%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Nombre</th>
+<th class="tableblock halign-left valign-top">Descripción</th>
+<th class="tableblock halign-left valign-top">Prioridad</th>
+<th class="tableblock halign-left valign-top">Mitigación propuesta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Falta de tiempo</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El proyecto debe desarrollarse al mismo tiempo que otras asignaturas y entregas, por lo que existe un riesgo real de no llegar a implementar todas las funcionalidades previstas con la calidad deseada.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Alta</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Priorizar primero las funcionalidades esenciales, trabajar con incrementos pequeños y evitar dedicar demasiado tiempo a mejoras secundarias antes de estabilizar la funcionalidad principal.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Problemas de coordinación y control de versiones</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Al tratarse de un proyecto en equipo con varios servicios y documentación compartida, una mala coordinación o una resolución incorrecta de conflictos en GitHub puede sobrescribir trabajo, retrasar integraciones o dejar cambios inconsistentes entre módulos.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Media</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Seguir utilizando issues, pull requests y ramas de corta duración, y revisar cuidadosamente las fusiones antes de integrar cambios en las ramas principales.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Punto único de fallo en el gateway</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El API Gateway es el punto principal de entrada para todo el tráfico externo. Si falla, la aplicación web y el acceso de bots quedan indisponibles, ya que el despliegue actual no cuenta con réplicas ni mecanismos de tolerancia a fallos.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Media</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Añadir healthchecks, políticas de reinicio y un despliegue más robusto, y valorar replicación si el entorno de producción crece.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Experiencia limitada con algunas tecnologías</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Parte del equipo está trabajando por primera vez con tecnologías como React, despliegue con Docker, documentación Arc42 y separación por servicios, lo que puede ralentizar el desarrollo y provocar errores evitables.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Media</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Compartir conocimiento dentro del equipo, reutilizar ejemplos que ya funcionan en el propio proyecto y documentar las decisiones técnicas principales para reducir el tiempo de aprendizaje.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_11_2_deuda_técnica">10.2. 11.2 Deuda técnica</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 41.6666%;">
+<col style="width: 8.3333%;">
+<col style="width: 33.3335%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Nombre</th>
+<th class="tableblock halign-left valign-top">Descripción</th>
+<th class="tableblock halign-left valign-top">Prioridad</th>
+<th class="tableblock halign-left valign-top">Mitigación propuesta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Inconsistencia de configuración</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Algunas variables de entorno y URLs de servicios siguen convenciones distintas según el módulo o el entorno. Esto hace que el despliegue y el mantenimiento sean más frágiles de lo necesario.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Media</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unificar convenciones de nombres, validar la configuración al arrancar y mantener una única referencia para las variables de despliegue.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Monitorización básica</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Prometheus y Grafana están presentes en el proyecto, pero su configuración todavía es básica y se centra sobre todo en el servicio de usuarios. Esto deja una observabilidad limitada para el resto de la arquitectura.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Media</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Extender la recogida de métricas al resto de servicios y mejorar progresivamente dashboards y alertas.</p></td>
+</tr>
+</tbody>
+</table>
 <div style="page-break-after: always;"></div>
+</div>
 </div>
 </div>
 <div class="sect1">
