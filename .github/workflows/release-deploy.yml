@@ -116,12 +116,13 @@ jobs:
           cd gatewayservice && npm ci && node gateway-service.js &
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          MONGODB_URI: mongodb://localhost:27017/users # Asegúrate de que tus servicios apunten al mongo del service container
 
       - name: Wait for gateway
         run: |
           for i in {1..30}; do
             curl -s http://localhost:8000/health && break
-            echo "Waiting..."
+            echo "Waiting for gateway..."
             sleep 2
           done
 
@@ -131,23 +132,31 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Download Gatling
+      - name: Download Gatling Bundle
         run: |
-          wget -q https://github.com/gatling/gatling/releases/download/gatling-3.10.5/gatling-charts-highcharts-bundle-3.10.5.zip
-          unzip -q gatling-charts-highcharts-bundle-3.10.5.zip
+          # URL CORRECTA DESDE MAVEN CENTRAL
+          VERSION="3.10.5"
+          wget -q https://repo1.maven.org/maven2/io/gatling/highcharts/gatling-charts-highcharts-bundle/$VERSION/gatling-charts-highcharts-bundle-$VERSION-bundle.zip
+          unzip -q gatling-charts-highcharts-bundle-$VERSION-bundle.zip
+          # Renombramos para no volvernos locos con nombres largos
+          mv gatling-charts-highcharts-bundle-$VERSION gatling-bin
 
       - name: Run Gatling
         run: |
-          cp gatling/simulations/SimpleFlowSimulation.scala gatling-charts-highcharts-bundle-3.10.5/user-files/simulations/
-          cp gatling/resources/users.csv gatling-charts-highcharts-bundle-3.10.5/user-files/resources/
-          gatling-charts-highcharts-bundle-3.10.5/bin/gatling.sh -s myapp.SimpleFlowSimulation
+          # Asegúrate de que las rutas de origen en tu repo sean correctas
+          # Según tu script: gatling/simulations/ y gatling/resources/
+          cp gatling/simulations/SimpleFlowSimulation.scala gatling-bin/user-files/simulations/
+          if [ -d "gatling/resources" ]; then cp -r gatling/resources/* gatling-bin/user-files/resources/; fi
+          
+          # Ejecutamos usando la ruta renombrada
+          ./gatling-bin/bin/gatling.sh -s myapp.SimpleFlowSimulation -rm local
 
       - name: Upload Gatling report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: gatling-report
-          path: gatling-charts-highcharts-bundle-3.10.5/results/
+          path: gatling-bin/results/
 
   docker-push-users:
     name: Publish users image
