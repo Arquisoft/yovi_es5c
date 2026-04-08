@@ -209,11 +209,19 @@ app.post('/game/move', async (req, res) => {
 
 app.post('/play', async (req, res) => {
   try {
-    const { position, bot_id, difficulty } = req.body;
+    const { bot_id, difficulty } = req.body;
+    const rawPosition = req.body.position || req.body;
 
-    if (!position) {
-      return res.status(400).json({ error: 'position is required' });
+    if (!rawPosition || rawPosition.size === undefined || rawPosition.turn === undefined || !rawPosition.players || !rawPosition.layout) {
+      return res.status(400).json({ error: 'YEN position is required' });
     }
+
+    const position = {
+      size: rawPosition.size,
+      turn: rawPosition.turn,
+      players: rawPosition.players,
+      layout: rawPosition.layout,
+    };
 
     const resolvedBot = resolvePublicBotConfig(bot_id, difficulty);
     if (resolvedBot.error) {

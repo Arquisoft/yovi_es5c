@@ -114,12 +114,10 @@ async fn test_choose_endpoint_with_partially_filled_board() {
 async fn test_play_endpoint_with_default_public_bot() {
     let app = test_app();
     let request_body = serde_json::json!({
-        "position": {
-            "size": 3,
-            "turn": 0,
-            "players": ["B", "R"],
-            "layout": "./../..."
-        }
+        "size": 3,
+        "turn": 0,
+        "players": ["B", "R"],
+        "layout": "./../..."
     });
 
     let response = app
@@ -147,12 +145,10 @@ async fn test_play_endpoint_with_default_public_bot() {
 async fn test_game_server_router_exposes_ybot_play_endpoint() {
     let app = game_server::create_router(create_default_state());
     let request_body = serde_json::json!({
-        "position": {
-            "size": 3,
-            "turn": 0,
-            "players": ["B", "R"],
-            "layout": "./../..."
-        }
+        "size": 3,
+        "turn": 0,
+        "players": ["B", "R"],
+        "layout": "./../..."
     });
 
     let response = app
