@@ -81,7 +81,8 @@ app.post('/login', async (req, res) => {
             return res.status(400).json({ error: 'Username and password are required.' });
         }
 
-        const user = await User.findOne({ username });
+        const query = { username: String(username) }; // Forzado de tipo explícito
+        const user = await User.findOne(query);
 
         //Checks user exists in database
         if(!user) {

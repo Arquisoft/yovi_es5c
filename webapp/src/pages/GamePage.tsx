@@ -111,12 +111,8 @@ export default function GamePage() {
   const [currentPlayer, setCurrentPlayer] = useState<'B' | 'R'>('B')
   const [message, setMessage] = useState(mode === 'pvp' ? 'Player 1 turn.' : 'Your turn. Place a piece.')
   const [error, setError] = useState('')
-
   const { isLoggedIn } = useSession();
-
-  if (!isLoggedIn) {
-    return <Navigate to="/login" replace />;
-  }
+  
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -135,6 +131,10 @@ export default function GamePage() {
 
     checkStatus()
   }, [mode])
+
+  if (!isLoggedIn) {
+    return <Navigate to="/login" replace />;
+  }
 
   const play = async (row: number, col: number) => {
     if (!isAvailable || busy || winner !== null || board[row][col] !== '.') {

@@ -184,7 +184,7 @@ describe('Gateway Service - Bot play API', () => {
 
         const res = await request(app)
             .post('/play')
-            .send({ position });
+            .send(position);
 
         expect(res.status).toBe(200);
         expect(res.body.turn).toBe(1);
@@ -199,13 +199,46 @@ describe('Gateway Service - Bot play API', () => {
         );
     });
 
-    it('should reject POST /play when position is missing', async () => {
+    it('should still route POST /play with the legacy position wrapper', async () => {
+        axios.post = vi.fn();
+        axios.post.mockResolvedValueOnce({
+            data: {
+                size: 3,
+                turn: 1,
+                players: ['B', 'R'],
+                layout: 'B/../...'
+            }
+        });
+
+        const position = {
+            size: 3,
+            turn: 0,
+            players: ['B', 'R'],
+            layout: './../...'
+        };
+
+        const res = await request(app)
+            .post('/play')
+            .send({ position });
+
+        expect(res.status).toBe(200);
+        expect(axios.post).toHaveBeenCalledWith(
+            expect.stringContaining('/v1/ybot/play'),
+            {
+                position,
+                bot_id: 'center_bot',
+                difficulty: 'Hard',
+            }
+        );
+    });
+
+    it('should reject POST /play when YEN position is missing', async () => {
         const res = await request(app)
             .post('/play')
             .send({ bot_id: 'center_bot' });
 
         expect(res.status).toBe(400);
-        expect(res.body.error).toBe('position is required');
+        expect(res.body.error).toBe('YEN position is required');
     });
 
     it('should reject POST /play with unknown difficulty', async () => {

@@ -213,3 +213,71 @@ paths:
           description: bot_id o difficulty desconocidos/inválidos
         '500':
           description: Error interno del servidor
+
+  /play:
+    post:
+      summary: Ejecuta una jugada del bot sobre una posicion YEN
+      description: Recibe una posicion YEN directamente y devuelve la posicion YEN resultante tras aplicar la jugada del bot. Por defecto usa center_bot en dificultad Hard.
+      tags:
+        - Bot API
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - size
+                - turn
+                - players
+                - layout
+              properties:
+                size:
+                  type: integer
+                  example: 3
+                turn:
+                  type: integer
+                  example: 0
+                players:
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    - B
+                    - R
+                layout:
+                  type: string
+                  example: ./../...
+            example:
+              size: 3
+              turn: 0
+              players:
+                - B
+                - R
+              layout: ./../...
+      responses:
+        '200':
+          description: Posicion YEN resultante tras la jugada del bot
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  size:
+                    type: integer
+                    example: 3
+                  turn:
+                    type: integer
+                    example: 1
+                  players:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - B
+                      - R
+                  layout:
+                    type: string
+                    example: B/../...
+        '400':
+          description: Peticion invalida o error propagado desde Gamey

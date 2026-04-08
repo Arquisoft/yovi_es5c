@@ -4,7 +4,7 @@ use axum::{
 };
 use gamey::{
     ErrorResponse, MoveResponse, PlayResponse, RandomBot, YBotRegistry, YEN, create_default_state,
-    create_router, state::AppState,
+    create_router, game_server, state::AppState,
 };
 use http_body_util::BodyExt;
 use std::sync::Arc;
@@ -114,12 +114,10 @@ async fn test_choose_endpoint_with_partially_filled_board() {
 async fn test_play_endpoint_with_default_public_bot() {
     let app = test_app();
     let request_body = serde_json::json!({
-        "position": {
-            "size": 3,
-            "turn": 0,
-            "players": ["B", "R"],
-            "layout": "./../..."
-        }
+        "size": 3,
+        "turn": 0,
+        "players": ["B", "R"],
+        "layout": "./../..."
     });
 
     let response = app
@@ -141,6 +139,31 @@ async fn test_play_endpoint_with_default_public_bot() {
 
     assert_eq!(play_response.size(), 3);
     assert_eq!(play_response.turn(), 1);
+}
+
+#[tokio::test]
+async fn test_game_server_router_exposes_ybot_play_endpoint() {
+    let app = game_server::create_router(create_default_state());
+    let request_body = serde_json::json!({
+        "size": 3,
+        "turn": 0,
+        "players": ["B", "R"],
+        "layout": "./../..."
+    });
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/v1/ybot/play")
+                .header("content-type", "application/json")
+                .body(Body::from(request_body.to_string()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
 }
 
 #[tokio::test]

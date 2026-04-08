@@ -11,7 +11,7 @@ pub use play::MoveTurnResponse;
 
 use crate::{
     GameYError,
-    bot_server::{choose, create_default_state, state::AppState, status},
+    bot_server::{choose, create_default_state, play as bot_play, state::AppState, status},
 };
 
 /// Creates the game server router by extending the bot server router.
@@ -21,6 +21,10 @@ pub fn create_router(state: AppState) -> axum::Router {
         .route(
             "/{api_version}/ybot/choose/{bot_id}",
             axum::routing::post(choose::choose),
+        )
+        .route(
+            "/{api_version}/ybot/play",
+            axum::routing::post(bot_play::play),
         )
         .route(
             "/{api_version}/game/move",
