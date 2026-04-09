@@ -245,6 +245,54 @@ app.post('/play', async (req, res) => {
   }
 });
 
+app.get('/play', async (req, res) => {
+  try {
+    // 1. Extraemos los datos de req.query en lugar de req.body
+    const { bot_id, difficulty, position: positionString } = req.query;
+
+    if (!positionString) {
+      return res.status(400).json({ error: 'YEN position is required in query parameters' });
+    }
+
+    // 2. Parseamos el string JSON de la posición
+    let rawPosition;
+    try {
+      rawPosition = JSON.parse(positionString);
+    } catch (parseError) {
+      return res.status(400).json({ error: 'Invalid JSON format for position parameter' });
+    }
+
+    // 3. Validamos la estructura del objeto parseado
+    if (rawPosition.size === undefined || rawPosition.turn === undefined || !rawPosition.players || !rawPosition.layout) {
+      return res.status(400).json({ error: 'YEN position is missing required fields' });
+    }
+
+    const position = {
+      size: rawPosition.size,
+      turn: rawPosition.turn,
+      players: rawPosition.players,
+      layout: rawPosition.layout,
+    };
+
+    const resolvedBot = resolvePublicBotConfig(bot_id, difficulty);
+    if (resolvedBot.error) {
+      return res.status(400).json({ error: resolvedBot.error });
+    }
+
+    // Nota: Mantenemos axios.post aquí asumiendo que el servicio interno de gameyServiceUrl 
+    // sigue requiriendo un POST. Si ese servicio también cambió a GET, habría que ajustarlo.
+    const playUrl = new URL('/v1/ybot/play', gameyServiceUrl);
+    const response = await axios.post(playUrl.href, {
+      position,
+      bot_id: resolvedBot.bot_id,
+      difficulty: resolvedBot.difficulty,
+    });
+
+    res.status(200).json(response.data);
+  } catch (error) {
+    handleErrors(res, error);
+  }
+});
 
 const server = app.listen(port, () => console.log(`Gateway listening on ${port}`))
 
