@@ -521,7 +521,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_11_2_deuda_técnica">11.2. 11.2 Deuda técnica</a></li>
 </ul>
 </li>
-<li><a href="#section-glossary">12. Glossary</a></li>
+<li><a href="#section-glossary">12. Glosario</a></li>
 </ul>
 </div>
 </div>
@@ -1933,6 +1933,33 @@ on this list.</p>
 </li>
 </ul>
 </div>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">Diferentes estrategias</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Random: el sistema juega posiciones aleatorias.</p>
+</li>
+<li>
+<p>Centro: el sistema juega las posiciones más cerca del centro del tablero.</p>
+</li>
+<li>
+<p>Borde: el sistema juega las posiciones más lejanas al centro del tablero.</p>
+</li>
+<li>
+<p>Ansioso: el sistema juega las posiciones más cercanas al resto de sus piezas.</p>
+</li>
+<li>
+<p>Alpha : el sistema juega las posiciones más beneficiosas para conseguir ganar la partida.</p>
+</li>
+<li>
+<p>Mirror: el sistema juega las posiciones espejo a las jugadas previamente.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
 <div class="paragraph">
 <p>El estado del juego se representa mediante la notación YEN, que permite serializar una partida en formato JSON.
 Esta notación es utilizada tanto en la comunicación entre servicios como en el API para bots, garantizando coherencia en todo el sistema.</p>
@@ -2434,7 +2461,7 @@ concrete and measurable.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="section-glossary">12. Glossary</h2>
+<h2 id="section-glossary">12. Glosario</h2>
 <div class="sectionbody">
 <div class="sidebarblock arc42help">
 <div class="content">
@@ -2485,12 +2512,16 @@ concrete and measurable.</p>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>&lt;Term-1&gt;</em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>&lt;definition-1&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Yen (notación)</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Formato JSON para representar el estado completo de una partida del juego Y en un instante dado,para poder comunicarse con la aplicación.</em></p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>&lt;Term-2&gt;</em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>&lt;definition-2&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>API Gateway</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Punto de entrada único del sistema que centraliza todos los endpoints públicos y enruta las peticiones hacia los microservicios internos (servicio de usuarios y servicio de juego).</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>SPA (Single Page Application)</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Tipo de aplicación web que carga una única página HTML inicial y actualiza el contenido dinámicamente sin recargar el navegador.</em></p></td>
 </tr>
 </tbody>
 </table>
