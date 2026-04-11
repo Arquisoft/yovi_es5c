@@ -464,6 +464,29 @@ fn test_swap_is_rejected_before_opening_move() {
 }
 
 #[test]
+fn test_swap_is_rejected_after_second_move() {
+    let mut game = GameY::new(5);
+
+    game.add_move(Movement::Placement {
+        player: PlayerId::new(0),
+        coords: Coordinates::new(4, 0, 0),
+    })
+    .unwrap();
+    game.add_move(Movement::Placement {
+        player: PlayerId::new(1),
+        coords: Coordinates::new(3, 0, 1),
+    })
+    .unwrap();
+
+    let result = game.add_move(Movement::Action {
+        player: PlayerId::new(0),
+        action: GameAction::Swap,
+    });
+
+    assert!(result.is_err());
+}
+
+#[test]
 fn test_yen_round_trip_after_swap() {
     let mut game = GameY::new(3);
 
@@ -489,6 +512,24 @@ fn test_yen_round_trip_after_swap() {
 
     assert_eq!(yen.layout(), reloaded_yen.layout());
     assert_eq!(yen.turn(), reloaded_yen.turn());
+}
+
+#[test]
+fn test_yen_load_preserves_turn_after_swap_position() {
+    let yen_str = r#"{
+        "size": 3,
+        "turn": 0,
+        "players": ["B","R"],
+        "layout": "B/R./..."
+    }"#;
+
+    let yen: YEN = serde_json::from_str(yen_str).unwrap();
+    let game = GameY::try_from(yen).unwrap();
+
+    assert!(!game.check_game_over());
+    assert_eq!(game.next_player(), Some(PlayerId::new(0)));
+    assert_eq!(game.cell_player(&Coordinates::new(2, 0, 0)), Some(PlayerId::new(0)));
+    assert_eq!(game.cell_player(&Coordinates::new(1, 0, 1)), Some(PlayerId::new(1)));
 }
 
 // ============================================================================
