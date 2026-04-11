@@ -500,8 +500,8 @@ impl TryFrom<YEN> for GameY {
             });
         }
 
-        let mut b_coords: Vec<Coordinates> = Vec::new();
-        let mut r_coords: Vec<Coordinates> = Vec::new();
+        let mut ygame = GameY::new(size);
+        let mut winner: Option<PlayerId> = None;
 
         for (row, row_str) in rows.iter().enumerate() {
             let cells: Vec<char> = row_str.chars().collect();
@@ -517,10 +517,10 @@ impl TryFrom<YEN> for GameY {
                 let y = col as u32;
                 let z = size - 1 - x - y;
                 let coords = Coordinates::new(x, y, z);
-                match cell {
-                    'B' => b_coords.push(coords),
-                    'R' => r_coords.push(coords),
-                    '.' => {}
+                let player = match cell {
+                    'B' => Some(PlayerId::new(0)),
+                    'R' => Some(PlayerId::new(1)),
+                    '.' => None,
                     _ => {
                         return Err(GameYError::InvalidCharInLayout {
                             char: *cell,
@@ -528,52 +528,20 @@ impl TryFrom<YEN> for GameY {
                             col,
                         });
                     }
+                };
+
+                if let Some(player) = player {
+                    let set_idx = ygame.register_piece(player, coords);
+                    if ygame.connect_neighbors_and_check_win(coords, player, set_idx) {
+                        winner = Some(player);
+                    }
                 }
             }
         }
 
-        let mut ygame = GameY::new(size);
-        let mut b_index = 0usize;
-        let mut r_index = 0usize;
-
-        while b_index < b_coords.len() || r_index < r_coords.len() {
-            let next_player = match ygame.next_player() {
-                Some(player) => player.id(),
-                None => break,
-            };
-
-            if next_player == 0 {
-                if b_index >= b_coords.len() {
-                    return Err(GameYError::ServerError {
-                        message: "Invalid board: missing B move for expected turn".to_string(),
-                    });
-                }
-                ygame.add_move(Movement::Placement {
-                    player: PlayerId::new(0),
-                    coords: b_coords[b_index],
-                })?;
-                b_index += 1;
-            } else {
-                if r_index >= r_coords.len() {
-                    return Err(GameYError::ServerError {
-                        message: "Invalid board: missing R move for expected turn".to_string(),
-                    });
-                }
-                ygame.add_move(Movement::Placement {
-                    player: PlayerId::new(1),
-                    coords: r_coords[r_index],
-                })?;
-                r_index += 1;
-            }
-        }
-
-        if b_index != b_coords.len() || r_index != r_coords.len() {
-            return Err(GameYError::ServerError {
-                message: "Invalid board: extra moves remain after game end".to_string(),
-            });
-        }
-
-        if !ygame.check_game_over() {
+        if let Some(winner) = winner {
+            ygame.status = GameStatus::Finished { winner };
+        } else {
             ygame.status = GameStatus::Ongoing {
                 next_player: PlayerId::new(game.turn()),
             };
