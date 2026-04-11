@@ -19,8 +19,21 @@ export default function LandingPage() {
           Welcome to <span>GAMEY</span>
         </h1>
 
-        {!isLoggedIn ? (
+        {isLoggedIn ? (
           <div className="button-group">
+            <h3>
+              Welcome back, <span>{username}</span> 🎮
+            </h3>
+
+            <Button
+              variant="contained"
+              onClick={() => navigate('/homepage')}
+            >
+              Go to Dashboard
+            </Button>
+          </div>
+        ) : (
+          <div className="button-group"> 
             <Button
               variant="contained"
               onClick={() => navigate('/login')}
@@ -34,19 +47,6 @@ export default function LandingPage() {
               sx={{ color: 'white', borderColor: 'white' }}
             >
               Create Account
-            </Button>
-          </div>
-        ) : (
-          <div className="button-group">
-            <h3>
-              Welcome back, <span>{username}</span> 🎮
-            </h3>
-
-            <Button
-              variant="contained"
-              onClick={() => navigate('/homepage')}
-            >
-              Go to Dashboard
             </Button>
           </div>
         )}
