@@ -98,6 +98,37 @@ function countPieces(board: Board): number {
   )
 }
 
+function getTouchedSides(board: Board, color: 'B' | 'R') {
+  const size = board.length
+  let touchesA = false
+  let touchesB = false
+  let touchesC = false
+
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col <= row; col++) {
+      if (board[row][col] !== color) {
+        continue
+      }
+
+      const x = size - 1 - row
+      const y = col
+      const z = row - col
+
+      if (x === 0) {
+        touchesA = true
+      }
+      if (y === 0) {
+        touchesB = true
+      }
+      if (z === 0) {
+        touchesC = true
+      }
+    }
+  }
+
+  return { touchesA, touchesB, touchesC }
+}
+
 function getTriangleVertices(size = 74) {
   const height = size * 0.86
   return {
@@ -179,11 +210,21 @@ export default function GamePage() {
   const playerTwoActive = currentPlayer === playerTwoColor
   const playerOneLabel = mode === 'pvp' ? 'Player 1' : 'You'
   const playerTwoLabel = mode === 'pvp' ? 'Player 2' : 'Bot'
+  const playerOneSides = getTouchedSides(board, playerOneColor)
+  const playerTwoSides = getTouchedSides(board, playerTwoColor)
 
-  const renderPlayerTriangle = (label: string, color: 'B' | 'R', isActive: boolean) => {
+  const renderPlayerTriangle = (
+    label: string,
+    color: 'B' | 'R',
+    isActive: boolean,
+    touchedSides: { touchesA: boolean; touchesB: boolean; touchesC: boolean },
+  ) => {
     const triangle = getTriangleVertices()
     const stroke = color === 'B' ? '#1565c0' : '#c62828'
     const fill = color === 'B' ? 'rgba(21, 101, 192, 0.14)' : 'rgba(198, 40, 40, 0.14)'
+    const winningFill = color === 'B' ? 'rgba(21, 101, 192, 0.82)' : 'rgba(198, 40, 40, 0.82)'
+    const inactiveStroke = 'rgba(148, 163, 184, 0.45)'
+    const isWinner = winner === color
 
     return (
       <Paper
@@ -228,12 +269,36 @@ export default function GamePage() {
           >
             <polygon
               points={`${triangle.top.x},${triangle.top.y} ${triangle.left.x},${triangle.left.y} ${triangle.right.x},${triangle.right.y}`}
-              fill={fill}
+              fill={isWinner ? winningFill : fill}
               stroke="transparent"
             />
-            <line x1={triangle.top.x} y1={triangle.top.y} x2={triangle.left.x} y2={triangle.left.y} stroke={stroke} strokeWidth={6} strokeLinecap="round" />
-            <line x1={triangle.left.x} y1={triangle.left.y} x2={triangle.right.x} y2={triangle.right.y} stroke={stroke} strokeWidth={6} strokeLinecap="round" />
-            <line x1={triangle.right.x} y1={triangle.right.y} x2={triangle.top.x} y2={triangle.top.y} stroke={stroke} strokeWidth={6} strokeLinecap="round" />
+            <line
+              x1={triangle.top.x}
+              y1={triangle.top.y}
+              x2={triangle.left.x}
+              y2={triangle.left.y}
+              stroke={touchedSides.touchesB ? stroke : inactiveStroke}
+              strokeWidth={6}
+              strokeLinecap="round"
+            />
+            <line
+              x1={triangle.left.x}
+              y1={triangle.left.y}
+              x2={triangle.right.x}
+              y2={triangle.right.y}
+              stroke={touchedSides.touchesA ? stroke : inactiveStroke}
+              strokeWidth={6}
+              strokeLinecap="round"
+            />
+            <line
+              x1={triangle.right.x}
+              y1={triangle.right.y}
+              x2={triangle.top.x}
+              y2={triangle.top.y}
+              stroke={touchedSides.touchesC ? stroke : inactiveStroke}
+              strokeWidth={6}
+              strokeLinecap="round"
+            />
           </svg>
         </Box>
       </Paper>
@@ -453,7 +518,7 @@ export default function GamePage() {
           }}
         >
           <Box sx={{ width: { xs: '100%', lg: 210 }, flexShrink: 0 }}>
-            {renderPlayerTriangle(playerOneLabel, playerOneColor, playerOneActive)}
+            {renderPlayerTriangle(playerOneLabel, playerOneColor, playerOneActive, playerOneSides)}
           </Box>
 
           <Box sx={{ width: '100%', maxWidth: 560, p: 2 }}>
@@ -500,7 +565,7 @@ export default function GamePage() {
           </Box>
 
           <Box sx={{ width: { xs: '100%', lg: 210 }, flexShrink: 0 }}>
-            {renderPlayerTriangle(playerTwoLabel, playerTwoColor, playerTwoActive)}
+            {renderPlayerTriangle(playerTwoLabel, playerTwoColor, playerTwoActive, playerTwoSides)}
             {canUsePieRule && (
               <Button
                 variant="contained"
