@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom'
+﻿import '@testing-library/jest-dom'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
 import GamePage from '../pages/GamePage'
@@ -116,6 +116,71 @@ it('debe llamar a la API de movimiento al hacer clic en una celda vacía', async
 			expect.objectContaining({ method: 'POST' }),
 		)
 	})
+})
+
+it('debe mostrar la regla del pastel tras la primera jugada en PvP', async () => {
+	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+		; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
+
+		; (global.fetch as Mock).mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				game_over: false,
+				winner: null,
+				state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+			}),
+		})
+
+	const { container } = render(<GamePage />)
+	const firstCell = container.querySelector('g')
+	fireEvent.click(firstCell!)
+
+	await waitFor(() => {
+		expect(screen.getByRole('button', { name: /Use Pie Rule/i })).toBeInTheDocument()
+	})
+})
+
+it('debe enviar la accion swap al aplicar la regla del pastel', async () => {
+	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+		; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
+
+		; (global.fetch as Mock)
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({
+					game_over: false,
+					winner: null,
+					state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+				}),
+			})
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({
+					game_over: false,
+					winner: null,
+					state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+				}),
+			})
+
+	const { container } = render(<GamePage />)
+	const firstCell = container.querySelector('g')
+	fireEvent.click(firstCell!)
+
+	const pieRuleButton = await screen.findByRole('button', { name: /Use Pie Rule/i })
+	fireEvent.click(pieRuleButton)
+
+	await waitFor(() => {
+		expect(global.fetch).toHaveBeenNthCalledWith(
+			2,
+			expect.stringContaining('/game/move'),
+			expect.objectContaining({
+				method: 'POST',
+				body: expect.stringContaining('"action":"swap"'),
+			}),
+		)
+	})
+
+	expect(screen.getByText('Player 1 turn.')).toBeInTheDocument()
 })
 
 it('debe resetear el tablero al hacer clic en "New Game"', () => {
