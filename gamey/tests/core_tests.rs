@@ -464,6 +464,24 @@ fn test_swap_is_rejected_before_opening_move() {
 }
 
 #[test]
+fn test_swap_is_rejected_for_wrong_player_after_opening_move() {
+    let mut game = GameY::new(5);
+
+    game.add_move(Movement::Placement {
+        player: PlayerId::new(0),
+        coords: Coordinates::new(4, 0, 0),
+    })
+    .unwrap();
+
+    let result = game.add_move(Movement::Action {
+        player: PlayerId::new(0),
+        action: GameAction::Swap,
+    });
+
+    assert!(result.is_err());
+}
+
+#[test]
 fn test_swap_is_rejected_after_second_move() {
     let mut game = GameY::new(5);
 

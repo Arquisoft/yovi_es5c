@@ -264,9 +264,9 @@ export default function GamePage() {
             width={triangle.width}
             height={triangle.height}
             viewBox={`0 0 ${triangle.width} ${triangle.height}`}
-            role="img"
             aria-label={`${label} triangle`}
           >
+            <title>{`${label} triangle`}</title>
             <polygon
               points={`${triangle.top.x},${triangle.top.y} ${triangle.left.x},${triangle.left.y} ${triangle.right.x},${triangle.right.y}`}
               fill={isWinner ? winningFill : fill}
@@ -522,7 +522,8 @@ export default function GamePage() {
           </Box>
 
           <Box sx={{ width: '100%', maxWidth: 560, p: 2 }}>
-            <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} width="100%" role="img" aria-label="Y game board">
+            <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} width="100%" aria-label="Y game board">
+              <title>Y game board</title>
 
               {board.map((row, rowIndex) =>
                 row.map((cell, cellIndex) => {
