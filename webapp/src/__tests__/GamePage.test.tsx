@@ -22,10 +22,8 @@ vi.mock('react-router-dom', () => ({
 }))
 
 // Mock de la función externa importada de GameSetup
-vi.mock('../utils/gameUtils', () => ({
+vi.mock('../pages/GameSetup', () => ({
 	getInitialBoardSize: vi.fn(() => 3),
-	minBoardSize: 3,
-	maxBoardSize: 15,
 }))
 
 // Mock de la API global fetch
@@ -136,7 +134,7 @@ it('debe mostrar la regla del pastel tras la primera jugada en PvP', async () =>
 	fireEvent.click(firstCell!)
 
 	await waitFor(() => {
-		expect(screen.getByRole('button', { name: /Use Pie Rule/i })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /Swap/i })).toBeInTheDocument()
 	})
 })
 
@@ -166,7 +164,7 @@ it('debe enviar la accion swap al aplicar la regla del pastel', async () => {
 	const firstCell = container.querySelector('g')
 	fireEvent.click(firstCell!)
 
-	const pieRuleButton = await screen.findByRole('button', { name: /Use Pie Rule/i })
+	const pieRuleButton = await screen.findByRole('button', { name: /Swap/i })
 	fireEvent.click(pieRuleButton)
 
 	await waitFor(() => {
@@ -180,7 +178,10 @@ it('debe enviar la accion swap al aplicar la regla del pastel', async () => {
 		)
 	})
 
-	expect(screen.getByText('Player 1 turn.')).toBeInTheDocument()
+	await waitFor(() => {
+		expect(screen.getByText('Player 1')).toBeInTheDocument()
+		expect(screen.getByText('Player 2')).toBeInTheDocument()
+	})
 })
 
 it('debe resetear el tablero al hacer clic en "New Game"', () => {
@@ -192,8 +193,9 @@ it('debe resetear el tablero al hacer clic en "New Game"', () => {
 	const newGameButton = screen.getByRole('button', { name: /New Game/i })
 	fireEvent.click(newGameButton)
 
-	// Si se resetea, el mensaje vuelve al turno inicial
-	expect(screen.getByText('Your turn. Place a piece.')).toBeInTheDocument()
+	expect(screen.getByRole('img', { name: /Y game board/i })).toBeInTheDocument()
+	expect(screen.getByText('You')).toBeInTheDocument()
+	expect(screen.getByText('Bot')).toBeInTheDocument()
 })
 
 it('debe navegar a /homepage al hacer clic en "Back to Home"', () => {
@@ -280,7 +282,7 @@ it('debe mostrar el ganador correcto cuando finaliza el juego (Gana Player 1)', 
 	fireEvent.click(firstCell!)
 
 	await waitFor(() => {
-		expect(screen.getByText('Player 1 wins.')).toBeInTheDocument()
+		expect(screen.getByText('Player 1 wins!')).toBeInTheDocument()
 	})
 })
 
@@ -313,7 +315,7 @@ it('debe mostrar el ganador correcto cuando el Bot gana (Gana R en modo bot)', a
 
 	// Aumentamos el timeout del waitFor porque el modo bot tiene un delay artificial (botDelayMs = 700)
 	await waitFor(() => {
-		expect(screen.getByText('Bot wins.')).toBeInTheDocument()
+		expect(screen.getByText('Oh no! The bot won')).toBeInTheDocument()
 	}, { timeout: 1500 })
 })
 
