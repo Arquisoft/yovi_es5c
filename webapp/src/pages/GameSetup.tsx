@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Button, Divider, Menu, MenuItem, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { useNavigate } from "react-router-dom";
 import { useSession } from "../SessionContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 
 // ─── Types ───────────────────────────────────────────────────
 type GameMode = "pvp" | "bot";
