@@ -411,8 +411,14 @@ fn test_player_1_resign_makes_player_0_win() {
 fn test_swap_changes_next_player() {
     let mut game = GameY::new(5);
 
-    game.add_move(Movement::Action {
+    game.add_move(Movement::Placement {
         player: PlayerId::new(0),
+        coords: Coordinates::new(4, 0, 0),
+    })
+    .unwrap();
+
+    game.add_move(Movement::Action {
+        player: PlayerId::new(1),
         action: GameAction::Swap,
     })
     .unwrap();
@@ -439,9 +445,50 @@ fn test_swap_after_opening_move() {
     })
     .unwrap();
 
-    // Now it's player 0's turn again
-    assert_eq!(game.next_player(), Some(PlayerId::new(0)));
+    // Now it remains color R's turn; externally the players have swapped colors
+    assert_eq!(game.next_player(), Some(PlayerId::new(1)));
     assert!(!game.check_game_over());
+    assert_eq!(game.cell_player(&Coordinates::new(2, 1, 1)), Some(PlayerId::new(0)));
+}
+
+#[test]
+fn test_swap_is_rejected_before_opening_move() {
+    let mut game = GameY::new(5);
+
+    let result = game.add_move(Movement::Action {
+        player: PlayerId::new(0),
+        action: GameAction::Swap,
+    });
+
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_yen_round_trip_after_swap() {
+    let mut game = GameY::new(3);
+
+    game.add_move(Movement::Placement {
+        player: PlayerId::new(0),
+        coords: Coordinates::new(2, 0, 0),
+    })
+    .unwrap();
+    game.add_move(Movement::Action {
+        player: PlayerId::new(1),
+        action: GameAction::Swap,
+    })
+    .unwrap();
+    game.add_move(Movement::Placement {
+        player: PlayerId::new(0),
+        coords: Coordinates::new(1, 0, 1),
+    })
+    .unwrap();
+
+    let yen: YEN = (&game).into();
+    let loaded = GameY::try_from(yen.clone()).unwrap();
+    let reloaded_yen: YEN = (&loaded).into();
+
+    assert_eq!(yen.layout(), reloaded_yen.layout());
+    assert_eq!(yen.turn(), reloaded_yen.turn());
 }
 
 // ============================================================================
