@@ -140,7 +140,7 @@ impl GameY {
                 self.handle_placement(*player, *coords)?;
             }
             Movement::Action { player, action } => {
-                self.handle_action(*player, action);
+                self.handle_action(*player, action)?;
             }
         }
         self.history.push(movement);
@@ -203,19 +203,39 @@ impl GameY {
     }
 
     /// Handles non-placement actions (Resign, Swap, etc.)
-    fn handle_action(&mut self, player: PlayerId, action: &GameAction) {
+    fn handle_action(&mut self, player: PlayerId, action: &GameAction) -> Result<()> {
         match action {
             GameAction::Resign => {
                 self.status = GameStatus::Finished {
                     winner: other_player(player),
                 };
+                Ok(())
             }
             GameAction::Swap => {
+                self.apply_swap(player)?;
                 self.status = GameStatus::Ongoing {
-                    next_player: other_player(player),
+                    next_player: player,
                 };
+                Ok(())
             }
         }
+    }
+
+    fn apply_swap(&mut self, player: PlayerId) -> Result<()> {
+        let Some(Movement::Placement { player: opening_player, .. }) = self.history.first() else {
+            return Err(GameYError::ServerError {
+                message: "Swap is only allowed immediately after the opening move".to_string(),
+            });
+        };
+
+        if self.history.len() != 1 || opening_player.id() != 0 || player.id() != 1 {
+            return Err(GameYError::ServerError {
+                message: "Swap is only allowed for player 1 right after player 0 opens"
+                    .to_string(),
+            });
+        }
+
+        Ok(())
     }
 
     /// Handles validation logic (Game Over checks and Occupancy)
@@ -551,6 +571,12 @@ impl TryFrom<YEN> for GameY {
             return Err(GameYError::ServerError {
                 message: "Invalid board: extra moves remain after game end".to_string(),
             });
+        }
+
+        if !ygame.check_game_over() {
+            ygame.status = GameStatus::Ongoing {
+                next_player: PlayerId::new(game.turn()),
+            };
         }
 
         Ok(ygame)
