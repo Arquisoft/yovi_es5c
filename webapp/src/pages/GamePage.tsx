@@ -34,6 +34,7 @@ interface MoveTurnResponse {
 }
 
 
+
 function makeEmptyBoard(size: number): Board {
   return Array.from({ length: size }, (_, row) => Array.from({ length: row + 1 }, () => '.' as Cell))
 }
@@ -161,14 +162,79 @@ export default function GamePage() {
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
   }
+  const validateMove = (row: number, col: number) => {
+    if (!isAvailable) {
+      setError('Game service is unavailable.')
+      return false
+    }
+
+    if (busy || winner !== null || board[row][col] !== '.') {
+      return false
+    }
+
+    return true
+  }
+
+  const buildPayload = (previousBoard: any, row: number, col: number) => {
+  const payload: Record<string, unknown> = {
+    state: toYen(previousBoard),
+    row,
+    col,
+    mode,
+  }
+
+  if (mode === 'bot') {
+    payload.bot_id = bot_id
+    payload.difficulty = difficulty
+  }
+
+  return payload
+}
+  const handleGameOver = (winner: Winner) => {
+        setWinner(winner);
+        setIsGameOver(true);
+
+        // Calcular duración y guardar partida
+        const duration = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+        const username = localStorage.getItem('username') || 'anonymous';
+
+        void fetch(`${apiEndpoint}/game/finish`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: username,
+            rival: mode === 'pvp' ? 'multiplayer' : 'bot',
+            level: difficulty,
+            duration: duration,
+            result: winner === 'B' ? 'won' : 'lost'
+          })
+        });
+        
+        if (winner === 'B') {
+          setMessage(mode === 'pvp' ? 'Player 1 wins.' : 'You win.')
+        } else if (winner === 'R') {
+          setMessage(mode === 'pvp' ? 'Player 2 wins.' : 'Bot wins.')
+        } else {
+          setMessage('Game Over.')
+        }
+
+  }
+
+  const handleNextTurn = (moveData: MoveTurnResponse) => {
+  setWinner(null)
+  setIsGameOver(false)
+
+  if (mode === 'pvp') {
+    const nextPlayer = moveData.state.turn === 0 ? 'B' : 'R'
+    setCurrentPlayer(nextPlayer)
+    setMessage(`Player ${nextPlayer} turn.`)
+  } else {
+    setMessage('Your turn. Place a piece.')
+  }
+}
 
   const play = async (row: number, col: number) => {
-    if (!isAvailable || busy || winner !== null || board[row][col] !== '.') {
-      if (!isAvailable) {
-        setError('Game service is unavailable.')
-      }
-      return
-    }
+    if (!validateMove(row, col)) return;
 
     setError('')
     // Iniciar cronómetro en el primer movimiento
@@ -177,6 +243,7 @@ export default function GamePage() {
     }
 
     setBusy(true)
+
     const previousBoard = cloneBoard(board)
     const optimisticBoard = cloneBoard(board)
     optimisticBoard[row][col] = mode === 'pvp' ? currentPlayer : 'B'
@@ -185,16 +252,7 @@ export default function GamePage() {
     try {
       setMessage(mode === 'pvp' ? 'Processing move...' : 'Bot is thinking...')
 
-      const payload: Record<string, unknown> = {
-        state: toYen(previousBoard),
-        row,
-        col,
-        mode,
-      }
-      if (mode === 'bot') {
-        payload.bot_id = bot_id
-        payload.difficulty = difficulty
-      }
+      const payload = buildPayload(previousBoard, row, col)
 
       const response = await fetch(`${apiEndpoint}/game/move`, {
         method: 'POST',
@@ -217,48 +275,15 @@ export default function GamePage() {
 
       if (moveData.game_over) {
         const finalWinner = moveData.winner;
-        setWinner(finalWinner);
-        setIsGameOver(true);
-
-        // Calcular duración y guardar partida
-        const duration = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
-        const username = localStorage.getItem('username') || 'anonymous';
-
-        void fetch(`${apiEndpoint}/game/finish`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: username,
-            rival: mode === 'pvp' ? 'multiplayer' : 'bot',
-            level: difficulty,
-            duration: duration,
-            result: finalWinner === 'B' ? 'won' : 'lost'
-          })
-        });
-        
-        if (finalWinner === 'B') {
-          setMessage(mode === 'pvp' ? 'Player 1 wins.' : 'You win.')
-        } else if (finalWinner === 'R') {
-          setMessage(mode === 'pvp' ? 'Player 2 wins.' : 'Bot wins.')
-        } else {
-          setMessage('Game Over.')
-        }
+        handleGameOver(finalWinner);
       } else {
-        setWinner(null)
-        setIsGameOver(false);
-        if (mode === 'pvp') {
-          const nextPlayer = moveData.state.turn === 0 ? 'B' : 'R'
-          setCurrentPlayer(nextPlayer)
-          setMessage(`Player ${nextPlayer} turn.`)
-        } else {
-          setMessage('Your turn. Place a piece.')
-        }
+        handleNextTurn(moveData);
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Unknown error'
       setBoard(previousBoard)
       setError(msg)
-      setMessage(mode === 'pvp' ? 'Your move could not be completed.' : 'Your move could not be completed against the bot.')
+      setMessage('Your move could not be completed.')
     } finally {
       setBusy(false)
     }
