@@ -124,8 +124,11 @@ export default function GamePage() {
         const response = await fetch(`${apiEndpoint}/game/status`)
         const text = response.ok ? await response.text() : ''
         setIsAvailable(response.ok && text === 'OK')
-      } catch (e) {
-        setIsAvailable(false)
+      } catch (e:unknown) {
+          if (e instanceof Error) {
+            console.log(e.message)
+          }
+          setIsAvailable(false)
       }
     }
 

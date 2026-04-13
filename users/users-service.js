@@ -106,6 +106,9 @@ app.post('/login', async (req, res) => {
 
 
     } catch (error) {
+        if (error instanceof Error) {
+            console.error('Error:', error.message);
+        }
         res.status(500).json({ error: 'Internal server error.' });
     }
 });
@@ -127,6 +130,9 @@ app.get('/user/:username', async (req, res) => {
 
         res.status(200).json(user);
     } catch (error) {
+        if (error instanceof Error) {
+            console.error('Error:', error.message);
+        }
         res.status(500).json({ error: 'Internal server error.' });
     }
 });
@@ -239,6 +245,9 @@ app.get('/user/:username/history', async (req, res) => {
     res.status(200).json(history);
 
   } catch (error) {
+    if (error instanceof Error) {
+            console.error('Error:', error.message);
+    }
     res.status(500).json({ error: "Error obtaining history." });
   }
 });
