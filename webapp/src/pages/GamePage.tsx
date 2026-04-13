@@ -91,6 +91,29 @@ function boardFromLayout(size: number, layout: string): Board {
   return board
 }
 
+function getDialogTitle(isPvP: boolean, winner: Winner, userWon: boolean): string {
+  if (isPvP) {
+    return `Player ${winner === 'B' ? 'B' : 'R'} wins!`
+  }
+  if (userWon) return 'Congratulations, you won!'
+  return 'Oh no! The bot won'
+}
+
+function getAccentColor(isPvP: boolean, winner: Winner, userWon: boolean): string {
+  if (isPvP) {
+    return winner === 'B' ? '#1565c0' : '#c62828'
+  }
+  return userWon ? '#2e7d32' : '#d32f2f'
+}
+
+function getDialogMessage(isPvP: boolean, winner: Winner, userWon: boolean): string {
+  if (isPvP) {
+    return `The game has ended. Player ${winner === 'B' ? 'blue' : 'red'} wins.`
+  }
+  if (userWon) return 'You outsmarted the bot. Great play!'
+  return 'The bot was smarter this time. Wanna try again?'
+}
+
 export default function GamePage() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -273,13 +296,9 @@ export default function GamePage() {
   // Lógica para el contenido del diálogo de fin de partida
   const isPvP = mode === 'pvp';
   const userWon = winner === 'B';
-  const dialogTitle = isPvP 
-    ? `Player ${winner === 'B' ? 'B' : 'R'} wins!` 
-    : (userWon ? 'Congratulations, you won!' : 'Oh no! The bot won');
+  const dialogTitle = getDialogTitle(isPvP, winner, userWon);
   
-  const accentColor = isPvP 
-    ? (winner === 'B' ? '#1565c0' : '#c62828') 
-    : (userWon ? '#2e7d32' : '#d32f2f');
+  const accentColor = getAccentColor(isPvP, winner, userWon)
 
   return (
     <div className="main-content">
@@ -379,12 +398,7 @@ export default function GamePage() {
               </Box>
             )}
             <Typography variant="body1" color="text.secondary">
-              {isPvP 
-                ? `The game has ended. Player ${winner === 'B' ? 'blue' : 'red'} wins.`
-                : (userWon 
-                    ? 'You outsmarted the bot. Great play!' 
-                    : 'The bot was smarter this time. Wanna try again?')
-              }
+              {getDialogMessage(isPvP, winner, userWon)}
             </Typography>
           </Stack>
         </DialogContent>
