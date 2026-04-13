@@ -8,7 +8,7 @@ const gameSessionSchema = new mongoose.Schema({
 
   rival: {
     type: String,
-    enum: ['bot', 'multiplayer'], 
+    enum: ['random_bot', 'center_bot', 'edge_bot','smart_bot', 'mirror_bot','alpha_bot', 'multiplayer'], 
     required: true
   },
 

@@ -203,7 +203,7 @@ export default function GamePage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             userId: username,
-            rival: mode === 'pvp' ? 'multiplayer' : 'bot',
+            rival: mode === 'pvp' ? 'multiplayer' : bot_id,
             level: difficulty,
             duration: duration,
             result: winner === 'B' ? 'won' : 'lost'
