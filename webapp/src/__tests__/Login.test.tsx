@@ -31,7 +31,7 @@ describe("Login page", () => {
       </MemoryRouter>
     );
 
-    const title = screen.getByRole("heading", { name: /welcome/i });
+    const title = screen.getByRole("heading", { name: /auth\.welcome/i });
     expect(title).toBeInTheDocument();
   });
 
@@ -58,7 +58,7 @@ describe("Login page", () => {
       await user.type(usernameInput, "miguel1235");
       await user.type(passwordInput, "Miguel1**");
 
-      const loginButton = screen.getByRole("button", { name: /log-in/i });
+      const loginButton = screen.getByRole("button", { name: /auth\.login/i });
       await user.click(loginButton);
     });
 
@@ -85,7 +85,7 @@ describe("Login page", () => {
       // Solo rellenamos el username, dejamos el password vacío
       await user.type(usernameInput, "miguel1235");
 
-      const loginButton = screen.getByRole("button", { name: /log-in/i });
+      const loginButton = screen.getByRole("button", { name: /auth\.login/i });
       await user.click(loginButton);
     });
 

@@ -33,7 +33,7 @@ describe("Register page", () => {
       </MemoryRouter>
     );
 
-    const title = screen.getByText(/user registration/i);
+    const title = screen.getByText(/auth\.userRegistration/i);
     expect(title).toBeInTheDocument();
   });
 
@@ -49,6 +49,7 @@ describe("Register page", () => {
     });
 
     const user = userEvent.setup();
+
     const usernameInput = document.querySelector(
       'input[name="username"]'
     ) as HTMLInputElement;
@@ -73,8 +74,6 @@ describe("Register page", () => {
       'input[name="confirmPassword"]'
     ) as HTMLInputElement;
 
-    /* ---------- USER ACTIONS ---------- */
-
     await act(async () => {
       await user.type(usernameInput, "miguel1235");
       await user.type(nameInput, "Miguel");
@@ -83,7 +82,7 @@ describe("Register page", () => {
       await user.type(passwordInput, "Miguel1**");
       await user.type(confirmPasswordInput, "Miguel1**");
 
-      const registerButton = screen.getByRole("button", { name: /register/i });
+      const registerButton = screen.getByRole("button", { name: /auth\.register/i });
       await user.click(registerButton);
     });
 
@@ -123,22 +122,20 @@ describe("Register page", () => {
       'input[name="confirmPassword"]'
     ) as HTMLInputElement;
 
-    /* ---------- USER ACTIONS ---------- */
-
     await act(async () => {
       await user.type(nameInput, "f");
       await user.type(surnameInput, "f");
-      await user.type(emailInput, "migueltest@test.com");
+      await user.type(emailInput, "test@test.com");
       await user.type(passwordInput, "Miguel1**");
       await user.type(confirmPasswordInput, "Miguel1**");
 
-      const registerButton = screen.getByRole("button", { name: /register/i });
+      const registerButton = screen.getByRole("button", { name: /auth\.register/i });
       await user.click(registerButton);
     });
 
     expect(axios.post).not.toHaveBeenCalled();
 
-    expect(screen.getByText(/required field/i)).toBeInTheDocument();
+    expect(screen.getByText(/auth\.requiredField/i)).toBeInTheDocument();
   });
 
   it("shows password error when password is invalid", async () => {
@@ -157,8 +154,9 @@ describe("Register page", () => {
     await act(async () => {
       await user.type(passwordInput, "123");
     });
+
     expect(
-      await screen.findByText(/must have at least 8 characters/i)
+      await screen.findByText(/auth\.passwordRules/i)
     ).toBeInTheDocument();
   });
 });
