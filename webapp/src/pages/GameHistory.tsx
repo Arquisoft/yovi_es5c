@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { styled } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import { Navigate } from "react-router-dom";
@@ -240,6 +241,7 @@ const MOCK_HISTORY: GameSession[] = [
 
 // ─── Component ───────────────────────────────────────────────
 const GameHistory = () => {
+  const { t } = useTranslation();
   const [history, setHistory] = useState<GameSession[]>(MOCK_HISTORY);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -255,7 +257,7 @@ const GameHistory = () => {
         );
         setHistory(res.data.length > 0 ? res.data : MOCK_HISTORY);
       } catch (err: any) {
-        const backendError = err.response?.data?.error || err.message || "Error fetching history";
+        const backendError = err.response?.data?.error || err.message || t('history.fetchError');
         setError(backendError);
       } finally {
         setLoading(false);
@@ -263,7 +265,7 @@ const GameHistory = () => {
     };
 
     if (username) fetchHistory();
-  }, [username]);
+  }, [username, t]);
 
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
@@ -277,54 +279,54 @@ const GameHistory = () => {
   return (
     <PageWrapper>
       <DivColumn>
-        <Title>Game History</Title>
-        <SubTitle>Your past matches</SubTitle>
+        <Title>{t('history.title')}</Title>
+        <SubTitle>{t('history.subtitle')}</SubTitle>
       </DivColumn>
 
       {!loading && history.length > 0 && (
         <StatsRow>
           <StatCard>
             <StatValue>{history.length}</StatValue>
-            <StatLabel>Played</StatLabel>
+            <StatLabel>{t('history.played')}</StatLabel>
           </StatCard>
           <StatCard>
             <StatValue>{wins}</StatValue>
-            <StatLabel>Wins</StatLabel>
+            <StatLabel>{t('history.wins')}</StatLabel>
           </StatCard>
           <StatCard>
             <StatValue>{losses}</StatValue>
-            <StatLabel>Losses</StatLabel>
+            <StatLabel>{t('history.losses')}</StatLabel>
           </StatCard>
           <StatCard>
             <StatValue>{winRate}%</StatValue>
-            <StatLabel>Win rate</StatLabel>
+            <StatLabel>{t('history.winRate')}</StatLabel>
           </StatCard>
         </StatsRow>
       )}
 
-      {loading && <LoadingText>Loading matches...</LoadingText>}
+      {loading && <LoadingText>{t('history.loading')}</LoadingText>}
 
       {error && (
         <SubTitle style={{ color: "#7c4a4a" }}>
-          Could not load history.
+          {t('history.loadError')}
         </SubTitle>
       )}
 
       {!loading && !error && history.length === 0 && (
         <EmptyState>
           <EmptyIcon>♟</EmptyIcon>
-          <EmptyText>No games played yet</EmptyText>
+          <EmptyText>{t('history.empty')}</EmptyText>
         </EmptyState>
       )}
 
       {!loading && !error && history.length > 0 && (
         <TableWrapper>
           <TableHeader>
-            <HeaderCell>Date</HeaderCell>
-            <HeaderCell>Rival</HeaderCell>
-            <HeaderCell>Level</HeaderCell>
-            <HeaderCell>Duration</HeaderCell>
-            <HeaderCell>Result</HeaderCell>
+            <HeaderCell>{t('history.date')}</HeaderCell>
+            <HeaderCell>{t('history.rival')}</HeaderCell>
+            <HeaderCell>{t('history.level')}</HeaderCell>
+            <HeaderCell>{t('history.duration')}</HeaderCell>
+            <HeaderCell>{t('history.result')}</HeaderCell>
           </TableHeader>
 
           {history.map((game) => (
@@ -332,14 +334,14 @@ const GameHistory = () => {
               <Cell>{formatDate(game.createdAt)}</Cell>
               <Cell>
                 <RivalBadge rival={game.rival}>
-                  {game.rival === "bot" ? "🤖 Bot" : "👤 Player"}
+                  {game.rival === "bot" ? `🤖 ${t('history.bot')}` : `👤 ${t('history.player')}`}
                 </RivalBadge>
               </Cell>
               <Cell style={{ color: "#666" }}>{game.level ?? "—"}</Cell>
               <Cell>{formatDuration(game.duration)}</Cell>
               <Cell>
                 <ResultBadge result={game.result}>
-                  {game.result === "won" ? "Win" : "Lose"}
+                  {game.result === "won" ? t('history.win') : t('history.lose')}
                 </ResultBadge>
               </Cell>
             </TableRow>
@@ -347,7 +349,7 @@ const GameHistory = () => {
         </TableWrapper>
       )}
 
-      <BackButton onClick={() => navigate("/set")}>← Back to select Mode</BackButton>
+      <BackButton onClick={() => navigate("/set")}>{t("history.back")}</BackButton>
     </PageWrapper>
   );
 };

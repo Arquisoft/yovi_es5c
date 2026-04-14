@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button, Divider, Menu, MenuItem, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
@@ -270,6 +271,7 @@ const SpinnerValue = styled(Typography)({
 
 // ─── Component ───────────────────────────────────────────────
 const GameSetup = () => {
+  const { t } = useTranslation();
   const [boardSize, setBoardSize] = useState(getInitialBoardSize);
   const [botAnchorEl, setBotAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedBot, setSelectedBot] = useState<BotOption | null>(null);
@@ -277,6 +279,42 @@ const GameSetup = () => {
 
   const navigate = useNavigate();
   const { isLoggedIn } = useSession();
+
+  // Generate BOT_OPTIONS with translations
+  const BOT_OPTIONS: BotOption[] = [
+    {
+      bot_id: "random_bot",
+      label: t('setup.bots.random.label'),
+      description: t('setup.bots.random.description'),
+    },
+    {
+      bot_id: "center_bot",
+      label: t('setup.bots.center.label'),
+      description: t('setup.bots.center.description'),
+    },
+    {
+      bot_id: "edge_bot",
+      label: t('setup.bots.edge.label'),
+      description: t('setup.bots.edge.description'),
+    },
+    {
+      bot_id: "smart_bot",
+      label: t('setup.bots.smart.label'),
+      description: t('setup.bots.smart.description'),
+    },
+    {
+      bot_id: "mirror_bot",
+      label: t('setup.bots.mirror.label'),
+      description: t('setup.bots.mirror.description'),
+    },
+    {
+      bot_id: "alpha_bot",
+      label: t('setup.bots.alpha.label'),
+      description: t('setup.bots.alpha.description'),
+    },
+  ];
+
+  const DIFFICULTIES: Difficulty[] = ["Easy", "Medium", "Hard"];
 
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
@@ -350,13 +388,13 @@ const GameSetup = () => {
   return (
     <PageWrapper>
       <DivColumn>
-        <Title>New Game</Title>
-        <SubTitle>Select a game mode to start playing</SubTitle>
+        <Title>{t('setup.title')}</Title>
+        <SubTitle>{t('setup.subtitle')}</SubTitle>
       </DivColumn>
 
       <img
         src="/logo.svg"
-        alt="game logo"
+        alt={t('setup.logoAlt')}
         style={{ width: "20vw", height: "20vw" }}
       />
 
@@ -364,17 +402,17 @@ const GameSetup = () => {
         {/* ── Modo PvP ── */}
         <DivColumn>
           <ModeButton variant="outlined" onClick={handleStartPvp}>
-            ▲ Player vs Player ▲
+            {t('setup.pvp')}
           </ModeButton>
-          <ModeDescription>Play locally against a friend</ModeDescription>
+          <ModeDescription>{t('setup.pvpDescription')}</ModeDescription>
         </DivColumn>
 
         {/* ── Modo Bot ── */}
         <DivColumn>
           <BotMenuButton variant="outlined" onClick={handleBotMenuOpen}>
-            ▲ Player vs Bot 🤖 ▾
+            {t('setup.bot')}
           </BotMenuButton>
-          <ModeDescription>Play against our bots</ModeDescription>
+          <ModeDescription>{t('setup.botDescription')}</ModeDescription>
 
           {/* Primer nivel: lista de bots */}
           <StyledMenu
@@ -403,7 +441,7 @@ const GameSetup = () => {
             anchorOrigin={{ vertical: "top", horizontal: "right" }}
             transformOrigin={{ vertical: "top", horizontal: "left" }}
           >
-            <MenuHeader>{selectedBot?.label} — difficulty</MenuHeader>
+            <MenuHeader>{selectedBot?.label} — {t('setup.difficultyTitle', { bot: selectedBot?.label || '' })}</MenuHeader>
             <Divider sx={{ borderColor: "#2a2a2a", mb: 0.5 }} />
 
             {DIFFICULTIES.map((d) => (
@@ -412,7 +450,7 @@ const GameSetup = () => {
                 onClick={() => handleDifficultySelect(d)}
               >
                 <DifficultyDot color={DIFFICULTY_COLOR[d]} />
-                <DifficultyLabel>{d}</DifficultyLabel>
+                <DifficultyLabel>{t(`home.difficulties.${d.toLowerCase()}`)}</DifficultyLabel>
               </DifficultyMenuItem>
             ))}
           </StyledMenu>
@@ -429,14 +467,14 @@ const GameSetup = () => {
             mb: 1,
           }}
         >
-          Board Size
+          {t('setup.boardSize')}
         </Typography>
         
         <SpinnerContainer>
           <SpinnerBtn 
             onClick={handleDecreaseSize} 
             disabled={boardSize <= minBoardSize}
-            aria-label="Decrease board size"
+            aria-label={t('setup.decreaseBoardSize')}
           >
             −
           </SpinnerBtn>
@@ -446,7 +484,7 @@ const GameSetup = () => {
           <SpinnerBtn 
             onClick={handleIncreaseSize} 
             disabled={boardSize >= maxBoardSize}
-            aria-label="Increase board size"
+            aria-label={t('setup.increaseBoardSize')}
           >
             +
           </SpinnerBtn>

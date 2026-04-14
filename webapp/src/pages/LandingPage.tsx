@@ -1,4 +1,4 @@
-
+import { useTranslation } from 'react-i18next'
 import { useSession } from '../SessionContext'
 import { Button } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
@@ -7,6 +7,7 @@ import '../components/LandingPage.css'
 export default function LandingPage() {
   const { isLoggedIn, username } = useSession()
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   return (
     <div className="home-container">
@@ -16,7 +17,7 @@ export default function LandingPage() {
 
       <div className="main-content">
         <h1 className="title">
-          Welcome to <span>GAMEY</span>
+          {t("landing.welcomeTo")} <span>GAMEY</span>
         </h1>
 
         {!isLoggedIn ? (
@@ -25,7 +26,7 @@ export default function LandingPage() {
               variant="contained"
               onClick={() => navigate('/login')}
             >
-              Sign In
+              {t("landing.signIn")}
             </Button>
 
             <Button
@@ -33,20 +34,20 @@ export default function LandingPage() {
               onClick={() => navigate('/register')}
               sx={{ color: 'white', borderColor: 'white' }}
             >
-              Create Account
+              {t("landing.createAccount")}
             </Button>
           </div>
         ) : (
           <div className="button-group">
             <h3>
-              Welcome back, <span>{username}</span> 🎮
+              {t("landing.welcomeBack", { username })} 🎮
             </h3>
 
             <Button
               variant="contained"
               onClick={() => navigate('/homepage')}
             >
-              Go to Dashboard
+              {t("landing.goToDashboard")}
             </Button>
           </div>
         )}

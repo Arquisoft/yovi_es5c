@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Alert, Box, Button, Paper, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Stack } from '@mui/material'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useSession } from "../SessionContext";
@@ -94,6 +95,7 @@ function boardFromLayout(size: number, layout: string): Board {
 export default function GamePage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { t } = useTranslation()
   
   // Usamos directamente la función por referencia para inicializar el estado
   const [boardSize] = useState(getInitialBoardSize) // El setBoardSize se eliminado ya que no esta en uso por ahora.
@@ -109,7 +111,7 @@ export default function GamePage() {
   const difficulty = state?.difficulty ?? 'Medium'
   const bot_id     = state?.bot_id     ?? 'random_bot'
   const [currentPlayer, setCurrentPlayer] = useState<'B' | 'R'>('B')
-  const [message, setMessage] = useState(mode === 'pvp' ? 'Player 1 turn.' : 'Your turn. Place a piece.')
+  const [message, setMessage] = useState(mode === 'pvp' ? t('game.playerTurn', { player: '1' }) : t('game.yourTurn'))
   const [error, setError] = useState('')
   const { isLoggedIn } = useSession();
   
@@ -139,7 +141,7 @@ export default function GamePage() {
   const play = async (row: number, col: number) => {
     if (!isAvailable || busy || winner !== null || board[row][col] !== '.') {
       if (!isAvailable) {
-        setError('Game service is unavailable.')
+        setError(t('game.serviceUnavailable'))
       }
       return
     }
@@ -157,7 +159,7 @@ export default function GamePage() {
     setBoard(optimisticBoard)
 
     try {
-      setMessage(mode === 'pvp' ? 'Processing move...' : 'Bot is thinking...')
+      setMessage(mode === 'pvp' ? t('game.processingMove') : t('game.botThinking'))
 
       const payload: Record<string, unknown> = {
         state: toYen(previousBoard),
@@ -178,7 +180,7 @@ export default function GamePage() {
 
       const data = await response.json()
       if (!response.ok) {
-        throw new Error(data.error || 'Unable to process move')
+        throw new Error(data.error || t('game.unableMove'))
       }
 
       if (mode === 'bot') {
@@ -211,11 +213,11 @@ export default function GamePage() {
         });
         
         if (finalWinner === 'B') {
-          setMessage(mode === 'pvp' ? 'Player 1 wins.' : 'You win.')
+          setMessage(mode === 'pvp' ? t('game.playerWins', { player: '1' }) : t('game.youWin'))
         } else if (finalWinner === 'R') {
-          setMessage(mode === 'pvp' ? 'Player 2 wins.' : 'Bot wins.')
+          setMessage(mode === 'pvp' ? t('game.playerWins', { player: '2' }) : t('game.botWins'))
         } else {
-          setMessage('Game Over.')
+          setMessage(t('game.gameOver'))
         }
       } else {
         setWinner(null)
@@ -223,16 +225,16 @@ export default function GamePage() {
         if (mode === 'pvp') {
           const nextPlayer = moveData.state.turn === 0 ? 'B' : 'R'
           setCurrentPlayer(nextPlayer)
-          setMessage(`Player ${nextPlayer} turn.`)
+          setMessage(t('game.playerTurn', { player: nextPlayer === 'B' ? '1' : '2' }))
         } else {
-          setMessage('Your turn. Place a piece.')
+          setMessage(t('game.yourTurn'))
         }
       }
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Unknown error'
+      const msg = e instanceof Error ? e.message : t('game.unknownError')
       setBoard(previousBoard)
       setError(msg)
-      setMessage(mode === 'pvp' ? 'Your move could not be completed.' : 'Your move could not be completed against the bot.')
+      setMessage(mode === 'pvp' ? t('game.unablePvp') : t('game.unableBot'))
     } finally {
       setBusy(false)
     }
@@ -246,7 +248,7 @@ export default function GamePage() {
     setIsGameOver(false)
     setCurrentPlayer('B')
     setError('')
-    setMessage(mode === 'pvp' ? 'Player 1 turn.' : 'Your turn. Place a piece.')
+    setMessage(mode === 'pvp' ? t('game.playerTurn', { player: '1' }) : t('game.yourTurn'))
   }
 
   /* Actualmente sin usar, para usar importar minBoardSize y maxBoardSize de GameSetup
@@ -271,18 +273,22 @@ export default function GamePage() {
   const isPvP = mode === 'pvp';
   const userWon = winner === 'B';
   const dialogTitle = isPvP 
-    ? `Player ${winner === 'B' ? 'B' : 'R'} wins!` 
-    : (userWon ? 'Congratulations, you won!' : 'Oh no! The bot won');
+    ? t('game.dialog.pvpTitle', { player: winner === 'B' ? 'blue' : 'red' })
+    : (userWon ? t('game.dialog.wonTitle') : t('game.dialog.lostTitle'));
   
   const accentColor = isPvP 
     ? (winner === 'B' ? '#1565c0' : '#c62828') 
     : (userWon ? '#2e7d32' : '#d32f2f');
 
+  const dialogBody = isPvP 
+    ? t('game.dialog.pvpBody', { color: winner === 'B' ? t('game.dialog.blue') : t('game.dialog.red') })
+    : (userWon ? t('game.dialog.wonBody') : t('game.dialog.lostBody'));
+
   return (
     <div className="main-content">
       <Paper elevation={3} sx={{ p: 4, maxWidth: 900, width: '100%' }}>
         <Typography variant="h4" component="h2" gutterBottom>
-          Game Y - {mode === 'pvp' ? 'Player vs Player' : 'Player vs Bot'}
+          {mode === 'pvp' ? t('game.titlePvp') : t('game.titleBot')}
         </Typography>
 
         <Alert severity={error ? 'warning' : 'info'} sx={{ mb: 3 }}>
@@ -291,7 +297,7 @@ export default function GamePage() {
 
         <Box sx={{ mb: 4, width: '100%', display: 'flex', justifyContent: 'center' }}>
           <Box sx={{ width: '100%', maxWidth: 560, background: '#ffffff', p: 2 }}>
-            <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} width="100%" role="img" aria-label="Y game board">
+            <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} width="100%" role="img" aria-label={t('game.boardAriaLabel')}>
 
               {board.map((row, rowIndex) =>
                 row.map((cell, cellIndex) => {
@@ -336,10 +342,10 @@ export default function GamePage() {
 
         <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
           <Button variant="outlined" onClick={reset}>
-            New Game
+            {t('game.newGame')}
           </Button>
           <Button variant="outlined" onClick={() => navigate('/homepage')}>
-            Back to Home
+            {t('game.backToHome')}
           </Button>
         </Box>
       </Paper>
@@ -376,21 +382,16 @@ export default function GamePage() {
               </Box>
             )}
             <Typography variant="body1" color="text.secondary">
-              {isPvP 
-                ? `The game has ended. Player ${winner === 'B' ? 'blue' : 'red'} wins.`
-                : (userWon 
-                    ? 'You outsmarted the bot. Great play!' 
-                    : 'The bot was smarter this time. Wanna try again?')
-              }
+              {dialogBody}
             </Typography>
           </Stack>
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 1 }}>
           <Button variant="contained" onClick={reset} sx={{ bgcolor: accentColor, '&:hover': { bgcolor: accentColor, opacity: 0.9 } }}>
-            Try again
+            {t('game.tryAgain')}
           </Button>
           <Button variant="outlined" onClick={() => navigate('/homepage')} color="inherit">
-            Go Home
+            {t('game.goHome')}
           </Button>
         </DialogActions>
       </Dialog>
