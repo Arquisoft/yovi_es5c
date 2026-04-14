@@ -334,7 +334,7 @@ const GameHistory = () => {
               <Cell>{formatDate(game.createdAt)}</Cell>
               <Cell>
                 <RivalBadge rival={game.rival}>
-                  {game.rival === "bot" ? `🤖 ${t('history.bot')}` : `👤 ${t('history.player')}`}
+                  {game.rival === "bot" ? `${t('history.bot')}` : `${t('history.player')}`}
                 </RivalBadge>
               </Cell>
               <Cell style={{ color: "#666" }}>{game.level ?? "—"}</Cell>
