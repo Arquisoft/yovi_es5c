@@ -66,16 +66,16 @@ it('debe redirigir a /login si el usuario no está logueado', () => {
 })
 
 it('debe renderizar el tablero en modo bot por defecto si está logueado', async () => {
-	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
-		; (useLocation as Mock).mockReturnValue({ state: null })
+	;(useSession as Mock).mockReturnValue({ isLoggedIn: true })
+	;(useLocation as Mock).mockReturnValue({ state: null })
 
 	render(<GamePage />)
 
 	// Verifica que el título corresponda al modo bot
-	expect(screen.getByText('Game Y - Player vs Bot')).toBeInTheDocument()
+	expect(screen.getByText('game.titleBot')).toBeInTheDocument()
 
 	// Verifica que el SVG del tablero se haya renderizado
-	expect(screen.getByRole('img', { name: /Y game board/i })).toBeInTheDocument()
+	expect(screen.getByRole('img', { name: /game\.boardAriaLabel/i })).toBeInTheDocument()
 })
 
 it('debe renderizar en modo pvp si se pasa por el estado de navegación', () => {
@@ -84,7 +84,7 @@ it('debe renderizar en modo pvp si se pasa por el estado de navegación', () => 
 
 	render(<GamePage />)
 
-	expect(screen.getByText('Game Y - Player vs Player')).toBeInTheDocument()
+	expect(screen.getByText('game.titlePvp')).toBeInTheDocument()
 })
 
 it('debe llamar a la API de movimiento al hacer clic en una celda vacía', async () => {
@@ -124,11 +124,11 @@ it('debe resetear el tablero al hacer clic en "New Game"', () => {
 
 	render(<GamePage />)
 
-	const newGameButton = screen.getByRole('button', { name: /New Game/i })
+	const newGameButton = screen.getByRole('button', { name: /game\.newGame/i })
 	fireEvent.click(newGameButton)
 
 	// Si se resetea, el mensaje vuelve al turno inicial
-	expect(screen.getByText('Your turn. Place a piece.')).toBeInTheDocument()
+	expect(screen.getByText('game.yourTurn')).toBeInTheDocument()
 })
 
 it('debe navegar a /homepage al hacer clic en "Back to Home"', () => {
@@ -137,7 +137,7 @@ it('debe navegar a /homepage al hacer clic en "Back to Home"', () => {
 
 	render(<GamePage />)
 
-	const backButton = screen.getByRole('button', { name: /Back to Home/i })
+	const backButton = screen.getByRole('button', { name: /game\.backToHome/i })
 	fireEvent.click(backButton)
 
 	expect(mockNavigate).toHaveBeenCalledWith('/homepage')
@@ -165,7 +165,7 @@ it('debe mostrar error si el servicio de juego no está disponible al hacer clic
 
 	// Debería mostrar el error por servicio no disponible
 	await waitFor(() => {
-		expect(screen.getByText('Game service is unavailable.')).toBeInTheDocument()
+		expect(screen.getByText('game.serviceUnavailable')).toBeInTheDocument()
 	})
 })
 
@@ -215,7 +215,7 @@ it('debe mostrar el ganador correcto cuando finaliza el juego (Gana Player 1)', 
 	fireEvent.click(firstCell!)
 
 	await waitFor(() => {
-		expect(screen.getByText('Player 1 wins.')).toBeInTheDocument()
+		expect(screen.getByText('game.playerWins')).toBeInTheDocument()
 	})
 })
 
@@ -248,7 +248,7 @@ it('debe mostrar el ganador correcto cuando el Bot gana (Gana R en modo bot)', a
 
 	// Aumentamos el timeout del waitFor porque el modo bot tiene un delay artificial (botDelayMs = 700)
 	await waitFor(() => {
-		expect(screen.getByText('Bot wins.')).toBeInTheDocument()
+		expect(screen.getByText('game.botWins')).toBeInTheDocument()
 	}, { timeout: 1500 })
 })
 
