@@ -85,19 +85,19 @@ describe('ProfilePage', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /edit/i })).toBeEnabled()
+      expect(screen.getByRole('button', { name: /profile\.edit/i })).toBeEnabled()
     })
 
     const user = userEvent.setup()
 
-    await user.click(screen.getByRole('button', { name: /edit/i }))
-    await user.clear(screen.getByLabelText('Name'))
-    await user.type(screen.getByLabelText('Name'), 'Mario')
-    await user.clear(screen.getByLabelText('Surname'))
-    await user.type(screen.getByLabelText('Surname'), 'Garcia')
-    await user.clear(screen.getByLabelText('Email'))
-    await user.type(screen.getByLabelText('Email'), 'mario.garcia@uniovi.es')
-    await user.click(screen.getByRole('button', { name: /save/i }))
+    await user.click(screen.getByRole('button', { name: /profile\.edit/i }))
+    await user.clear(screen.getByLabelText(/profile\.name/i))
+    await user.type(screen.getByLabelText(/profile\.name/i), 'Mario')
+    await user.clear(screen.getByLabelText(/profile\.surname/i))
+    await user.type(screen.getByLabelText(/profile\.surname/i), 'Garcia')
+    await user.clear(screen.getByLabelText(/profile\.email/i))
+    await user.type(screen.getByLabelText(/profile\.email/i), 'mario.garcia@uniovi.es')
+    await user.click(screen.getByRole('button', { name: /profile\.save/i}))
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenNthCalledWith(
@@ -115,7 +115,7 @@ describe('ProfilePage', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByText('Profile updated successfully.')).toBeInTheDocument()
+      expect(screen.findByText('profile.saveSuccess')).toBeInTheDocument()
     })
     expect(screen.getByText('Mario')).toBeInTheDocument()
     expect(screen.getByText('Garcia')).toBeInTheDocument()
@@ -134,7 +134,7 @@ describe('ProfilePage', () => {
           render(<MemoryRouter><ProfilePage /></MemoryRouter>)
     });
 
-    expect(await screen.findByText('Could not load profile information.')).toBeInTheDocument()
+    expect(await screen.findByText('profile.loadError')).toBeInTheDocument()
   })
 
   it('cancels profile editing and restores the saved values', async () => {
@@ -155,13 +155,13 @@ describe('ProfilePage', () => {
     const user = userEvent.setup()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /edit/i })).toBeEnabled()
+      expect(screen.getByRole('button', { name: /profile\.edit/i })).toBeEnabled()
     })
 
-    await user.click(screen.getByRole('button', { name: /edit/i }))
-    await user.clear(screen.getByLabelText('Surname'))
-    await user.type(screen.getByLabelText('Surname'), 'Garcia')
-    await user.click(screen.getByRole('button', { name: /cancel/i }))
+    await user.click(screen.getByRole('button', { name: /profile\.edit/i }))
+    await user.clear(screen.getByLabelText(/profile\.surname/i))
+    await user.type(screen.getByLabelText(/profile\.surname/i), 'Garcia')
+    await user.click(screen.getByRole('button', { name: /profile\.cancel/i }))
 
     await waitFor(() => {
       expect(screen.getByText('Trelles')).toBeInTheDocument()
@@ -194,13 +194,13 @@ describe('ProfilePage', () => {
     const user = userEvent.setup()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /edit/i })).toBeEnabled()
+      expect(screen.getByRole('button', { name: /profile\.edit/i })).toBeEnabled()
     })
 
-    await user.click(screen.getByRole('button', { name: /edit/i }))
-    await user.click(screen.getByRole('button', { name: /save/i }))
+    await user.click(screen.getByRole('button', { name: /profile\.edit/i }))
+    await user.click(screen.getByRole('button', { name: /profile\.save/i }))
 
-    expect(await screen.findByText('Could not update profile information.')).toBeInTheDocument()
+    expect(await screen.findByText('profile.saveError')).toBeInTheDocument()
   })
 
   it('navigates to history when clicking view history', async () => {
@@ -221,10 +221,10 @@ describe('ProfilePage', () => {
     const user = userEvent.setup()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /view history/i })).toBeEnabled()
+      expect(screen.getByRole('button', { name: /profile\.view-history/i })).toBeEnabled()
     })
 
-    await user.click(screen.getByRole('button', { name: /view history/i }))
+    await user.click(screen.getByRole('button', { name: /profile\.view-history/i }))
 
     expect(mockNavigate).toHaveBeenCalledWith('/history')
   })
