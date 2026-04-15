@@ -1,0 +1,8 @@
+<testsuite name="myapp.SimpleFlowSimulation" tests="2" errors="0" failures="1" time="0">
+  <testcase name="Global: max of response time is less than 2000.0" status="true" time="0">
+  <system-out>Global: max of response time is less than 2000.0</system-out>
+</testcase>
+<testcase name="Global: percentage of successful events is greater than 60.0" status="false" time="0">
+  <failure type="Global: percentage of successful events is greater than 60.0">Actual value: 50.0</failure>
+</testcase>
+</testsuite>
