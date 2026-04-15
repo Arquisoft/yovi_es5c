@@ -114,21 +114,16 @@ export default function GamePage() {
   const hasAbandoned = useRef(false);
   const { isLoggedIn } = useSession();
 
-  // Efecto para detectar el abandono de la página
   useEffect(() => {
-    const handleUnload = () => abandonGame();
-    
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
         abandonGame();
       }
     };
 
-    window.addEventListener('beforeunload', handleUnload);
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      window.removeEventListener('beforeunload', handleUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [startTime, isGameOver, mode, difficulty]);
@@ -156,7 +151,8 @@ export default function GamePage() {
   }
 
   const abandonGame = () => {
-    if (isGameOver) return;
+    if (isGameOver || hasAbandoned.current) return;
+    hasAbandoned.current = true;
 
     const duration = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
     const username = localStorage.getItem('username') || 'anonymous';
