@@ -240,7 +240,7 @@ const SpinnerBtn = styled("button")({
   backgroundColor: "transparent",
   color: "#c8a84b",
   border: "none",
-  padding: "8px 16px",
+  padding: "14px 10px",
   fontSize: "1.2rem",
   cursor: "pointer",
   transition: "all 0.2s ease",
@@ -416,20 +416,7 @@ const GameSetup = () => {
             ))}
           </StyledMenu>
         </DivColumn>
-      </DivRow>
-
-      <DivColumn style={{ marginTop: 20 }}>
-        <Typography
-          sx={{
-            fontSize: "0.75rem",
-            color: "#666",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            mb: 1,
-          }}
-        >
-          Board Size
-        </Typography>
+        <DivColumn>
         
         <SpinnerContainer>
           <SpinnerBtn 
@@ -450,8 +437,12 @@ const GameSetup = () => {
             +
           </SpinnerBtn>
         </SpinnerContainer>
+        <ModeDescription>Board size</ModeDescription>
         
       </DivColumn>
+      </DivRow>
+
+      
     </PageWrapper>
   );
 };
