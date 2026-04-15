@@ -149,15 +149,15 @@ describe("GameSetup page", () => {
     const botMenuBtn = screen.getByRole("button", { name: /setup\.bot/i });
     await user.click(botMenuBtn);
 
-    const randomBotOption = await screen.findByText(/random/i);
+    const randomBotOption = (await screen.findAllByRole("menuitem"))[0]
     expect(randomBotOption).toBeInTheDocument();
 
     await user.click(randomBotOption);
 
     const hardDifficultyOption = await screen.findByRole("menuitem", {
-      name: /hard/i,
-    });    
-    
+      name: /home\.difficulties\.hard/i,
+    });
+
     await user.click(hardDifficultyOption);
 
     await waitFor(() => {
@@ -166,7 +166,7 @@ describe("GameSetup page", () => {
           mode: "bot",
           bot_id: "random_bot",
           difficulty: "Hard",
-        },
+      },
       });
     });
   });
