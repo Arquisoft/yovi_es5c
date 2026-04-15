@@ -30,7 +30,12 @@ class SimpleFlowSimulation extends Simulation {
         .post("/play")
         .header("Authorization", "Bearer ${authToken}")
         .body(StringBody("""{
-          "position": 4,
+          "position": {
+            "size": 4,
+            "turn": 0,
+            "players": ["B", "R"],
+            "layout": "./../.B./...."
+          },
           "bot_id": "center_bot",
           "difficulty": "Medium"
         }"""))
