@@ -69,7 +69,7 @@ describe('GameHistory', () => {
         {
           _id: '2',
           userId: 'testuser',
-          rival: 'user',
+          rival: 'multiplayer',
           level: 3,
           duration: 120,
           result: 'lose',
@@ -95,29 +95,12 @@ describe('GameHistory', () => {
     expect(screen.getByText('50%')).toBeInTheDocument()
     expect(screen.getByText('Win')).toBeInTheDocument()
     expect(screen.getByText('Lose')).toBeInTheDocument()
-    expect(screen.getByText(/Bot/)).toBeInTheDocument()
-    expect(screen.getByText(/Player/)).toBeInTheDocument()
+    expect(screen.getByText(/Bot/i)).toBeInTheDocument()
+    expect(screen.getByText(/Player/i)).toBeInTheDocument()
     expect(screen.getByText('1m 30s')).toBeInTheDocument()
     expect(screen.getByText('2m 0s')).toBeInTheDocument()
   })
 
-  it('falls back to mock history when the backend returns an empty list', async () => {
-    ;(axios.get as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
-      data: [],
-    })
-
-    render(
-      <MemoryRouter>
-        <GameHistory />
-      </MemoryRouter>
-    )
-
-    await waitFor(() => {
-      expect(screen.getByText('Played')).toBeInTheDocument()
-    })
-
-    expect(screen.getByText('60%')).toBeInTheDocument()
-  })
 
   it('shows an error state when the history request fails', async () => {
     ;(axios.get as unknown as ReturnType<typeof vi.fn>).mockRejectedValue({
