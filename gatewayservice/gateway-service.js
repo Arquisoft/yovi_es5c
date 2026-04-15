@@ -35,7 +35,7 @@ try {
   console.log(error)
 }
 
-const limiter = rateLimit({ windowMs: 60 * 1000, max: 100 })
+const limiter = rateLimit({ windowMs: 60 * 1000, max: 500 })
 app.use(limiter)
 
 const handleErrors = (res, error) => {
