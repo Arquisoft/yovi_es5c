@@ -148,6 +148,31 @@ app.post('/game/finish', async (req, res) => {
   }
 });
 
+// Middleware específico para aceptar peticiones de texto plano de sendBeacon
+const tolerantJsonParser = express.json({ type: ['application/json', 'text/plain'] });
+
+app.post('/game/abandon', tolerantJsonParser, async (req, res) => {
+  try {
+    // Validar el origen para evitar CSRF
+    const origin = req.headers.origin;
+    if (origin && !origin.includes('localhost')) { 
+      return res.status(403).json({ error: 'Origen no permitido / Posible CSRF' });
+    }
+
+    if (!req.body) {
+      return res.status(400).json({ error: 'Body is required' });
+    }
+    req.body.result = 'lost';
+
+    const finishUrl = new URL('/game/finish', userServiceUrl);
+    const response = await axios.post(finishUrl.href, req.body);
+    res.status(201).json(response.data);
+
+  } catch (error) {
+    handleErrors(res, error);
+  }
+});
+
 // ----- Gamey Service Endpoints -----
 
 app.get('/game/status', async (req, res) => {

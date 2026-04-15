@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Alert, Box, Button, Paper, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Stack } from '@mui/material'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useSession } from "../SessionContext";
@@ -111,8 +111,27 @@ export default function GamePage() {
   const [currentPlayer, setCurrentPlayer] = useState<'B' | 'R'>('B')
   const [message, setMessage] = useState(mode === 'pvp' ? 'Player 1 turn.' : 'Your turn. Place a piece.')
   const [error, setError] = useState('')
+  const hasAbandoned = useRef(false);
   const { isLoggedIn } = useSession();
-  
+
+  // Efecto para detectar el abandono de la página
+  useEffect(() => {
+    const handleUnload = () => abandonGame();
+    
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        abandonGame();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [startTime, isGameOver, mode, difficulty]);
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -135,6 +154,28 @@ export default function GamePage() {
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
   }
+
+  const abandonGame = () => {
+    if (isGameOver) return;
+
+    const duration = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+    const username = localStorage.getItem('username') || 'anonymous';
+
+    const payload = JSON.stringify({
+      userId: username,
+      rival: mode === 'pvp' ? 'multiplayer' : 'bot',
+      level: difficulty,
+      duration: duration
+    });
+
+    const blob = new Blob([payload], { type: 'text/plain' });
+    navigator.sendBeacon(`${apiEndpoint}/game/abandon`, blob);
+  };
+
+  const handleAbandonClick = () => {
+    abandonGame();
+    navigate('/homepage');
+  };
 
   const play = async (row: number, col: number) => {
     if (!isAvailable || busy || winner !== null || board[row][col] !== '.') {
@@ -338,8 +379,8 @@ export default function GamePage() {
           <Button variant="outlined" onClick={reset}>
             New Game
           </Button>
-          <Button variant="outlined" onClick={() => navigate('/homepage')}>
-            Back to Home
+          <Button variant="outlined" color="error" onClick={handleAbandonClick}>
+            Abandon
           </Button>
         </Box>
       </Paper>
