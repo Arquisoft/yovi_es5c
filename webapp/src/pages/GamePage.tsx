@@ -115,16 +115,14 @@ export default function GamePage() {
   const { isLoggedIn } = useSession();
 
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        abandonGame();
-      }
+    const handlePageHide = () => {
+      abandonGame();
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', handlePageHide);
 
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', handlePageHide);
     };
   }, [startTime, isGameOver, mode, difficulty]);
 
