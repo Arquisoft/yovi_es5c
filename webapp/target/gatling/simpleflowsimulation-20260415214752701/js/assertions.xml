@@ -3,6 +3,6 @@
   <system-out>Global: max of response time is less than 2000.0</system-out>
 </testcase>
 <testcase name="Global: percentage of successful events is greater than 60.0" status="false" time="0">
-  <failure type="Global: percentage of successful events is greater than 60.0">Actual value: 27.419354838709676</failure>
+  <failure type="Global: percentage of successful events is greater than 60.0">Actual value: 41.75824175824176</failure>
 </testcase>
 </testsuite>

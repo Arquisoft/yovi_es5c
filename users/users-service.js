@@ -170,21 +170,23 @@ app.put('/user/:username', async (req, res) => {
 app.post('/logout', async (req, res) => {
   try {
     const { username } = req.body;
-    if (!username || !username.trim()) {
-      return res.status(400).json({ error: 'username is required' });
+
+    //Username and password must be filled
+    if(!username || typeof username !== 'string') {
+        return res.status(400).json({ error: 'username is required' });
     }
 
-    const sanitizedUsername = username.trim().toLowerCase();
-    const user = await User.findOne({ username: sanitizedUsername });
+    const query = { username: String(username) }; // Forzado de tipo explícito
+    const user = await User.findOne(query);
 
     if (!user) {
-      return res.status(404).json({ error: `User ${sanitizedUsername} not found` });
+      return res.status(404).json({ error: `User ${username} not found` });
     }
 
     user.lastLogoutAt = new Date();
     await user.save();
 
-    res.json({ message: `User ${sanitizedUsername} logged out`, user });
+    res.json({ message: `User ${username} logged out`, user });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
