@@ -60,8 +60,9 @@ class SimpleFlowSimulation extends Simulation {
 
   setUp(
     scn.inject(
-      atOnceUsers(1),
-      rampUsers(15).during(30.seconds)
+      // atOnceUsers(1),
+      // rampUsers(15).during(30.seconds)
+      constantUsersPerSec(2).during(1.minute)
     )
   ).protocols(httpProtocol)
   .assertions(
