@@ -31,6 +31,12 @@ vi.mock('react-router-dom', async () => {
   }
 })
 
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+}))
+
 describe('GameHistory', () => {
   beforeEach(() => {
     mockNavigate.mockReset()
@@ -72,7 +78,7 @@ describe('GameHistory', () => {
           rival: 'user',
           level: 3,
           duration: 120,
-          result: 'lose',
+          result: 'lost',
           createdAt: '2026-03-02T12:00:00.000Z',
         },
       ],
@@ -88,15 +94,15 @@ describe('GameHistory', () => {
       expect(axios.get).toHaveBeenCalledWith('http://localhost:8000/user/testuser/history')
     })
 
-    expect(screen.getByText('Played')).toBeInTheDocument()
-    expect(screen.getByText('Wins')).toBeInTheDocument()
-    expect(screen.getByText('Losses')).toBeInTheDocument()
-    expect(screen.getByText('Win rate')).toBeInTheDocument()
+    expect(screen.getByText('history.played')).toBeInTheDocument()
+    expect(screen.getByText('history.wins')).toBeInTheDocument()
+    expect(screen.getByText('history.losses')).toBeInTheDocument()
+    expect(screen.getByText('history.winRate')).toBeInTheDocument()
     expect(screen.getByText('50%')).toBeInTheDocument()
-    expect(screen.getByText('Win')).toBeInTheDocument()
-    expect(screen.getByText('Lose')).toBeInTheDocument()
-    expect(screen.getByText(/Bot/)).toBeInTheDocument()
-    expect(screen.getByText(/Player/)).toBeInTheDocument()
+    expect(screen.getByText('history.win')).toBeInTheDocument()
+    expect(screen.getByText('history.lose')).toBeInTheDocument()
+    expect(screen.getByText('history.bot')).toBeInTheDocument()
+    expect(screen.getByText('history.player')).toBeInTheDocument()
     expect(screen.getByText('1m 30s')).toBeInTheDocument()
     expect(screen.getByText('2m 0s')).toBeInTheDocument()
   })
@@ -113,10 +119,10 @@ describe('GameHistory', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('Played')).toBeInTheDocument()
+      expect(screen.getByText('60%')).toBeInTheDocument()
+      expect(screen.getByText('history.played')).toBeInTheDocument()
     })
 
-    expect(screen.getByText('60%')).toBeInTheDocument()
   })
 
   it('shows an error state when the history request fails', async () => {
@@ -134,7 +140,7 @@ describe('GameHistory', () => {
       </MemoryRouter>
     )
 
-    expect(await screen.findByText(/history\.loadError/i)).toBeInTheDocument()
+    expect(await screen.findByText('history.loadError')).toBeInTheDocument()
   })
 
   it('navigates back to game setup', async () => {
@@ -151,10 +157,10 @@ describe('GameHistory', () => {
     const user = userEvent.setup()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /back to select mode/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /history\.back/i })).toBeInTheDocument()
     })
 
-    await user.click(screen.getByRole('button', { name: /back to select mode/i }))
+    await user.click(screen.getByRole('button', { name: /history\.back/i }))
 
     expect(mockNavigate).toHaveBeenCalledWith('/set')
   })
