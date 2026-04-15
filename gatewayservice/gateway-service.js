@@ -103,7 +103,7 @@ app.post('/logout', async (req, res) => {
       return res.status(400).json({ error: 'username is required' });
     }
 
-    const logoutUrl = new URL(`/login`, userServiceUrl);
+    const logoutUrl = new URL(`/logout`, userServiceUrl);
 
     const response = await axios.post(logoutUrl.href, {
       username: username.trim(),
