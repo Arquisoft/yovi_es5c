@@ -1,5 +1,9 @@
 # Yovi_es5c - Game Y at UniOvi
 
+> [!WARNING]  
+> Esta rama ha sido abandonada y no llegará a mergearse con develop/master al replantear de 0 los tests de carga. Se conserva para que quede constancia del planteamiento
+> inicial y porque es referenciada en autoinforme.
+
 [![Release — Test, Build, Publish, Deploy](https://github.com/arquisoft/yovi_es5c/actions/workflows/release-deploy.yml/badge.svg)](https://github.com/arquisoft/yovi_es5c/actions/workflows/release-deploy.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Arquisoft_yovi_es5c&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Arquisoft_yovi_es5c)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Arquisoft_yovi_es5c&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Arquisoft_yovi_es5c)
