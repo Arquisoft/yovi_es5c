@@ -134,7 +134,7 @@ describe('GameHistory', () => {
       </MemoryRouter>
     )
 
-    expect(await screen.findByText('Could not load history.')).toBeInTheDocument()
+    expect(await screen.findByText(/history\.loadError/i)).toBeInTheDocument()
   })
 
   it('navigates back to game setup', async () => {

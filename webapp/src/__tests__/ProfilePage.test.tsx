@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import '@testing-library/jest-dom'
 import { MemoryRouter } from 'react-router-dom'
 import ProfilePage from '../pages/ProfilePage'
+import { act } from "react"
 
 const mockSession = {
   username: 'testuser',
@@ -44,11 +45,10 @@ describe('ProfilePage', () => {
       }),
     })
 
-    render(
-      <MemoryRouter>
-        <ProfilePage />
-      </MemoryRouter>
-    )
+    await act(async () => {
+          render(<MemoryRouter><ProfilePage /></MemoryRouter>)
+    });
+    
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalled()
@@ -80,11 +80,9 @@ describe('ProfilePage', () => {
         }),
       })
 
-    render(
-      <MemoryRouter>
-        <ProfilePage />
-      </MemoryRouter>
-    )
+    await act(async () => {
+          render(<MemoryRouter><ProfilePage /></MemoryRouter>)
+    });
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /edit/i })).toBeEnabled()
@@ -132,11 +130,9 @@ describe('ProfilePage', () => {
       }),
     })
 
-    render(
-      <MemoryRouter>
-        <ProfilePage />
-      </MemoryRouter>
-    )
+    await act(async () => {
+          render(<MemoryRouter><ProfilePage /></MemoryRouter>)
+    });
 
     expect(await screen.findByText('Could not load profile information.')).toBeInTheDocument()
   })
@@ -152,11 +148,9 @@ describe('ProfilePage', () => {
       }),
     })
 
-    render(
-      <MemoryRouter>
-        <ProfilePage />
-      </MemoryRouter>
-    )
+    await act(async () => {
+          render(<MemoryRouter><ProfilePage /></MemoryRouter>)
+    });
 
     const user = userEvent.setup()
 
@@ -193,11 +187,9 @@ describe('ProfilePage', () => {
         }),
       })
 
-    render(
-      <MemoryRouter>
-        <ProfilePage />
-      </MemoryRouter>
-    )
+    await act(async () => {
+          render(<MemoryRouter><ProfilePage /></MemoryRouter>)
+    });
 
     const user = userEvent.setup()
 
@@ -222,11 +214,9 @@ describe('ProfilePage', () => {
       }),
     })
 
-    render(
-      <MemoryRouter>
-        <ProfilePage />
-      </MemoryRouter>
-    )
+    await act(async () => {
+          render(<MemoryRouter><ProfilePage /></MemoryRouter>)
+    });
 
     const user = userEvent.setup()
 
