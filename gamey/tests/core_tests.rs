@@ -550,6 +550,27 @@ fn test_yen_load_preserves_turn_after_swap_position() {
     assert_eq!(game.cell_player(&Coordinates::new(1, 0, 1)), Some(PlayerId::new(1)));
 }
 
+#[test]
+fn test_yen_load_after_opening_still_allows_swap() {
+    let yen_str = r#"{
+        "size": 3,
+        "turn": 1,
+        "players": ["B","R"],
+        "layout": "B/../..."
+    }"#;
+
+    let yen: YEN = serde_json::from_str(yen_str).unwrap();
+    let mut game = GameY::try_from(yen).unwrap();
+
+    let result = game.add_move(Movement::Action {
+        player: PlayerId::new(1),
+        action: GameAction::Swap,
+    });
+
+    assert!(result.is_ok());
+    assert_eq!(game.next_player(), Some(PlayerId::new(1)));
+}
+
 // ============================================================================
 // YEN Serialization Tests
 // ============================================================================
