@@ -502,6 +502,7 @@ impl TryFrom<YEN> for GameY {
 
         let mut ygame = GameY::new(size);
         let mut winner: Option<PlayerId> = None;
+        let mut placed_pieces: Vec<(Coordinates, PlayerId)> = Vec::new();
 
         for (row, row_str) in rows.iter().enumerate() {
             let cells: Vec<char> = row_str.chars().collect();
@@ -531,6 +532,7 @@ impl TryFrom<YEN> for GameY {
                 };
 
                 if let Some(player) = player {
+                    placed_pieces.push((coords, player));
                     let set_idx = ygame.register_piece(player, coords);
                     if ygame.connect_neighbors_and_check_win(coords, player, set_idx) {
                         winner = Some(player);
@@ -545,6 +547,16 @@ impl TryFrom<YEN> for GameY {
             ygame.status = GameStatus::Ongoing {
                 next_player: PlayerId::new(game.turn()),
             };
+        }
+
+        if placed_pieces.len() == 1
+            && game.turn() == 1
+            && placed_pieces[0].1 == PlayerId::new(0)
+        {
+            ygame.history.push(Movement::Placement {
+                player: PlayerId::new(0),
+                coords: placed_pieces[0].0,
+            });
         }
 
         Ok(ygame)
