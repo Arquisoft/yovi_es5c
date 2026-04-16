@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom'
+﻿import '@testing-library/jest-dom'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
 import GamePage from '../pages/GamePage'
@@ -22,10 +22,8 @@ vi.mock('react-router-dom', () => ({
 }))
 
 // Mock de la función externa importada de GameSetup
-vi.mock('../utils/gameUtils', () => ({
+vi.mock('../pages/GameSetup', () => ({
 	getInitialBoardSize: vi.fn(() => 3),
-	minBoardSize: 3,
-	maxBoardSize: 15,
 }))
 
 // Mock de la API global fetch
@@ -74,8 +72,8 @@ it('debe renderizar el tablero en modo bot por defecto si está logueado', async
 	// Verifica que el título corresponda al modo bot
 	expect(screen.getByText('Game Y - Player vs Bot')).toBeInTheDocument()
 
-	// Verifica que el SVG del tablero se haya renderizado
-	expect(screen.getByRole('img', { name: /Y game board/i })).toBeInTheDocument()
+	expect(screen.getByText('You')).toBeInTheDocument()
+	expect(screen.getByText('Bot')).toBeInTheDocument()
 })
 
 it('debe renderizar en modo pvp si se pasa por el estado de navegación', () => {
@@ -85,6 +83,9 @@ it('debe renderizar en modo pvp si se pasa por el estado de navegación', () => 
 	render(<GamePage />)
 
 	expect(screen.getByText('Game Y - Player vs Player')).toBeInTheDocument()
+	expect(screen.getByText('Player 1')).toBeInTheDocument()
+	expect(screen.getByText('Player 2')).toBeInTheDocument()
+	expect(screen.queryByRole('button', { name: /Swap/i })).not.toBeInTheDocument()
 })
 
 it('debe llamar a la API de movimiento al hacer clic en una celda vacía', async () => {
@@ -118,6 +119,74 @@ it('debe llamar a la API de movimiento al hacer clic en una celda vacía', async
 	})
 })
 
+it('debe mostrar la regla del pastel tras la primera jugada en PvP', async () => {
+	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+		; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
+
+		; (global.fetch as Mock).mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				game_over: false,
+				winner: null,
+				state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+			}),
+		})
+
+	const { container } = render(<GamePage />)
+	const firstCell = container.querySelector('g')
+	fireEvent.click(firstCell!)
+
+	await waitFor(() => {
+		expect(screen.getByRole('button', { name: /Swap/i })).toBeInTheDocument()
+	})
+})
+
+it('debe enviar la accion swap al aplicar la regla del pastel', async () => {
+	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+		; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
+
+		; (global.fetch as Mock)
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({
+					game_over: false,
+					winner: null,
+					state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+				}),
+			})
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({
+					game_over: false,
+					winner: null,
+					state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+				}),
+			})
+
+	const { container } = render(<GamePage />)
+	const firstCell = container.querySelector('g')
+	fireEvent.click(firstCell!)
+
+	const pieRuleButton = await screen.findByRole('button', { name: /Swap/i })
+	fireEvent.click(pieRuleButton)
+
+	await waitFor(() => {
+		expect(global.fetch).toHaveBeenNthCalledWith(
+			2,
+			expect.stringContaining('/game/move'),
+			expect.objectContaining({
+				method: 'POST',
+				body: expect.stringContaining('"action":"swap"'),
+			}),
+		)
+	})
+
+	await waitFor(() => {
+		expect(screen.getByText('Player 1')).toBeInTheDocument()
+		expect(screen.getByText('Player 2')).toBeInTheDocument()
+	})
+})
+
 it('debe resetear el tablero al hacer clic en "New Game"', () => {
 	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
 		; (useLocation as Mock).mockReturnValue({ state: { mode: 'bot' } })
@@ -127,8 +196,9 @@ it('debe resetear el tablero al hacer clic en "New Game"', () => {
 	const newGameButton = screen.getByRole('button', { name: /New Game/i })
 	fireEvent.click(newGameButton)
 
-	// Si se resetea, el mensaje vuelve al turno inicial
-	expect(screen.getByText('Your turn. Place a piece.')).toBeInTheDocument()
+	expect(screen.getByText('You')).toBeInTheDocument()
+	expect(screen.getByText('Bot')).toBeInTheDocument()
+	expect(screen.queryByRole('button', { name: /Swap/i })).not.toBeInTheDocument()
 })
 
 it('debe navegar a /homepage al hacer clic en "Back to Home"', () => {
@@ -192,6 +262,36 @@ it('debe manejar errores si la API falla al intentar hacer un movimiento', async
 	})
 })
 
+it('debe mostrar error si falla el swap', async () => {
+	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+		; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
+
+		; (global.fetch as Mock)
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({
+					game_over: false,
+					winner: null,
+					state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+				}),
+			})
+			.mockResolvedValueOnce({
+				ok: false,
+				json: async () => ({ error: 'Swap inválido' }),
+			})
+
+	const { container } = render(<GamePage />)
+	const firstCell = container.querySelector('g')
+	fireEvent.click(firstCell!)
+
+	const swapButton = await screen.findByRole('button', { name: /Swap/i })
+	fireEvent.click(swapButton)
+
+	await waitFor(() => {
+		expect(screen.getByText('Swap inválido')).toBeInTheDocument()
+	})
+})
+
 it('debe mostrar el ganador correcto cuando finaliza el juego (Gana Player 1)', async () => {
 	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
 		; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
@@ -215,7 +315,7 @@ it('debe mostrar el ganador correcto cuando finaliza el juego (Gana Player 1)', 
 	fireEvent.click(firstCell!)
 
 	await waitFor(() => {
-		expect(screen.getByText('Player 1 wins.')).toBeInTheDocument()
+		expect(screen.getByText('Player 1 wins!')).toBeInTheDocument()
 	})
 })
 
@@ -248,7 +348,7 @@ it('debe mostrar el ganador correcto cuando el Bot gana (Gana R en modo bot)', a
 
 	// Aumentamos el timeout del waitFor porque el modo bot tiene un delay artificial (botDelayMs = 700)
 	await waitFor(() => {
-		expect(screen.getByText('Bot wins.')).toBeInTheDocument()
+		expect(screen.getByText('Oh no! The bot won')).toBeInTheDocument()
 	}, { timeout: 1500 })
 })
 

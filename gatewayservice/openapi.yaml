@@ -195,7 +195,10 @@ paths:
                   enum:
                     - random_bot
                     - center_bot
+                    - smart_bot
                     - edge_bot
+                    - mirror_bot
+                    - alpha_bot
                   default: random_bot
                   description: Identificador del bot (obligatorio y validado si el mode es 'bot')
                 difficulty:
@@ -215,69 +218,48 @@ paths:
           description: Error interno del servidor
 
   /play:
-    post:
-      summary: Ejecuta una jugada del bot sobre una posicion YEN
-      description: Recibe una posicion YEN directamente y devuelve la posicion YEN resultante tras aplicar la jugada del bot. Por defecto usa center_bot en dificultad Hard.
+    get:
+      summary: Devuelve la siguiente jugada del bot para una posicion YEN
+      description: API publica estandar para el torneo. Recibe la posicion actual serializada en YEN como query parameter y devuelve unas coordenadas. Por defecto usa alpha_bot.
       tags:
         - Bot API
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - size
-                - turn
-                - players
-                - layout
-              properties:
-                size:
-                  type: integer
-                  example: 3
-                turn:
-                  type: integer
-                  example: 0
-                players:
-                  type: array
-                  items:
-                    type: string
-                  example:
-                    - B
-                    - R
-                layout:
-                  type: string
-                  example: ./../...
-            example:
-              size: 3
-              turn: 0
-              players:
-                - B
-                - R
-              layout: ./../...
+      parameters:
+        - in: query
+          name: position
+          required: true
+          schema:
+            type: string
+          description: Posicion del tablero en formato YEN serializada como JSON
+          example: '{"size":3,"turn":0,"players":["B","R"],"layout":"./../..."}'
+        - in: query
+          name: bot_id
+          required: false
+          schema:
+            type: string
+            enum:
+              - alpha_bot
+              - smart_bot
+            default: alpha_bot
+          description: Identificador del bot publico a utilizar
       responses:
         '200':
-          description: Posicion YEN resultante tras la jugada del bot
+          description: Coordenadas de la siguiente jugada del bot
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  size:
-                    type: integer
-                    example: 3
-                  turn:
-                    type: integer
-                    example: 1
-                  players:
-                    type: array
-                    items:
-                      type: string
-                    example:
-                      - B
-                      - R
-                  layout:
-                    type: string
-                    example: B/../...
+                  coords:
+                    type: object
+                    properties:
+                      x:
+                        type: integer
+                        example: 1
+                      y:
+                        type: integer
+                        example: 1
+                      z:
+                        type: integer
+                        example: 0
         '400':
           description: Peticion invalida o error propagado desde Gamey
