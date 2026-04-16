@@ -281,6 +281,7 @@ export default function GamePage() {
     setCurrentPlayer(nextPlayer)
     setMessage(`Player ${nextPlayer} turn.`)
   } else {
+    setCurrentPlayer('B')
     setMessage('Your turn. Place a piece.')
   }
 }
