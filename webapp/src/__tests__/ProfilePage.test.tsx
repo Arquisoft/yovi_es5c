@@ -4,7 +4,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import '@testing-library/jest-dom'
 import { MemoryRouter } from 'react-router-dom'
 import ProfilePage from '../pages/ProfilePage'
-import { act } from "react"
 
 const mockSession = {
   username: 'testuser',
@@ -39,24 +38,22 @@ describe('ProfilePage', () => {
       ok: true,
       json: async () => ({
         username: 'testuser',
-        name: 'Mario',
-        surname: 'Trelles',
-        email: 'mario@uniovi.es',
+        name: 'Test',
+        surname: 'User',
+        email: 'test@uniovi.es',
       }),
     })
 
-    await act(async () => {
-          render(<MemoryRouter><ProfilePage /></MemoryRouter>)
-    });
+    render(<MemoryRouter><ProfilePage /></MemoryRouter>)
     
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalled()
     })
 
-    expect(screen.getByText('Mario')).toBeInTheDocument()
-    expect(screen.getByText('Trelles')).toBeInTheDocument()
-    expect(screen.getByText('mario@uniovi.es')).toBeInTheDocument()
+    expect(screen.getByText('Test')).toBeInTheDocument()
+    expect(screen.getByText('User')).toBeInTheDocument()
+    expect(screen.getByText('test@uniovi.es')).toBeInTheDocument()
   })
 
   it('allows editing and saving the profile', async () => {
@@ -65,24 +62,22 @@ describe('ProfilePage', () => {
         ok: true,
         json: async () => ({
           username: 'testuser',
-          name: 'Mario',
-          surname: 'Trelles',
-          email: 'mario@uniovi.es',
+          name: 'Test',
+          surname: 'User',
+          email: 'test@uniovi.es',
         }),
       })
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           username: 'testuser',
-          name: 'Mario',
-          surname: 'Garcia',
-          email: 'mario.garcia@uniovi.es',
+          name: 'Test',
+          surname: 'Updated',
+          email: 'test.updated@uniovi.es',
         }),
       })
 
-    await act(async () => {
-          render(<MemoryRouter><ProfilePage /></MemoryRouter>)
-    });
+    render(<MemoryRouter><ProfilePage /></MemoryRouter>)
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /profile\.edit/i })).toBeEnabled()
@@ -92,11 +87,11 @@ describe('ProfilePage', () => {
 
     await user.click(screen.getByRole('button', { name: /profile\.edit/i }))
     await user.clear(screen.getByLabelText(/profile\.name/i))
-    await user.type(screen.getByLabelText(/profile\.name/i), 'Mario')
+    await user.type(screen.getByLabelText(/profile\.name/i), 'Test')
     await user.clear(screen.getByLabelText(/profile\.surname/i))
-    await user.type(screen.getByLabelText(/profile\.surname/i), 'Garcia')
+    await user.type(screen.getByLabelText(/profile\.surname/i), 'Updated')
     await user.clear(screen.getByLabelText(/profile\.email/i))
-    await user.type(screen.getByLabelText(/profile\.email/i), 'mario.garcia@uniovi.es')
+    await user.type(screen.getByLabelText(/profile\.email/i), 'test.updated@uniovi.es')
     await user.click(screen.getByRole('button', { name: /profile\.save/i}))
 
     await waitFor(() => {
@@ -106,20 +101,18 @@ describe('ProfilePage', () => {
         expect.objectContaining({
           method: 'PUT',
           body: JSON.stringify({
-            name: 'Mario',
-            surname: 'Garcia',
-            email: 'mario.garcia@uniovi.es',
+            name: 'Test',
+            surname: 'Updated',
+            email: 'test.updated@uniovi.es',
           }),
         })
       )
     })
 
-    await waitFor(() => {
-      expect(screen.findByText('profile.saveSuccess')).toBeInTheDocument()
-    })
-    expect(screen.getByText('Mario')).toBeInTheDocument()
-    expect(screen.getByText('Garcia')).toBeInTheDocument()
-    expect(screen.getByText('mario.garcia@uniovi.es')).toBeInTheDocument()
+    expect(await screen.findByText('profile.saveSuccess')).toBeInTheDocument()
+    expect(screen.getByText('Test')).toBeInTheDocument()
+    expect(screen.getByText('Updated')).toBeInTheDocument()
+    expect(screen.getByText('test.updated@uniovi.es')).toBeInTheDocument()
   })
 
   it('shows an error message when loading the profile fails', async () => {
@@ -130,11 +123,9 @@ describe('ProfilePage', () => {
       }),
     })
 
-    await act(async () => {
-          render(<MemoryRouter><ProfilePage /></MemoryRouter>)
-    });
+    render(<MemoryRouter><ProfilePage /></MemoryRouter>)
 
-    expect(await screen.findByText('profile.loadError')).toBeInTheDocument()
+    expect(await screen.findByText('Could not load profile information.')).toBeInTheDocument()
   })
 
   it('cancels profile editing and restores the saved values', async () => {
@@ -142,15 +133,13 @@ describe('ProfilePage', () => {
       ok: true,
       json: async () => ({
         username: 'testuser',
-        name: 'Mario',
-        surname: 'Trelles',
-        email: 'mario@uniovi.es',
+        name: 'Test',
+        surname: 'User',
+        email: 'test@uniovi.es',
       }),
     })
 
-    await act(async () => {
-          render(<MemoryRouter><ProfilePage /></MemoryRouter>)
-    });
+    render(<MemoryRouter><ProfilePage /></MemoryRouter>)
 
     const user = userEvent.setup()
 
@@ -160,13 +149,13 @@ describe('ProfilePage', () => {
 
     await user.click(screen.getByRole('button', { name: /profile\.edit/i }))
     await user.clear(screen.getByLabelText(/profile\.surname/i))
-    await user.type(screen.getByLabelText(/profile\.surname/i), 'Garcia')
+    await user.type(screen.getByLabelText(/profile\.surname/i), 'Updated')
     await user.click(screen.getByRole('button', { name: /profile\.cancel/i }))
 
     await waitFor(() => {
-      expect(screen.getByText('Trelles')).toBeInTheDocument()
+      expect(screen.getByText('User')).toBeInTheDocument()
     })
-    expect(screen.queryByDisplayValue('Garcia')).not.toBeInTheDocument()
+    expect(screen.queryByDisplayValue('Updated')).not.toBeInTheDocument()
   })
 
   it('shows an error message when saving the profile fails', async () => {
@@ -175,9 +164,9 @@ describe('ProfilePage', () => {
         ok: true,
         json: async () => ({
           username: 'testuser',
-          name: 'Mario',
-          surname: 'Trelles',
-          email: 'mario@uniovi.es',
+          name: 'Test',
+          surname: 'User',
+          email: 'test@uniovi.es',
         }),
       })
       .mockResolvedValueOnce({
@@ -187,9 +176,7 @@ describe('ProfilePage', () => {
         }),
       })
 
-    await act(async () => {
-          render(<MemoryRouter><ProfilePage /></MemoryRouter>)
-    });
+    render(<MemoryRouter><ProfilePage /></MemoryRouter>)
 
     const user = userEvent.setup()
 
@@ -200,7 +187,7 @@ describe('ProfilePage', () => {
     await user.click(screen.getByRole('button', { name: /profile\.edit/i }))
     await user.click(screen.getByRole('button', { name: /profile\.save/i }))
 
-    expect(await screen.findByText('profile.saveError')).toBeInTheDocument()
+    expect(await screen.findByText('Could not update profile information.')).toBeInTheDocument()
   })
 
   it('navigates to history when clicking view history', async () => {
@@ -208,23 +195,21 @@ describe('ProfilePage', () => {
       ok: true,
       json: async () => ({
         username: 'testuser',
-        name: 'Mario',
-        surname: 'Trelles',
-        email: 'mario@uniovi.es',
+        name: 'Test',
+        surname: 'User',
+        email: 'test@uniovi.es',
       }),
     })
 
-    await act(async () => {
-          render(<MemoryRouter><ProfilePage /></MemoryRouter>)
-    });
+    render(<MemoryRouter><ProfilePage /></MemoryRouter>)
 
     const user = userEvent.setup()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /profile\.view-history/i })).toBeEnabled()
+      expect(screen.getByRole('button', { name: /profile\.viewHistory/i })).toBeEnabled()
     })
 
-    await user.click(screen.getByRole('button', { name: /profile\.view-history/i }))
+    await user.click(screen.getByRole('button', { name: /profile\.viewHistory/i }))
 
     expect(mockNavigate).toHaveBeenCalledWith('/history')
   })
