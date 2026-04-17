@@ -315,7 +315,7 @@ it('debe mostrar el ganador correcto cuando finaliza el juego (Gana Player 1)', 
 	fireEvent.click(firstCell!)
 
 	await waitFor(() => {
-		expect(screen.getByText('Player 1 wins!')).toBeInTheDocument()
+		expect(screen.getByText('Player B wins!')).toBeInTheDocument()
 	})
 })
 

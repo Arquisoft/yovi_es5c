@@ -34,6 +34,7 @@ interface MoveTurnResponse {
 }
 
 
+
 function makeEmptyBoard(size: number): Board {
   return Array.from({ length: size }, (_, row) => Array.from({ length: row + 1 }, () => '.' as Cell))
 }
@@ -89,6 +90,30 @@ function boardFromLayout(size: number, layout: string): Board {
   }
 
   return board
+}
+
+
+function getDialogTitle(isPvP: boolean, winner: Winner, userWon: boolean): string {
+  if (isPvP) {
+    return `Player ${winner === 'B' ? 'B' : 'R'} wins!`
+  }
+  if (userWon) return 'Congratulations, you won!'
+  return 'Oh no! The bot won'
+}
+
+function getAccentColor(isPvP: boolean, winner: Winner, userWon: boolean): string {
+  if (isPvP) {
+    return winner === 'B' ? '#1565c0' : '#c62828'
+  }
+  return userWon ? '#2e7d32' : '#d32f2f'
+}
+
+function getDialogMessage(isPvP: boolean, winner: Winner, userWon: boolean): string {
+  if (isPvP) {
+    return `The game has ended. Player ${winner === 'B' ? 'blue' : 'red'} wins.`
+  }
+  if (userWon) return 'You outsmarted the bot. Great play!'
+  return 'The bot was smarter this time. Wanna try again?'
 }
 
 function countPieces(board: Board): number {
@@ -175,8 +200,11 @@ export default function GamePage() {
         const response = await fetch(`${apiEndpoint}/game/status`)
         const text = response.ok ? await response.text() : ''
         setIsAvailable(response.ok && text === 'OK')
-      } catch (e) {
-        setIsAvailable(false)
+      } catch (e:unknown) {
+          if (e instanceof Error) {
+            console.log(e.message)
+          }
+          setIsAvailable(false)
       }
     }
 
@@ -186,6 +214,77 @@ export default function GamePage() {
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
   }
+  const validateMove = (row: number, col: number) => {
+    if (!isAvailable) {
+      setError('Game service is unavailable.')
+      return false
+    }
+
+    if (busy || winner !== null || board[row][col] !== '.') {
+      return false
+    }
+
+    return true
+  }
+
+  const buildPayload = (previousBoard: any, row: number, col: number) => {
+  const payload: Record<string, unknown> = {
+    state: toYen(previousBoard,currentPlayer),
+    row,
+    col,
+    mode,
+  }
+
+  if (mode === 'bot') {
+    payload.bot_id = bot_id
+    payload.difficulty = difficulty
+  }
+
+  return payload
+}
+  const handleGameOver = (winner: Winner) => {
+        setWinner(winner);
+        setIsGameOver(true);
+
+        // Calcular duración y guardar partida
+        const duration = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+        const username = localStorage.getItem('username') || 'anonymous';
+
+        void fetch(`${apiEndpoint}/game/finish`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: username,
+            rival: mode === 'pvp' ? 'multiplayer' : bot_id,
+            level: difficulty,
+            duration: duration,
+            result: winner === 'B' ? 'won' : 'lost'
+          })
+        });
+        
+        if (winner === 'B') {
+          setMessage(mode === 'pvp' ? 'Player 1 wins.' : 'You win.')
+        } else if (winner === 'R') {
+          setMessage(mode === 'pvp' ? 'Player 2 wins.' : 'Bot wins.')
+        } else {
+          setMessage('Game Over.')
+        }
+
+  }
+
+  const handleNextTurn = (moveData: MoveTurnResponse) => {
+  setWinner(null)
+  setIsGameOver(false)
+
+  if (mode === 'pvp') {
+    const nextPlayer = moveData.state.turn === 0 ? 'B' : 'R'
+    setCurrentPlayer(nextPlayer)
+    setMessage(`Player ${nextPlayer} turn.`)
+  } else {
+    setCurrentPlayer('B')
+    setMessage('Your turn. Place a piece.')
+  }
+}
 
   const getPvpPlayerLabel = (color: 'B' | 'R', p1Color = playerOneColor, p2Color = playerTwoColor) => {
     if (color === p1Color) {
@@ -306,12 +405,7 @@ export default function GamePage() {
   }
 
   const play = async (row: number, col: number) => {
-    if (!isAvailable || busy || winner !== null || board[row][col] !== '.') {
-      if (!isAvailable) {
-        setError('Game service is unavailable.')
-      }
-      return
-    }
+    if (!validateMove(row, col)) return;
 
     setError('')
     // Iniciar cronómetro en el primer movimiento
@@ -320,6 +414,7 @@ export default function GamePage() {
     }
 
     setBusy(true)
+
     const previousBoard = cloneBoard(board)
     const optimisticBoard = cloneBoard(board)
     optimisticBoard[row][col] = mode === 'pvp' ? currentPlayer : 'B'
@@ -327,17 +422,7 @@ export default function GamePage() {
 
     try {
       setMessage(mode === 'pvp' ? 'Processing move...' : 'Bot is thinking...')
-
-      const payload: Record<string, unknown> = {
-        state: toYen(previousBoard, currentPlayer),
-        row,
-        col,
-        mode,
-      }
-      if (mode === 'bot') {
-        payload.bot_id = bot_id
-        payload.difficulty = difficulty
-      }
+      const payload = buildPayload(previousBoard, row, col)
 
       const response = await fetch(`${apiEndpoint}/game/move`, {
         method: 'POST',
@@ -361,49 +446,15 @@ export default function GamePage() {
 
       if (moveData.game_over) {
         const finalWinner = moveData.winner;
-        setWinner(finalWinner);
-        setIsGameOver(true);
-
-        // Calcular duración y guardar partida
-        const duration = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
-        const username = localStorage.getItem('username') || 'anonymous';
-
-        void fetch(`${apiEndpoint}/game/finish`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: username,
-            rival: mode === 'pvp' ? 'multiplayer' : 'bot',
-            level: difficulty,
-            duration: duration,
-            result: finalWinner === 'B' ? 'won' : 'lost'
-          })
-        });
-        
-        if (finalWinner === 'B') {
-          setMessage(mode === 'pvp' ? `${getPvpPlayerLabel('B')} wins.` : 'You win.')
-        } else if (finalWinner === 'R') {
-          setMessage(mode === 'pvp' ? `${getPvpPlayerLabel('R')} wins.` : 'Bot wins.')
-        } else {
-          setMessage('Game Over.')
-        }
+        handleGameOver(finalWinner);
       } else {
-        setWinner(null)
-        setIsGameOver(false);
-        if (mode === 'pvp') {
-          const nextPlayer = moveData.state.turn === 0 ? 'B' : 'R'
-          setCurrentPlayer(nextPlayer)
-          setMessage(`${getPvpPlayerLabel(nextPlayer)} turn.`)
-        } else {
-          setCurrentPlayer('B')
-          setMessage('Your turn. Place a piece.')
-        }
+        handleNextTurn(moveData);
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Unknown error'
       setBoard(previousBoard)
       setError(msg)
-      setMessage(mode === 'pvp' ? 'Your move could not be completed.' : 'Your move could not be completed against the bot.')
+      setMessage('Your move could not be completed.')
     } finally {
       setBusy(false)
     }
@@ -473,14 +524,10 @@ export default function GamePage() {
   // Lógica para el contenido del diálogo de fin de partida
   const isPvP = mode === 'pvp';
   const userWon = winner === 'B';
-  const winnerLabel = winner ? getPvpPlayerLabel(winner) : 'Player';
-  const dialogTitle = isPvP 
-    ? `${winnerLabel} wins!` 
-    : (userWon ? 'Congratulations, you won!' : 'Oh no! The bot won');
+  const dialogTitle = getDialogTitle(isPvP, winner, userWon);
+
   
-  const accentColor = isPvP 
-    ? (winner === 'B' ? '#1565c0' : '#c62828') 
-    : (userWon ? '#2e7d32' : '#d32f2f');
+  const accentColor = getAccentColor(isPvP, winner, userWon)
 
   return (
     <div className="main-content">
@@ -627,12 +674,7 @@ export default function GamePage() {
               </Box>
             )}
             <Typography variant="body1" color="text.secondary">
-              {isPvP 
-                ? `The game has ended. ${winnerLabel} wins.`
-                : (userWon 
-                    ? 'You outsmarted the bot. Great play!' 
-                    : 'The bot was smarter this time. Wanna try again?')
-              }
+              {getDialogMessage(isPvP, winner, userWon)}
             </Typography>
           </Stack>
         </DialogContent>

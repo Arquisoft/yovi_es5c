@@ -44,7 +44,10 @@ const LoginForm = () => {
         // En caso de credenciales incorrectas, capturamos el mensaje de tu backend
         setError(data.error || "Error al iniciar sesión");
       }
-    } catch (err) {
+    } catch (e:unknown) {
+          if (e instanceof Error) {
+            console.log(e.message)
+          }
       setError("Error de conexión con el servidor");
     }
   };
