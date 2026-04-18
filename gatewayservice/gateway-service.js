@@ -148,6 +148,20 @@ app.post('/game/finish', async (req, res) => {
   }
 });
 
+app.get('/game/ranking', async (req, res) => {
+  try {
+
+    const ranking = new URL('/game/ranking', userServiceUrl);
+
+    const response = await axios.get(ranking.href);
+
+    res.status(200).json(response.data);
+
+  } catch (error) {
+    handleErrors(res, error);
+  }
+});
+
 // ----- Gamey Service Endpoints -----
 
 app.get('/game/status', async (req, res) => {
