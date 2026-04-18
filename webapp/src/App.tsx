@@ -11,6 +11,7 @@ import GameSetup from './pages/GameSetup'
 import Login from "./pages/Login"
 import GamePage from './pages/GamePage'
 import GameHistory from './pages/GameHistory'
+import GameRanking from './pages/GameRanking'
 import ProfilePage from './pages/ProfilePage'
 import { useEffect } from "react";
 import { updateThemeColors } from "./utils/themeController";
@@ -81,6 +82,12 @@ function App() {
             <PrivateRoute>
               <GameHistory />
             </PrivateRoute>
+          }
+        />
+        <Route
+          path="/game/ranking"
+          element={
+              <GameRanking />
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />
