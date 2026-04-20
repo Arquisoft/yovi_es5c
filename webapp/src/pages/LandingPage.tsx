@@ -20,8 +20,21 @@ export default function LandingPage() {
           {t("landing.welcomeTo")} <span>GAMEY</span>
         </h1>
 
-        {!isLoggedIn ? (
+        {isLoggedIn ? (
           <div className="button-group">
+            <h3>
+              {t("landing.welcomeBack", { username })} 🎮
+            </h3>
+
+            <Button
+              variant="contained"
+              onClick={() => navigate('/homepage')}
+            >
+              {t("landing.goToDashboard")}
+            </Button>
+          </div>
+        ) : (
+          <div className="button-group"> 
             <Button
               variant="contained"
               onClick={() => navigate('/login')}
@@ -35,19 +48,6 @@ export default function LandingPage() {
               sx={{ color: 'white', borderColor: 'white' }}
             >
               {t("landing.createAccount")}
-            </Button>
-          </div>
-        ) : (
-          <div className="button-group">
-            <h3>
-              {t("landing.welcomeBack", { username })} 🎮
-            </h3>
-
-            <Button
-              variant="contained"
-              onClick={() => navigate('/homepage')}
-            >
-              {t("landing.goToDashboard")}
             </Button>
           </div>
         )}

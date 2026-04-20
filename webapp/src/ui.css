@@ -25,7 +25,6 @@
 
 .yovi-ui .uiContainer {
 	max-width: 32em;
-	/* margin-left: 64px; */
 }
 
 .yovi-ui .MuiOutlinedInput-root {
@@ -49,7 +48,6 @@
 
 .yovi-ui .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
 	/* Borde del color de resaltado al hacer clic */
-	/* border-color: var(--accent-color); */
 	border-color: var(--yovi-ui-accent-color);
 }
 

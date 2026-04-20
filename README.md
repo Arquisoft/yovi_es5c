@@ -4,6 +4,9 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Arquisoft_yovi_es5c&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Arquisoft_yovi_es5c)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Arquisoft_yovi_es5c&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Arquisoft_yovi_es5c)
 
+Application url: http://4.233.210.164 <br>
+Documentation url: https://arquisoft.github.io/yovi_es5c/
+
 This project is a template with some basic functionality for the ASW labs.
 
 ## Contributors:

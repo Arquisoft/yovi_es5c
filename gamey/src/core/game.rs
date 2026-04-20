@@ -140,7 +140,7 @@ impl GameY {
                 self.handle_placement(*player, *coords)?;
             }
             Movement::Action { player, action } => {
-                self.handle_action(*player, action);
+                self.handle_action(*player, action)?;
             }
         }
         self.history.push(movement);
@@ -203,19 +203,39 @@ impl GameY {
     }
 
     /// Handles non-placement actions (Resign, Swap, etc.)
-    fn handle_action(&mut self, player: PlayerId, action: &GameAction) {
+    fn handle_action(&mut self, player: PlayerId, action: &GameAction) -> Result<()> {
         match action {
             GameAction::Resign => {
                 self.status = GameStatus::Finished {
                     winner: other_player(player),
                 };
+                Ok(())
             }
             GameAction::Swap => {
+                self.apply_swap(player)?;
                 self.status = GameStatus::Ongoing {
-                    next_player: other_player(player),
+                    next_player: player,
                 };
+                Ok(())
             }
         }
+    }
+
+    fn apply_swap(&mut self, player: PlayerId) -> Result<()> {
+        let Some(Movement::Placement { player: opening_player, .. }) = self.history.first() else {
+            return Err(GameYError::ServerError {
+                message: "Swap is only allowed immediately after the opening move".to_string(),
+            });
+        };
+
+        if self.history.len() != 1 || opening_player.id() != 0 || player.id() != 1 {
+            return Err(GameYError::ServerError {
+                message: "Swap is only allowed for player 1 right after player 0 opens"
+                    .to_string(),
+            });
+        }
+
+        Ok(())
     }
 
     /// Handles validation logic (Game Over checks and Occupancy)
@@ -480,8 +500,9 @@ impl TryFrom<YEN> for GameY {
             });
         }
 
-        let mut b_coords: Vec<Coordinates> = Vec::new();
-        let mut r_coords: Vec<Coordinates> = Vec::new();
+        let mut ygame = GameY::new(size);
+        let mut winner: Option<PlayerId> = None;
+        let mut placed_pieces: Vec<(Coordinates, PlayerId)> = Vec::new();
 
         for (row, row_str) in rows.iter().enumerate() {
             let cells: Vec<char> = row_str.chars().collect();
@@ -497,10 +518,10 @@ impl TryFrom<YEN> for GameY {
                 let y = col as u32;
                 let z = size - 1 - x - y;
                 let coords = Coordinates::new(x, y, z);
-                match cell {
-                    'B' => b_coords.push(coords),
-                    'R' => r_coords.push(coords),
-                    '.' => {}
+                let player = match cell {
+                    'B' => Some(PlayerId::new(0)),
+                    'R' => Some(PlayerId::new(1)),
+                    '.' => None,
                     _ => {
                         return Err(GameYError::InvalidCharInLayout {
                             char: *cell,
@@ -508,48 +529,33 @@ impl TryFrom<YEN> for GameY {
                             col,
                         });
                     }
+                };
+
+                if let Some(player) = player {
+                    placed_pieces.push((coords, player));
+                    let set_idx = ygame.register_piece(player, coords);
+                    if ygame.connect_neighbors_and_check_win(coords, player, set_idx) {
+                        winner = Some(player);
+                    }
                 }
             }
         }
 
-        let mut ygame = GameY::new(size);
-        let mut b_index = 0usize;
-        let mut r_index = 0usize;
-
-        while b_index < b_coords.len() || r_index < r_coords.len() {
-            let next_player = match ygame.next_player() {
-                Some(player) => player.id(),
-                None => break,
+        if let Some(winner) = winner {
+            ygame.status = GameStatus::Finished { winner };
+        } else {
+            ygame.status = GameStatus::Ongoing {
+                next_player: PlayerId::new(game.turn()),
             };
-
-            if next_player == 0 {
-                if b_index >= b_coords.len() {
-                    return Err(GameYError::ServerError {
-                        message: "Invalid board: missing B move for expected turn".to_string(),
-                    });
-                }
-                ygame.add_move(Movement::Placement {
-                    player: PlayerId::new(0),
-                    coords: b_coords[b_index],
-                })?;
-                b_index += 1;
-            } else {
-                if r_index >= r_coords.len() {
-                    return Err(GameYError::ServerError {
-                        message: "Invalid board: missing R move for expected turn".to_string(),
-                    });
-                }
-                ygame.add_move(Movement::Placement {
-                    player: PlayerId::new(1),
-                    coords: r_coords[r_index],
-                })?;
-                r_index += 1;
-            }
         }
 
-        if b_index != b_coords.len() || r_index != r_coords.len() {
-            return Err(GameYError::ServerError {
-                message: "Invalid board: extra moves remain after game end".to_string(),
+        if placed_pieces.len() == 1
+            && game.turn() == 1
+            && placed_pieces[0].1 == PlayerId::new(0)
+        {
+            ygame.history.push(Movement::Placement {
+                player: PlayerId::new(0),
+                coords: placed_pieces[0].0,
             });
         }
 
