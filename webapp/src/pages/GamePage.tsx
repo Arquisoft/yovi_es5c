@@ -318,7 +318,7 @@ export default function GamePage() {
     isActive: boolean,
     touchedSides: { touchesA: boolean; touchesB: boolean; touchesC: boolean },
   ) => {
-    const playerTestId = label.toLowerCase().replace(/\s+/g, '-')
+    const playerTestId = label.toLowerCase().replaceAll(/\s+/g, '-')
     const triangle = getTriangleVertices()
     const stroke = color === 'B' ? '#1565c0' : '#c62828'
     const fill = color === 'B' ? 'rgba(21, 101, 192, 0.14)' : 'rgba(198, 40, 40, 0.14)'
