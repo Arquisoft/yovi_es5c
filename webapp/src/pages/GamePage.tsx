@@ -318,6 +318,7 @@ export default function GamePage() {
     isActive: boolean,
     touchedSides: { touchesA: boolean; touchesB: boolean; touchesC: boolean },
   ) => {
+    const playerTestId = label.toLowerCase().replace(/\s+/g, '-')
     const triangle = getTriangleVertices()
     const stroke = color === 'B' ? '#1565c0' : '#c62828'
     const fill = color === 'B' ? 'rgba(21, 101, 192, 0.14)' : 'rgba(198, 40, 40, 0.14)'
@@ -327,6 +328,7 @@ export default function GamePage() {
 
     return (
       <Paper
+        data-testid={`${playerTestId}-card`}
         elevation={0}
         sx={{
           flex: 1,
@@ -342,6 +344,7 @@ export default function GamePage() {
             {label}
           </Typography>
           <Box
+            data-testid={`${playerTestId}-status`}
             sx={{
               px: 1,
               py: 0.35,
@@ -587,6 +590,8 @@ export default function GamePage() {
                   
                   return (
                     <g
+                      data-testid={`cell-${rowIndex}-${cellIndex}`}
+                      aria-label={`Cell ${rowIndex} ${cellIndex}`}
                       key={`${rowIndex}-${cellIndex}`}
                       onClick={() => {
                         if (clickable) {
