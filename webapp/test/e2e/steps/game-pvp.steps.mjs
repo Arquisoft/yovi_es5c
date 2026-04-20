@@ -91,3 +91,11 @@ When('Player 2 places a piece on cell {string}', async function (cell) {
 
   await page.getByTestId(`cell-${cell}`).click()
 })
+
+Then('Player 1 should win the game', async function () {
+  const page = this.page
+  if (!page) throw new Error('Page not initialized')
+
+  await page.getByRole('heading', { name: 'Player B wins!' }).waitFor({ state: 'visible', timeout: 15000 })
+  await page.getByText('The game has ended. Player blue wins.').waitFor({ state: 'visible', timeout: 15000 })
+})
