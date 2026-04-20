@@ -97,43 +97,36 @@ describe("Login page", () => {
   });
 
   it("handles network error and logs it", async () => {
-  const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
-  (global.fetch as any).mockRejectedValue(new Error("Network error"));
+    // Simulamos el fallo de red
+    (global.fetch as any).mockRejectedValue(new Error("Network error"));
 
+    render(
+      <MemoryRouter>
+        <Login />
+      </MemoryRouter>
+    );
 
-  await act(async () => {
-      render(<MemoryRouter><Login /></MemoryRouter>);
+    const user = userEvent.setup();
+
+    const usernameInput = screen.getByLabelText(/auth\.user/i);
+    const passwordInput = screen.getByLabelText(/auth\.password/i);
+    const loginButton = screen.getByRole("button", { name: /auth\.login/i });
+
+    await user.type(usernameInput, "miguel1235");
+    await user.type(passwordInput, "Miguel1**");
+    
+    await user.click(loginButton);
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith("Network error");
+      
+      expect(
+        screen.getByText(/errors\.genericConnection/i)
+      ).toBeInTheDocument();
     });
-  
 
-  const user = userEvent.setup();
-  const usernameInput = document.querySelector('input[name="username"]') as HTMLInputElement;
-  const passwordInput = document.querySelector('input[name="password"]') as HTMLInputElement;
-
-
-  await act(async () => {
-      await user.type(usernameInput, "miguel1235");
-      await user.type(passwordInput, "Miguel1**");
-    });
-
-  
-
-  const loginButton = screen.getByRole("button", { name: /log-in/i });
-
-  await act(async () => {
-      await user.click(loginButton);
-    });
-  
-  
-  await waitFor(() => {
-    expect(consoleSpy).toHaveBeenCalledWith("Network error");
-
-    expect(
-      screen.getByText(/error de conexión con el servidor/i)
-    ).toBeInTheDocument();
+    consoleSpy.mockRestore();
   });
-
-  consoleSpy.mockRestore();
-});
 });
