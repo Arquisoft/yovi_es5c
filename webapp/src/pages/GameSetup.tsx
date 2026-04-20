@@ -17,39 +17,6 @@ interface BotOption {
 
 // ─── Constants ───────────────────────────────────────────────
 
-const BOT_OPTIONS: BotOption[] = [
-  {
-    bot_id: "random_bot",
-    label: "Random Bot",
-    description: "Makes random moves",
-  },
-  {
-    bot_id: "center_bot",
-    label: "Center bot",
-    description: "Controls the center",
-  },
-  {
-    bot_id: "edge_bot",
-    label: "Edge bot",
-    description: "Controls the sides",
-  },
-  {
-    bot_id: "smart_bot",
-    label: "Smart bot",
-    description: "Always searchs the victory",
-  },
-  {
-    bot_id: "mirror_bot",
-    label: "Mirror bot",
-    description: "Mirrors the opponent's moves",
-  },
-  {
-    bot_id: "alpha_bot",
-    label: "Alpha bot",
-    description: "The best bot, try to win it",
-  },
-];
-
 const DIFFICULTIES: Difficulty[] = ["Easy", "Medium", "Hard"];
 
 const DIFFICULTY_COLOR: Record<Difficulty, string> = {

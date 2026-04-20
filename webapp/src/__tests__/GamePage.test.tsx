@@ -26,6 +26,13 @@ vi.mock('../pages/GameSetup', () => ({
 	getInitialBoardSize: vi.fn(() => 3),
 }))
 
+// Mock de react-i18next
+vi.mock('react-i18next', () => ({
+	useTranslation: () => ({
+		t: (key: string) => key,
+	}),
+}))
+
 // Mock de la API global fetch
 global.fetch = vi.fn()
 
@@ -72,8 +79,8 @@ it('debe renderizar el tablero en modo bot por defecto si está logueado', async
 	// Verifica que el título corresponda al modo bot
 	expect(screen.getByText('game.titleBot')).toBeInTheDocument()
 
-	expect(screen.getByText('You')).toBeInTheDocument()
-	expect(screen.getByText('Bot')).toBeInTheDocument()
+	expect(screen.getByText('game.you')).toBeInTheDocument()
+	expect(screen.getByText('game.bot')).toBeInTheDocument()
 })
 
 it('debe renderizar en modo pvp si se pasa por el estado de navegación', () => {
@@ -82,10 +89,10 @@ it('debe renderizar en modo pvp si se pasa por el estado de navegación', () => 
 
 	render(<GamePage />)
 
-	expect(screen.getByText('Game Y - Player vs Player')).toBeInTheDocument()
-	expect(screen.getByText('Player 1')).toBeInTheDocument()
-	expect(screen.getByText('Player 2')).toBeInTheDocument()
-	expect(screen.queryByRole('button', { name: /Swap/i })).not.toBeInTheDocument()
+	expect(screen.getByText('game.titlePvp')).toBeInTheDocument()
+	expect(screen.getByText('game.player1')).toBeInTheDocument()
+	expect(screen.getByText('game.player2')).toBeInTheDocument()
+	expect(screen.queryByRole('button', { name: /game\.swap/i })).not.toBeInTheDocument()
 })
 
 it('debe llamar a la API de movimiento al hacer clic en una celda vacía', async () => {
@@ -137,7 +144,7 @@ it('debe mostrar la regla del pastel tras la primera jugada en PvP', async () =>
 	fireEvent.click(firstCell!)
 
 	await waitFor(() => {
-		expect(screen.getByRole('button', { name: /Swap/i })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /game\.swap/i })).toBeInTheDocument()
 	})
 })
 
@@ -167,7 +174,7 @@ it('debe enviar la accion swap al aplicar la regla del pastel', async () => {
 	const firstCell = container.querySelector('g')
 	fireEvent.click(firstCell!)
 
-	const pieRuleButton = await screen.findByRole('button', { name: /Swap/i })
+	const pieRuleButton = await screen.findByRole('button', { name: /game\.swap/i })
 	fireEvent.click(pieRuleButton)
 
 	await waitFor(() => {
@@ -182,8 +189,8 @@ it('debe enviar la accion swap al aplicar la regla del pastel', async () => {
 	})
 
 	await waitFor(() => {
-		expect(screen.getByText('Player 1')).toBeInTheDocument()
-		expect(screen.getByText('Player 2')).toBeInTheDocument()
+		expect(screen.getByText('game.player1')).toBeInTheDocument()
+		expect(screen.getByText('game.player2')).toBeInTheDocument()
 	})
 })
 
@@ -196,9 +203,9 @@ it('debe resetear el tablero al hacer clic en "New Game"', () => {
 	const newGameButton = screen.getByRole('button', { name: /game\.newGame/i })
 	fireEvent.click(newGameButton)
 
-	expect(screen.getByText('You')).toBeInTheDocument()
-	expect(screen.getByText('Bot')).toBeInTheDocument()
-	expect(screen.queryByRole('button', { name: /Swap/i })).not.toBeInTheDocument()
+	expect(screen.getByText('game.you')).toBeInTheDocument()
+	expect(screen.getByText('game.bot')).toBeInTheDocument()
+	expect(screen.queryByRole('button', { name: /game\.swap/i })).not.toBeInTheDocument()
 })
 
 it('debe navegar a /homepage al hacer clic en "Back to Home"', () => {
@@ -284,7 +291,7 @@ it('debe mostrar error si falla el swap', async () => {
 	const firstCell = container.querySelector('g')
 	fireEvent.click(firstCell!)
 
-	const swapButton = await screen.findByRole('button', { name: /Swap/i })
+	const swapButton = await screen.findByRole('button', { name: /game\.swap/i })
 	fireEvent.click(swapButton)
 
 	await waitFor(() => {
@@ -315,9 +322,8 @@ it('debe mostrar el ganador correcto cuando finaliza el juego (Gana Player 1)', 
 	fireEvent.click(firstCell!)
 
 	await waitFor(() => {
-		expect(screen.getByText('game.playerWins')).toBeInTheDocument()
-		//expect(screen.getByText('Player B wins!')).toBeInTheDocument()
-	})
+        expect(screen.getByText('game.dialog.pvpTitle')).toBeInTheDocument()
+    })
 })
 
 it('debe mostrar el ganador correcto cuando el Bot gana (Gana R en modo bot)', async () => {
@@ -349,8 +355,8 @@ it('debe mostrar el ganador correcto cuando el Bot gana (Gana R en modo bot)', a
 
 	// Aumentamos el timeout del waitFor porque el modo bot tiene un delay artificial (botDelayMs = 700)
 	await waitFor(() => {
-		expect(screen.getByText('game.botWins')).toBeInTheDocument()
-	}, { timeout: 1500 })
+        expect(screen.getByText('game.dialog.lostTitle')).toBeInTheDocument()
+    }, { timeout: 2000 })
 })
 
 it('no debe hacer la petición si se hace clic en una celda ya ocupada', async () => {

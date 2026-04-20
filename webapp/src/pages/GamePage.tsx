@@ -94,12 +94,12 @@ function boardFromLayout(size: number, layout: string): Board {
 }
 
 
-function getDialogTitle(isPvP: boolean, winner: Winner, userWon: boolean): string {
+function getDialogTitle(isPvP: boolean, winner: Winner, userWon: boolean, t: (key: string, options?: any) => string): string {
   if (isPvP) {
-    return `Player ${winner === 'B' ? 'B' : 'R'} wins!`
+    return t('game.dialog.pvpTitle', { player: winner === 'B' ? 'B' : 'R' })
   }
-  if (userWon) return 'Congratulations, you won!'
-  return 'Oh no! The bot won'
+  if (userWon) return t('game.dialog.wonTitle')
+  return t('game.dialog.lostTitle')
 }
 
 function getAccentColor(isPvP: boolean, winner: Winner, userWon: boolean): string {
@@ -109,12 +109,12 @@ function getAccentColor(isPvP: boolean, winner: Winner, userWon: boolean): strin
   return userWon ? '#2e7d32' : '#d32f2f'
 }
 
-function getDialogMessage(isPvP: boolean, winner: Winner, userWon: boolean): string {
+function getDialogMessage(isPvP: boolean, winner: Winner, userWon: boolean, t: (key: string, options?: any) => string): string {
   if (isPvP) {
-    return `The game has ended. Player ${winner === 'B' ? 'blue' : 'red'} wins.`
+    return t('game.dialog.pvpBody', { color: winner === 'B' ? t('game.dialog.blue') : t('game.dialog.red') })
   }
-  if (userWon) return 'You outsmarted the bot. Great play!'
-  return 'The bot was smarter this time. Wanna try again?'
+  if (userWon) return t('game.dialog.wonBody')
+  return t('game.dialog.lostBody')
 }
 
 function countPieces(board: Board): number {
@@ -219,7 +219,7 @@ export default function GamePage() {
 
 const validateMove = (row: number, col: number) => {
   if (!isAvailable) {
-    setError('Game service is unavailable.')
+    setError(t('game.serviceUnavailable'))
     return false
   }
 
@@ -291,12 +291,12 @@ const handleNextTurn = (moveData: MoveTurnResponse) => {
 
 const getPvpPlayerLabel = (color: 'B' | 'R', p1Color = playerOneColor, p2Color = playerTwoColor) => {
   if (color === p1Color) {
-    return 'Player 1'
+    return t('game.player1')
   }
   if (color === p2Color) {
-    return 'Player 2'
+    return t('game.player2')
   }
-  return `Player ${color}`
+  return `${t('game.player')} ${color}`
 }
 
   const pieceCount = countPieces(board)
@@ -310,8 +310,8 @@ const getPvpPlayerLabel = (color: 'B' | 'R', p1Color = playerOneColor, p2Color =
     playerTwoColor === 'R'
   const playerOneActive = currentPlayer === playerOneColor
   const playerTwoActive = currentPlayer === playerTwoColor
-  const playerOneLabel = mode === 'pvp' ? 'Player 1' : 'You'
-  const playerTwoLabel = mode === 'pvp' ? 'Player 2' : 'Bot'
+  const playerOneLabel = mode === 'pvp' ? t('game.player1') : t('game.you')
+  const playerTwoLabel = mode === 'pvp' ? t('game.player2') : t('game.bot')
   const playerOneSides = getTouchedSides(board, playerOneColor)
   const playerTwoSides = getTouchedSides(board, playerTwoColor)
 
@@ -357,7 +357,7 @@ const getPvpPlayerLabel = (color: 'B' | 'R', p1Color = playerOneColor, p2Color =
               textTransform: 'uppercase',
             }}
           >
-            {isActive ? 'Turn' : 'Waiting'}
+            {isActive ? t('game.turn') : t('game.waiting')}
           </Box>
         </Stack>
 
@@ -457,7 +457,7 @@ const getPvpPlayerLabel = (color: 'B' | 'R', p1Color = playerOneColor, p2Color =
       const msg = e instanceof Error ? e.message : t('game.unknownError')
       setBoard(previousBoard)
       setError(msg)
-      setMessage('Your move could not be completed.')
+      setMessage(t('game.moveFailed'))
     } finally {
       setBusy(false)
     }
@@ -470,7 +470,7 @@ const getPvpPlayerLabel = (color: 'B' | 'R', p1Color = playerOneColor, p2Color =
 
     setBusy(true)
     setError('')
-    setMessage('Applying pie rule...')
+    setMessage(t('game.applyingPie'))
 
     try {
       const response = await fetch(`${apiEndpoint}/game/move`, {
@@ -485,7 +485,7 @@ const getPvpPlayerLabel = (color: 'B' | 'R', p1Color = playerOneColor, p2Color =
 
       const data = await response.json()
       if (!response.ok) {
-        throw new Error(data.error || 'Unable to apply pie rule')
+        throw new Error(data.error || t('game.unablePieRule'))
       }
 
       const moveData = data as MoveTurnResponse
@@ -498,11 +498,11 @@ const getPvpPlayerLabel = (color: 'B' | 'R', p1Color = playerOneColor, p2Color =
       setPlayerOneColor(nextPlayerOneColor)
       setPlayerTwoColor(nextPlayerTwoColor)
       setCurrentPlayer(nextPlayer)
-      setMessage(`${getPvpPlayerLabel(nextPlayer, nextPlayerOneColor, nextPlayerTwoColor)} turn.`)
+      setMessage(t('game.playerTurn', { player: nextPlayer === 'B' ? '1' : '2' }))
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Unknown error'
+      const msg = e instanceof Error ? e.message : t('game.unknownError')
       setError(msg)
-      setMessage('The pie rule could not be applied.')
+      setMessage(t('game.pieRuleError'))
     } finally {
       setBusy(false)
     }
@@ -527,7 +527,7 @@ const getPvpPlayerLabel = (color: 'B' | 'R', p1Color = playerOneColor, p2Color =
   // Lógica para el contenido del diálogo de fin de partida
   const isPvP = mode === 'pvp';
   const userWon = winner === 'B';
-  const dialogTitle = getDialogTitle(isPvP, winner, userWon);
+  const dialogTitle = getDialogTitle(isPvP, winner, userWon, t);
 
   
   const accentColor = getAccentColor(isPvP, winner, userWon)
@@ -573,7 +573,7 @@ const getPvpPlayerLabel = (color: 'B' | 'R', p1Color = playerOneColor, p2Color =
 
           <Box sx={{ width: '100%', maxWidth: 560, p: 2 }}>
             <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} width="100%" aria-label={t('game.boardAriaLabel')}>
-              <title>Y game board</title>
+              <title>{t('game.boardTitle')}</title>
 
               {board.map((row, rowIndex) =>
                 row.map((cell, cellIndex) => {
@@ -629,7 +629,7 @@ const getPvpPlayerLabel = (color: 'B' | 'R', p1Color = playerOneColor, p2Color =
                   '&:hover': { bgcolor: '#e2e8f0' },
                 }}
               >
-                Swap
+                {t('game.swap')}
               </Button>
             )}
           </Box>
@@ -677,7 +677,7 @@ const getPvpPlayerLabel = (color: 'B' | 'R', p1Color = playerOneColor, p2Color =
               </Box>
             )}
             <Typography variant="body1" color="text.secondary">
-              {getDialogMessage(isPvP, winner, userWon)}
+              {getDialogMessage(isPvP, winner, userWon, t)}
             </Typography>
           </Stack>
         </DialogContent>
