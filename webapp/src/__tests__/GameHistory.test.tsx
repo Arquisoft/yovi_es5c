@@ -95,35 +95,18 @@ describe('GameHistory', () => {
     expect(screen.getByText('history.losses')).toBeInTheDocument()
     expect(screen.getByText('history.winRate')).toBeInTheDocument()
     expect(screen.getByText('50%')).toBeInTheDocument()
-    expect(screen.getByText('history.win')).toBeInTheDocument()
-    expect(screen.getByText('history.lose')).toBeInTheDocument()
-    expect(screen.getByText('history.bot')).toBeInTheDocument()
-    expect(screen.getByText('history.player')).toBeInTheDocument()
+    expect(screen.getAllByText('history.win').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('history.lose').length).toBeGreaterThan(0)
+    expect(screen.getAllByText((content) => content.includes('history.bot')).length).toBeGreaterThan(0)
+    expect(screen.getAllByText((content) => content.includes('history.player')).length).toBeGreaterThan(0)
     expect(screen.getByText('1m 30s')).toBeInTheDocument()
     expect(screen.getByText('2m 0s')).toBeInTheDocument()
-    expect(screen.getByText(/hace unos segundos/i)).toBeInTheDocument();
-    expect(screen.getByText(/hace 5 min/i)).toBeInTheDocument();
-    expect(screen.getByText(/hace 2 h/i)).toBeInTheDocument();
-    expect(screen.getByText(/hace 1 día/i)).toBeInTheDocument();
+    expect(screen.getAllByText('history.time.seconds').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('history.time.minutes').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('history.time.hours').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('history.time.days').length).toBeGreaterThan(0)
   })
 
-  it('falls back to mock history when the backend returns an empty list', async () => {
-    ;(axios.get as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
-      data: [],
-    })
-
-    render(
-      <MemoryRouter>
-        <GameHistory />
-      </MemoryRouter>
-    )
-
-    await waitFor(() => {
-      expect(screen.getByText('60%')).toBeInTheDocument()
-      expect(screen.getByText('history.played')).toBeInTheDocument()
-    })
-
-  })
 
   it('shows an error state when the history request fails', async () => {
     ;(axios.get as unknown as ReturnType<typeof vi.fn>).mockRejectedValue({

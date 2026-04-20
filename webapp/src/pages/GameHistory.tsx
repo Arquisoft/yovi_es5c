@@ -31,29 +31,6 @@ const formatDuration = (seconds: number): string => {
   return m > 0 ? `${m}m ${s}s` : `${s}s`;
 };
 
-const formatDate = (iso: string): string => {
-  const now = new Date();
-  const date = new Date(iso);
-
-  const diffMs = now.getTime() - date.getTime();
-  const diffSec = Math.floor(diffMs / 1000);
-  const diffMin = Math.floor(diffSec / 60);
-  const diffHour = Math.floor(diffMin / 60);
-  const diffDay = Math.floor(diffHour / 24);
-
-  if (diffSec < 60) return "hace unos segundos";
-  if (diffMin < 60) return `hace ${diffMin} min`;
-  if (diffHour < 24) return `hace ${diffHour} h`;
-  if (diffDay < 7) return `hace ${diffDay} día${diffDay > 1 ? "s" : ""}`;
-
-  // Si es más antiguo, mostramos fecha normal
-  return date.toLocaleDateString("es-ES", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-};
-
 // ─── Styled components ───────────────────────────────────────
 const PageWrapper = styled("div")({
   flex: 1,
@@ -278,6 +255,33 @@ const GameHistory = () => {
   }
 
   const wins = history.filter((g) => g.result === "won").length;
+
+  const formatDate = (iso: string): string => {
+    const now = new Date();
+    const date = new Date(iso);
+
+    const diffMs = now.getTime() - date.getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHour = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHour / 24);
+
+    if (diffSec < 60) return t('history.time.seconds');
+    if (diffMin < 60) return t('history.time.minutes', { n: diffMin });
+    if (diffHour < 24) return t('history.time.hours', { n: diffHour });
+    if (diffDay < 7) {
+      return diffDay === 1 
+        ? t('history.time.days', { count: 1 })
+        : t('history.time.days', { count: diffDay });
+    }
+
+    // Si es más antiguo, mostramos fecha normal
+    return date.toLocaleDateString(undefined, {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
   const losses = history.filter((g) => g.result === "lost").length;
   const winRate =
     history.length > 0 ? Math.round((wins / history.length) * 100) : 0;
