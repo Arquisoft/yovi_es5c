@@ -77,24 +77,7 @@ const DivColumn = styled("div")({
   maxWidth: 600,
 });
 
-const ModeButton = styled(Button)({
-  width: 220,
-  padding: "14px 0",
-  fontSize: "0.9rem",
-  letterSpacing: "0.06em",
-  borderColor: "#c8a84b",
-  color: "#c8a84b",
-  borderRadius: 4,
-  transition: "all 0.2s ease",
-  minWidth: "150px",
-  "&:hover": {
-    backgroundColor: "rgba(200, 168, 75, 0.07)",
-    borderColor: "#e8d89a",
-    color: "#e8d89a",
-  },
-});
-
-const BotMenuButton = styled(Button)({
+const GameButton = styled(Button)({
   width: 220,
   padding: "14px 0",
   fontSize: "0.9rem",
@@ -316,7 +299,6 @@ const GameSetup = () => {
     setSelectedBot(null);
   };
 
-  
   const handleBotClick = (e: React.MouseEvent<HTMLElement>, bot: BotOption) => {
     setSelectedBot(bot);
     setDiffAnchorEl(e.currentTarget);
@@ -367,17 +349,17 @@ const GameSetup = () => {
       <DivRow>
         {/* ── Modo PvP ── */}
         <DivColumn>
-          <ModeButton variant="outlined" onClick={handleStartPvp}>
+          <GameButton variant="outlined" onClick={handleStartPvp}>
             {t('setup.pvp')}
-          </ModeButton>
+          </GameButton>
           <ModeDescription>{t('setup.pvpDescription')}</ModeDescription>
         </DivColumn>
 
         {/* ── Modo Bot ── */}
         <DivColumn>
-          <BotMenuButton variant="outlined" onClick={handleBotMenuOpen}>
+          <GameButton variant="outlined" onClick={handleBotMenuOpen}>
             {t('setup.bot')}
-          </BotMenuButton>
+          </GameButton>
           <ModeDescription>{t('setup.botDescription')}</ModeDescription>
 
           {/* Primer nivel: lista de bots */}
@@ -421,33 +403,30 @@ const GameSetup = () => {
             ))}
           </StyledMenu>
         </DivColumn>
-        <DivColumn>
-        
-        <SpinnerContainer>
-          <SpinnerBtn 
-            onClick={handleDecreaseSize} 
-            disabled={boardSize <= minBoardSize}
-            aria-label={t('setup.decreaseBoardSize')}
-          >
-            −
-          </SpinnerBtn>
-          
-          <SpinnerValue>{boardSize}</SpinnerValue>
-          
-          <SpinnerBtn 
-            onClick={handleIncreaseSize} 
-            disabled={boardSize >= maxBoardSize}
-            aria-label={t('setup.increaseBoardSize')}
-          >
-            +
-          </SpinnerBtn>
-        </SpinnerContainer>
-        <ModeDescription>Board size</ModeDescription>
-        
-      </DivColumn>
-      </DivRow>
 
-      
+        <DivColumn>
+          <SpinnerContainer>
+            <SpinnerBtn
+              onClick={handleDecreaseSize}
+              disabled={boardSize <= minBoardSize}
+              aria-label={t('setup.decreaseBoardSize')}
+            >
+              −
+            </SpinnerBtn>
+
+            <SpinnerValue>{boardSize}</SpinnerValue>
+
+            <SpinnerBtn
+              onClick={handleIncreaseSize}
+              disabled={boardSize >= maxBoardSize}
+              aria-label={t('setup.increaseBoardSize')}
+            >
+              +
+            </SpinnerBtn>
+          </SpinnerContainer>
+          <ModeDescription>Board size</ModeDescription>
+        </DivColumn>
+      </DivRow>
     </PageWrapper>
   );
 };
