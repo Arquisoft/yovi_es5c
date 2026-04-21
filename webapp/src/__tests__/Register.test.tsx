@@ -159,4 +159,77 @@ describe("Register page", () => {
       await screen.findByText(/auth\.passwordRules/i)
     ).toBeInTheDocument();
   });
+
+  it("shows error when passwords do not match on submit", async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Register />
+        </MemoryRouter>
+      );
+    });
+
+    const user = userEvent.setup();
+
+    const usernameInput = document.querySelector('input[name="username"]') as HTMLInputElement;
+    const nameInput = document.querySelector('input[name="name"]') as HTMLInputElement;
+    const surnameInput = document.querySelector('input[name="surname"]') as HTMLInputElement;
+    const emailInput = document.querySelector('input[name="email"]') as HTMLInputElement;
+    const passwordInput = document.querySelector('input[name="password"]') as HTMLInputElement;
+    const confirmPasswordInput = document.querySelector('input[name="confirmPassword"]') as HTMLInputElement;
+
+    await act(async () => {
+      await user.type(usernameInput, "miguel1235");
+      await user.type(nameInput, "Miguel");
+      await user.type(surnameInput, "Arias");
+      await user.type(emailInput, "migueltest@test.com");
+      await user.type(passwordInput, "Miguel1**");
+      await user.type(confirmPasswordInput, "OtraPass1**");
+
+      const registerButton = screen.getByRole("button", { name: /auth\.register/i });
+      await user.click(registerButton);
+  });
+
+  expect(axios.post).not.toHaveBeenCalled();
+  expect(screen.getByText(/auth\.passwordsDoNotMatch/i)).toBeInTheDocument();
+});
+
+it("shows backend error when registration fails", async () => {
+    (axios.post as any).mockRejectedValue({
+      response: { data: { error: "User already exists" } },
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Register />
+        </MemoryRouter>
+      );
+    });
+
+    const user = userEvent.setup();
+
+    const usernameInput = document.querySelector('input[name="username"]') as HTMLInputElement;
+    const nameInput = document.querySelector('input[name="name"]') as HTMLInputElement;
+    const surnameInput = document.querySelector('input[name="surname"]') as HTMLInputElement;
+    const emailInput = document.querySelector('input[name="email"]') as HTMLInputElement;
+    const passwordInput = document.querySelector('input[name="password"]') as HTMLInputElement;
+    const confirmPasswordInput = document.querySelector('input[name="confirmPassword"]') as HTMLInputElement;
+
+    await act(async () => {
+      await user.type(usernameInput, "miguel1235");
+      await user.type(nameInput, "Miguel");
+      await user.type(surnameInput, "Arias");
+      await user.type(emailInput, "migueltest@test.com");
+      await user.type(passwordInput, "Miguel1**");
+      await user.type(confirmPasswordInput, "Miguel1**");
+
+      const registerButton = screen.getByRole("button", { name: /auth\.register/i });
+      await user.click(registerButton);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/errors\.userAlreadyExists/i)).toBeInTheDocument();
+    });
+  });
 });
