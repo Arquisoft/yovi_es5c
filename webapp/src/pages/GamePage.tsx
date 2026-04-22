@@ -189,16 +189,51 @@ export default function GamePage() {
   const [winner, setWinner] = useState<Winner>(null)
   const [startTime, setStartTime] = useState<number | null>(null)
   const [isGameOver, setIsGameOver] = useState(false)
-  const state = location.state as { mode?: GameMode; bot_id?: string; difficulty?: Difficulty } | null
+  
+  const state = location.state as { 
+    mode?: GameMode; 
+    bot_id?: string; 
+    difficulty?: Difficulty;
+    initialSessionTime?: number;
+    incrementPerMove?: number;
+  } | null
+
   const mode = state?.mode ?? 'bot'
   const difficulty = state?.difficulty ?? 'Medium'
   const bot_id     = state?.bot_id     ?? 'random_bot'
+  const initialSessionTime = state?.initialSessionTime ?? 300 // fallback 5 min
+  const incrementPerMove = state?.incrementPerMove ?? 0
+
+  const [timerP1, setTimerP1] = useState(initialSessionTime)
+  const [timerP2, setTimerP2] = useState(initialSessionTime)
+
   const [currentPlayer, setCurrentPlayer] = useState<'B' | 'R'>('B')
   const [playerOneColor, setPlayerOneColor] = useState<'B' | 'R'>('B')
   const [playerTwoColor, setPlayerTwoColor] = useState<'B' | 'R'>('R')
   const [message, setMessage] = useState(mode === 'pvp' ? 'Player 1 turn.' : 'Your turn. Place a piece.')
   const [error, setError] = useState('')
   const { isLoggedIn } = useSession();
+
+  // ── Temporizador (Countdown logic) ─────────────────────────
+  useEffect(() => {
+    if (isGameOver || busy || winner) return;
+
+    const interval = setInterval(() => {
+      if (currentPlayer === 'B') {
+        setTimerP1((prev) => {
+          if (prev <= 1) { clearInterval(interval); handleGameOver('R'); return 0; }
+          return prev - 1;
+        });
+      } else if (currentPlayer === 'R' && mode === 'pvp') {
+        setTimerP2((prev) => {
+          if (prev <= 1) { clearInterval(interval); handleGameOver('B'); return 0; }
+          return prev - 1;
+        });
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [currentPlayer, isGameOver, busy, winner, mode]);
   
 
   useEffect(() => {
@@ -426,6 +461,13 @@ export default function GamePage() {
 
     setBusy(true)
 
+    // Aplicar incremento de tiempo tras el movimiento
+    if (currentPlayer === 'B') {
+      setTimerP1(prev => Math.min(prev + incrementPerMove, initialSessionTime));
+    } else if (mode === 'pvp' && currentPlayer === 'R') {
+      setTimerP2(prev => Math.min(prev + incrementPerMove, initialSessionTime));
+    }
+
     const previousBoard = cloneBoard(board)
     const optimisticBoard = cloneBoard(board)
     optimisticBoard[row][col] = mode === 'pvp' ? currentPlayer : 'B'
@@ -496,6 +538,13 @@ export default function GamePage() {
         throw new Error(data.error || 'Unable to apply pie rule')
       }
 
+      // El jugador que usa el Pie Rule también recibe incremento por su acción
+      if (currentPlayer === 'B') {
+        setTimerP1(prev => Math.min(prev + incrementPerMove, initialSessionTime));
+      } else {
+        setTimerP2(prev => Math.min(prev + incrementPerMove, initialSessionTime));
+      }
+
       const moveData = data as MoveTurnResponse
       const updated = boardFromLayout(moveData.state.size, moveData.state.layout)
       const nextPlayer = moveData.state.turn === 0 ? 'B' : 'R'
@@ -522,6 +571,8 @@ export default function GamePage() {
     setWinner(null)
     setStartTime(null)
     setIsGameOver(false)
+    setTimerP1(initialSessionTime)
+    setTimerP2(initialSessionTime)
     setCurrentPlayer('B')
     setPlayerOneColor('B')
     setPlayerTwoColor('R')
