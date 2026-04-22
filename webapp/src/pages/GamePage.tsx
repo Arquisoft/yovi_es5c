@@ -92,6 +92,17 @@ function boardFromLayout(size: number, layout: string): Board {
   return board
 }
 
+function getBotLabel(botId: string): string {
+  const labels: Record<string, string> = {
+    random_bot: "Random Bot",
+    center_bot: "Center bot",
+    edge_bot: "Edge bot",
+    smart_bot: "Smart bot",
+    mirror_bot: "Mirror bot",
+    alpha_bot: "Alpha bot",
+  };
+  return labels[botId] || botId;
+}
 
 function getDialogTitle(isPvP: boolean, winner: Winner, userWon: boolean): string {
   if (isPvP) {
@@ -265,7 +276,7 @@ export default function GamePage() {
         if (winner === 'B') {
           setMessage(mode === 'pvp' ? 'Player 1 wins.' : 'You win.')
         } else if (winner === 'R') {
-          setMessage(mode === 'pvp' ? 'Player 2 wins.' : 'Bot wins.')
+          setMessage(mode === 'pvp' ? 'Player 2 wins.' : `${getBotLabel(bot_id)} wins.`)
         } else {
           setMessage('Game Over.')
         }
@@ -308,7 +319,7 @@ export default function GamePage() {
   const playerOneActive = currentPlayer === playerOneColor
   const playerTwoActive = currentPlayer === playerTwoColor
   const playerOneLabel = mode === 'pvp' ? 'Player 1' : 'You'
-  const playerTwoLabel = mode === 'pvp' ? 'Player 2' : 'Bot'
+  const playerTwoLabel = mode === 'pvp' ? 'Player 2' : getBotLabel(bot_id)
   const playerOneSides = getTouchedSides(board, playerOneColor)
   const playerTwoSides = getTouchedSides(board, playerTwoColor)
 
