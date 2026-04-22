@@ -72,6 +72,35 @@ export function getInitialBoardSize(): number {
   return Math.max(minBoardSize, Math.min(maxBoardSize, parsedSize));
 }
 
+export function calculatePlayerTimer(boardSize: number, difficulty: Difficulty) {
+  // 1. Determinar el Factor de Escala del Tablero (boardScaleFactor)
+  let boardScaleFactor = 0;
+  if (boardSize >= 3 && boardSize <= 6) {
+    boardScaleFactor = 1.0;
+  } else if (boardSize >= 7 && boardSize <= 10) {
+    boardScaleFactor = 1.5;
+  } else if (boardSize >= 11 && boardSize <= 15) {
+    boardScaleFactor = 2.2;
+  }
+
+  // 2. Determinar el Multiplicador de Dificultad (difficultyMultiplier)
+  let difficultyMultiplier = 0;
+  switch (difficulty) {
+    case "Easy":   difficultyMultiplier = 1.0; break;
+    case "Medium": difficultyMultiplier = 1.5; break;
+    case "Hard":   difficultyMultiplier = 2.0; break;
+    default:       difficultyMultiplier = 1.0;
+  }
+
+  const baseSeconds = 60;
+  const baseIncrement = 3;
+
+  return {
+    initialSessionTime: (baseSeconds * boardScaleFactor) * difficultyMultiplier,
+    incrementPerMove: (baseIncrement * boardScaleFactor) * difficultyMultiplier,
+  };
+}
+
 // ─── Styled components ───────────────────────────────────────
 
 const PageWrapper = styled("div")({
@@ -330,12 +359,15 @@ const GameSetup = () => {
     setBotAnchorEl(null);
     setDiffAnchorEl(null);
     setSelectedBot(null);
+    
+    const timerValues = calculatePlayerTimer(boardSize, difficulty);
 
     navigate("/game", {
       state: {
         mode: "bot" as GameMode,
         bot_id: selectedBot.bot_id,
         difficulty,
+        ...timerValues,
       },
     });
   };
@@ -343,7 +375,14 @@ const GameSetup = () => {
   // ── PvP ──────────────────────────────────────────────────
 
   const handleStartPvp = () => {
-    navigate("/game", { state: { mode: "pvp" as GameMode } });
+    const timerValues = calculatePlayerTimer(boardSize, "Medium");
+    
+    navigate("/game", { 
+      state: { 
+        mode: "pvp" as GameMode,
+        ...timerValues,
+      } 
+    });
   };
 
   return (
