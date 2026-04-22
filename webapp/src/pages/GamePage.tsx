@@ -95,7 +95,7 @@ function boardFromLayout(size: number, layout: string): Board {
 function getBotLabel(botId: string): string {
   const labels: Record<string, string> = {
     random_bot: "Random Bot",
-    center_bot: "Center bot",
+    center_bot: "Center Bot",
     edge_bot: "Edge Bot",
     smart_bot: "Smart Bot",
     mirror_bot: "Mirror Bot",
