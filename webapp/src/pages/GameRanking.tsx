@@ -3,6 +3,7 @@ import { styled } from "@mui/material/styles";
 import { useNavigate,Navigate } from "react-router-dom";
 import { useSession } from "../SessionContext";
 import axios from "axios";
+import { PageWrapper, DivColumn, Title, SubTitle, EmptyState, EmptyIcon, EmptyText, BackButton, LoadingText } from "../components/CommonComponents";
 
 const apiEndpoint = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -17,45 +18,7 @@ interface RankingEntry {
 type SortField = 'wins' | 'winRate' | 'played' | 'losses';
 type SortOrder = 'asc' | 'desc';
 
-// ─── Styled components ───────────────────────────────────────
-const PageWrapper = styled("div")({
-  flex: 1,
-  overflowY: "auto",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "flex-start",
-  paddingTop: 32,
-  paddingBottom: 32,
-  gap: 40,
-  backgroundColor: "#0d0d0d",
-});
 
-const DivColumn = styled("div")({
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  width: "100%",
-  gap: 6,
-  maxWidth: 600,
-});
-
-const Title = styled("h1")({
-  fontFamily: "Georgia, serif",
-  fontSize: "2rem",
-  color: "#e8d89a",
-  letterSpacing: "0.08em",
-  margin: 0,
-});
-
-const SubTitle = styled("p")({
-  fontFamily: "Georgia, serif",
-  fontSize: "0.9rem",
-  color: "#666",
-  letterSpacing: "0.05em",
-  margin: 0,
-});
 
 
 
@@ -102,10 +65,17 @@ const Cell = styled("span")({
   letterSpacing: "0.03em",
 });
 
+const getRankColor = (rank: number): string => {
+  if (rank === 1) return "#c8a84b";
+  if (rank === 2) return "#888";
+  if (rank === 3) return "#7a5c3a";
+  return "#444";
+};
+
 const RankCell = styled("span")<{ rank: number }>(({ rank }) => ({
   fontFamily: "Georgia, serif",
   fontSize: "0.85rem",
-  color: rank === 1 ? "#c8a84b" : rank === 2 ? "#888" : rank === 3 ? "#7a5c3a" : "#444",
+  color: getRankColor(rank),
   letterSpacing: "0.04em",
 }));
 
@@ -130,6 +100,12 @@ const YouBadge = styled("span")({
   textTransform: "uppercase",
 });
 
+const getWinRateColor = (rate: number): string => {
+  if (rate >= 60) return "#4a7c59";
+  if (rate >= 40) return "#c8a84b";
+  return "#7c4a4a";
+};
+
 const WinRateBar = styled("div")<{ rate: number }>(({ rate }) => ({
   position: "relative",
   width: "100%",
@@ -144,57 +120,37 @@ const WinRateBar = styled("div")<{ rate: number }>(({ rate }) => ({
     top: 0,
     height: "100%",
     width: `${rate}%`,
-    backgroundColor: rate >= 60 ? "#4a7c59" : rate >= 40 ? "#c8a84b" : "#7c4a4a",
+    backgroundColor: getWinRateColor(rate),
     borderRadius: 2,
   },
 }));
 
-const EmptyState = styled("div")({
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  gap: 12,
-  padding: "60px 0",
-  color: "#333",
-});
 
-const EmptyIcon = styled("span")({ fontSize: "2.5rem", opacity: 0.3 });
-
-const EmptyText = styled("p")({
-  fontFamily: "Georgia, serif",
-  fontSize: "0.9rem",
-  color: "#444",
-  letterSpacing: "0.05em",
-  margin: 0,
-});
-
-const BackButton = styled("button")({
-  background: "none",
-  border: "1px solid #2a2a2a",
-  color: "#555",
-  fontSize: "0.75rem",
-  letterSpacing: "0.08em",
-  padding: "8px 20px",
-  borderRadius: 4,
-  cursor: "pointer",
-  transition: "all 0.2s ease",
-  textTransform: "uppercase",
-  "&:hover": { borderColor: "#c8a84b", color: "#c8a84b" },
-});
-
-const LoadingText = styled("p")({
-  fontFamily: "Georgia, serif",
-  fontSize: "0.85rem",
-  color: "#444",
-  letterSpacing: "0.08em",
-  animation: "pulse 1.5s ease-in-out infinite",
-  "@keyframes pulse": {
-    "0%, 100%": { opacity: 0.4 },
-    "50%": { opacity: 1 },
-  },
-});
 
 const MEDALS = ["🥇", "🥈", "🥉"];
+
+
+interface SortableHeaderProps {
+  field: SortField;
+  label: string;
+  sortBy: SortField;
+  order: SortOrder;
+  onSort: (field: SortField) => void;
+}
+
+const getSortIndicator = (field: SortField, sortBy: SortField, order: SortOrder): string => {
+  if (sortBy !== field) return '';
+  return order === 'desc' ? '↓' : '↑';
+};
+
+const SortableHeader = ({ field, label, sortBy, order, onSort }: SortableHeaderProps) => (
+  <HeaderCell
+    onClick={() => onSort(field)}
+    style={{ cursor: 'pointer', color: sortBy === field ? '#c8a84b' : '#444' }}
+  >
+    {label} {getSortIndicator(field, sortBy, order)}
+  </HeaderCell>
+);
 
 // ─── Component ───────────────────────────────────────────────
 const Ranking = () => {
@@ -214,14 +170,7 @@ const Ranking = () => {
   
   const orderLabel = order === 'desc' ? 'descending' : 'ascending';
 
-  const SortableHeader = ({ field, label }: { field: SortField, label: string }) => (
-    <HeaderCell
-      onClick={() => handleSort(field)}
-      style={{ cursor: 'pointer', color: sortBy === field ? '#c8a84b' : '#444' }}
-    >
-    {label} {sortBy === field ? (order === 'desc' ? '↓' : '↑') : ''}
-    </HeaderCell>
-  );
+  
 
   const handleSort = (field: SortField) => {
     if (field === sortBy) {
@@ -282,10 +231,10 @@ const Ranking = () => {
           <TableHeader>
             <HeaderCell>#</HeaderCell>
             <HeaderCell>Player</HeaderCell>
-            <SortableHeader field="played"  label="Played"   />
-            <SortableHeader field="wins"    label="Wins"     />
-            <SortableHeader field="losses"  label="Losses"   />
-            <SortableHeader field="winRate" label="Win rate" />
+            <SortableHeader field="played"  label="Played"    sortBy={sortBy} order={order} onSort={handleSort} />
+            <SortableHeader field="wins"    label="Wins"       sortBy={sortBy} order={order} onSort={handleSort} />
+            <SortableHeader field="losses"  label="Losses"     sortBy={sortBy} order={order} onSort={handleSort} />
+            <SortableHeader field="winRate" label="Win rate"   sortBy={sortBy} order={order} onSort={handleSort} />
           </TableHeader>
 
           {ranking.map((entry, idx) => {
