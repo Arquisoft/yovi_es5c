@@ -42,6 +42,6 @@ pub use gamey_error::*;
 pub use notation::*;
 pub use bot_server::*;
 pub use bot_server::service::{
-    BotSelection, DEFAULT_PUBLIC_BOT_ID, DEFAULT_PUBLIC_DIFFICULTY, resolve_public_bot_selection,
+    BotSelection, DEFAULT_PUBLIC_BOT_ID, resolve_public_bot_selection,
 };
 pub use game_server::{MoveTurnResponse, run_game_server};

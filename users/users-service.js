@@ -106,6 +106,9 @@ app.post('/login', async (req, res) => {
 
 
     } catch (error) {
+        if (error instanceof Error) {
+            console.error('Error:', error.message);
+        }
         res.status(500).json({ error: 'Internal server error.' });
     }
 });
@@ -127,6 +130,9 @@ app.get('/user/:username', async (req, res) => {
 
         res.status(200).json(user);
     } catch (error) {
+        if (error instanceof Error) {
+            console.error('Error:', error.message);
+        }
         res.status(500).json({ error: 'Internal server error.' });
     }
 });
@@ -170,7 +176,7 @@ app.put('/user/:username', async (req, res) => {
 app.post('/logout', async (req, res) => {
   try {
     const { username } = req.body;
-    if (!username || !username.trim()) {
+    if (!username?.trim()) {
       return res.status(400).json({ error: 'username is required' });
     }
 
@@ -215,15 +221,15 @@ function registerValidators(user, username, password, name, surname, email){
 }
 
 function validateProfileFields(name, surname, email) {
-    if (!name || !name.trim()) {
+    if (!name?.trim()) {
         throw new Error('The name cannot be empty or contain only spaces');
     }
 
-    if (!surname || !surname.trim()) {
+    if (!surname?.trim()) {
         throw new Error('The surname cannot be empty or contain only spaces');
     }
 
-    if (!email || !email.trim()) {
+    if (!email?.trim()) {
         throw new Error('The email cannot be empty or contain only spaces');
     }
 }
@@ -239,6 +245,9 @@ app.get('/user/:username/history', async (req, res) => {
     res.status(200).json(history);
 
   } catch (error) {
+    if (error instanceof Error) {
+            console.error('Error:', error.message);
+    }
     res.status(500).json({ error: "Error obtaining history." });
   }
 });

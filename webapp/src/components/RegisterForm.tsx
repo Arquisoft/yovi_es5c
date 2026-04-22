@@ -65,18 +65,18 @@ const RegisterForm = () => {
     if (name === "surname") setSurnameError(null);
     if (name === "email") setEmailError(null);
     if (name === "password") {
-      if (!isPasswordValid) {
+      if (isPasswordValid) {
+        setPasswordError(null);
+      } else {
         setPasswordError(
         "The password must have at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character.");
-      } else {
-        setPasswordError(null);
       }
     }
     if (name === "confirmPassword") {
-    if (value !== formData.password) {
-        setConfirmPasswordError("Passwords do not match");
+    if (value === formData.password) {
+      setConfirmPasswordError(null);
     } else {
-        setConfirmPasswordError(null);
+      setConfirmPasswordError("Passwords do not match");
     }
 }
       
