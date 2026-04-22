@@ -14,6 +14,8 @@ interface RankingEntry {
   losses: number;
   winRate: number;
 }
+type SortField = 'wins' | 'winRate' | 'played' | 'losses';
+type SortOrder = 'asc' | 'desc';
 
 // ─── Styled components ───────────────────────────────────────
 const PageWrapper = styled("div")({
@@ -201,12 +203,41 @@ const Ranking = () => {
   const [error, setError]       = useState<string | null>(null);
   const navigate  = useNavigate();
   const { isLoggedIn, username } = useSession();
+  const [sortBy, setSortBy] = useState<SortField>('wins');
+  const [order, setOrder]   = useState<SortOrder>('desc');
+  const sortLabels: Record<SortField, string> = {
+    wins:    'wins',
+    winRate: 'win rate',
+    played:  'games played',
+    losses:  'losses',
+  };
+  
+  const orderLabel = order === 'desc' ? 'descending' : 'ascending';
+
+  const SortableHeader = ({ field, label }: { field: SortField, label: string }) => (
+    <HeaderCell
+      onClick={() => handleSort(field)}
+      style={{ cursor: 'pointer', color: sortBy === field ? '#c8a84b' : '#444' }}
+    >
+    {label} {sortBy === field ? (order === 'desc' ? '↓' : '↑') : ''}
+    </HeaderCell>
+  );
+
+  const handleSort = (field: SortField) => {
+    if (field === sortBy) {
+      setOrder(prev => prev === 'desc' ? 'asc' : 'desc'); 
+    } else {
+      setSortBy(field);
+      setOrder('desc'); 
+    }
+  };
 
   useEffect(() => {
     const fetchRanking = async () => {
       try {
         setLoading(true);
-        const res = await axios.get<RankingEntry[]>(`${apiEndpoint}/game/ranking`);
+        const res = await axios.get<RankingEntry[]>(`${apiEndpoint}/game/ranking`, {
+        params: { sortBy, order }});
         setRanking(res.data);
       } catch (err: any) {
         setError(err.response?.data?.error || err.message || "Error fetching ranking");
@@ -216,7 +247,7 @@ const Ranking = () => {
     };
 
     fetchRanking();
-  }, []);
+  }, [sortBy, order]);
 
   if (!isLoggedIn) return <Navigate to="/login" replace />;
 
@@ -226,7 +257,9 @@ const Ranking = () => {
     <PageWrapper>
       <DivColumn>
         <Title>Ranking</Title>
-        <SubTitle>Global leaderboard · sorted by wins</SubTitle>
+        <SubTitle>
+          Global leaderboard · sorted by {sortLabels[sortBy]} {orderLabel}
+        </SubTitle>
       </DivColumn>
 
       {loading && <LoadingText>Loading ranking...</LoadingText>}
@@ -249,10 +282,10 @@ const Ranking = () => {
           <TableHeader>
             <HeaderCell>#</HeaderCell>
             <HeaderCell>Player</HeaderCell>
-            <HeaderCell>Played</HeaderCell>
-            <HeaderCell>Wins</HeaderCell>
-            <HeaderCell>Losses</HeaderCell>
-            <HeaderCell>Win rate</HeaderCell>
+            <SortableHeader field="played"  label="Played"   />
+            <SortableHeader field="wins"    label="Wins"     />
+            <SortableHeader field="losses"  label="Losses"   />
+            <SortableHeader field="winRate" label="Win rate" />
           </TableHeader>
 
           {ranking.map((entry, idx) => {

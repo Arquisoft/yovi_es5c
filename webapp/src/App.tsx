@@ -87,7 +87,7 @@ function App() {
         <Route
           path="/game/ranking"
           element={
-              <GameRanking />
+            <PrivateRoute><GameRanking /></PrivateRoute>
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />

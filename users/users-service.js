@@ -274,18 +274,24 @@ app.post('/game/finish', async (req, res) => {
 
 
 app.get('/game/ranking', async (req, res) => {
-  const data = await GameSession.aggregate([
-    { $group: {
-        _id: "$userId",
-        played:  { $sum: 1 },
-        wins:    { $sum: { $cond: [{ $eq: ["$result", "won"] }, 1, 0] } },
-        losses:  { $sum: { $cond: [{ $eq: ["$result", "lost"] }, 1, 0] } },
-    }},
-    { $addFields: {
-        winRate: { $round: [{ $multiply: [{ $divide: ["$wins", "$played"] }, 100] }, 0] }
-    }},
-    { $sort: { wins: -1 } },
-    { $project: { _id: 0, username: "$_id", played: 1, wins: 1, losses: 1, winRate: 1 } }
-  ]);
-  res.json(data);
+
+    const { sortBy = 'wins', order = 'desc' } = req.query;
+    const ALLOWED_FIELDS = ['wins', 'winRate', 'played', 'losses'];
+    const field = ALLOWED_FIELDS.includes(sortBy) ? sortBy : 'wins';
+    const direction = order === 'asc' ? 1 : -1;
+
+    const data = await GameSession.aggregate([
+        { $group: {
+            _id: "$userId",
+            played:  { $sum: 1 },
+            wins:    { $sum: { $cond: [{ $eq: ["$result", "won"] }, 1, 0] } },
+            losses:  { $sum: { $cond: [{ $eq: ["$result", "lost"] }, 1, 0] } },
+        }},
+        { $addFields: {
+            winRate: { $round: [{ $multiply: [{ $divide: ["$wins", "$played"] }, 100] }, 0] }
+        }},
+        { $sort: { [field]: direction } },
+        { $project: { _id: 0, username: "$_id", played: 1, wins: 1, losses: 1, winRate: 1 } }
+    ]);
+    res.json(data);
 });

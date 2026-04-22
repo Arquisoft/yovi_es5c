@@ -153,6 +153,9 @@ app.get('/game/ranking', async (req, res) => {
 
     const ranking = new URL('/game/ranking', userServiceUrl);
 
+    if (req.query.sortBy) ranking.searchParams.set('sortBy', req.query.sortBy);
+    if (req.query.order)  ranking.searchParams.set('order', req.query.order);
+
     const response = await axios.get(ranking.href);
 
     res.status(200).json(response.data);
