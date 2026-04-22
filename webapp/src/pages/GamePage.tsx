@@ -96,10 +96,10 @@ function getBotLabel(botId: string): string {
   const labels: Record<string, string> = {
     random_bot: "Random Bot",
     center_bot: "Center bot",
-    edge_bot: "Edge bot",
-    smart_bot: "Smart bot",
-    mirror_bot: "Mirror bot",
-    alpha_bot: "Alpha bot",
+    edge_bot: "Edge Bot",
+    smart_bot: "Smart Bot",
+    mirror_bot: "Mirror Bot",
+    alpha_bot: "Alpha Bot",
   };
   return labels[botId] || botId;
 }
