@@ -534,7 +534,8 @@ export default function GamePage() {
   const canUndo = history.length > 0 && !busy && winner === null;
   const undoMove = () => {
     if (history.length === 0) return
-    const previous = history[history.length - 1]
+    const previous = history.at(-1);
+    if (!previous) return;
     setHistory(prev => prev.slice(0, -1))
     setBoard(previous.board)
     setCurrentPlayer(previous.currentPlayer)
