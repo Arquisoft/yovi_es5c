@@ -3,6 +3,7 @@ import { Container, Typography, Box, Paper } from "@mui/material";
 import { Navigate } from "react-router-dom";
 import RegisterForm from "../components/RegisterForm";
 import { useSession } from "../SessionContext";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 const Register = () => {
   const { isLoggedIn } = useSession();
@@ -14,6 +15,9 @@ const Register = () => {
 
   return (
     <Container className="yovi-ui" maxWidth="sm">
+      <Box sx={{ position: 'absolute', top: 20, right: 20 }}>
+        <LanguageSwitcher />
+      </Box>
       <Box
         sx={{
           marginTop: 0,
