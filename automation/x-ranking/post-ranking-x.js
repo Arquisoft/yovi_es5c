@@ -56,8 +56,7 @@ function buildRankingLines(ranking) {
 
   return ranking.map((entry, index) => {
     const medal = medals[index] || `#${index + 1}`;
-    const winsLabel = entry.wins === 1 ? 'victoria' : 'victorias';
-    return `${medal} ${entry.username} - ${entry.wins} ${winsLabel}`;
+    return `${medal} ${entry.username} (${entry.wins}W)`;
   });
 }
 
@@ -75,7 +74,7 @@ function buildPostText(ranking) {
     '',
     ...lines,
     '',
-    'Who will reach the podium tomorrow? 🔥'
+    'Another podium battle awaits tomorrow 🔥'
   ].join('\n');
 
   validateLength(post);
