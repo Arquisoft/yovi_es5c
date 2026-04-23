@@ -16,9 +16,11 @@ interface SessionProviderProps {
 }
 
 const SessionProvider: React.FC<SessionProviderProps> = ({ children }) => {
-  const [sessionId, setSessionId] = useState<string>('');
-  const [username, setUsername] = useState<string>('');
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [sessionId, setSessionId] = useState<string>(() => localStorage.getItem('sessionId') || '');
+  const [username, setUsername] = useState<string>(() => localStorage.getItem('username') || '');
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
+    return Boolean(localStorage.getItem('sessionId') && localStorage.getItem('username'));
+  });
 
   // Retrieves data from localstorage on startup
   useEffect(() => {

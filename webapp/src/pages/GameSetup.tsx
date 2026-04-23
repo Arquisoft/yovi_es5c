@@ -428,7 +428,7 @@ const GameSetup = () => {
       <DivRow>
         {/* ── Modo PvP ── */}
         <DivColumn>
-          <ModeButton variant="outlined" onClick={handleStartPvp}>
+          <ModeButton data-testid="start-pvp-game" variant="outlined" onClick={handleStartPvp}>
             ▲ Player vs Player ▲
           </ModeButton>
           <ModeDescription>Play locally against a friend</ModeDescription>
