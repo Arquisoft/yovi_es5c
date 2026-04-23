@@ -403,7 +403,7 @@ it('no debe hacer la petición si se hace clic en una celda ya ocupada', async (
 
 		render(<GamePage />)
 
-		expect(screen.getByRole('button', { name: /Undo/i })).toBeDisabled()
+		expect(screen.getByRole('button', { name: /game\.undo/i })).toBeDisabled()
 	})
 
 	it('debe mostrar el botón Undo tras realizar un movimiento en PvP', async () => {
@@ -422,7 +422,7 @@ it('no debe hacer la petición si se hace clic en una celda ya ocupada', async (
 		fireEvent.click(container.querySelector('g')!)
 
 		await waitFor(() => {
-			expect(screen.getByRole('button', { name: /Undo/i })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: /game\.undo/i })).toBeInTheDocument()
 		})
 	})
 
@@ -447,13 +447,13 @@ it('no debe hacer la petición si se hace clic en una celda ya ocupada', async (
 
 		const { container } = render(<GamePage />)
 		await waitFor(() =>
-			expect(screen.queryByText('Game service is unavailable.')).not.toBeInTheDocument(),
+			expect(screen.queryByText('game.serviceUnavailable')).not.toBeInTheDocument(),
 		)
 
 		fireEvent.click(container.querySelector('g')!)
 
 		await waitFor(() => {
-			const undoBtn = screen.getByRole('button', { name: /Undo/i })
+			const undoBtn = screen.getByRole('button', { name: /game\.undo/i })
 			expect(undoBtn).toBeDisabled()
 		})
 	})
@@ -474,13 +474,13 @@ it('no debe hacer la petición si se hace clic en una celda ya ocupada', async (
 		fireEvent.click(container.querySelector('g')!)
 
 		await waitFor(() =>
-			expect(screen.getByRole('button', { name: /Undo/i })).not.toBeDisabled(),
+			expect(screen.getByRole('button', { name: /game\.undo/i })).not.toBeDisabled(),
 		)
 
-		fireEvent.click(screen.getByRole('button', { name: /Undo/i }))
+		fireEvent.click(screen.getByRole('button', { name: /game\.undo/i }))
 
 		await waitFor(() => {
-			expect(screen.getByRole('button', { name: /Undo/i })).toBeDisabled()
+			expect(screen.getByRole('button', { name: /game\.undo/i })).toBeDisabled()
 		})
 	})
 
@@ -510,27 +510,27 @@ it('no debe hacer la petición si se hace clic en una celda ya ocupada', async (
 
 		fireEvent.click(cells[0])
 		await waitFor(() => {
-			const player2Label = screen.getByText('Player 2')
-			expect(player2Label.parentElement).toHaveTextContent('Turn')
+			const player2Label = screen.getByText('game.player2')
+			expect(player2Label.parentElement).toHaveTextContent('game.turn')
 		})
 
 		fireEvent.click(cells[1])
 		await waitFor(() => {
-			const player1Label = screen.getByText('Player 1')
-			expect(player1Label.parentElement).toHaveTextContent('Turn')
+			const player1Label = screen.getByText('game.player1')
+			expect(player1Label.parentElement).toHaveTextContent('game.turn')
 		})
 
-		fireEvent.click(screen.getByRole('button', { name: /Undo/i }))
+		fireEvent.click(screen.getByRole('button', { name: /game\.undo/i }))
 		await waitFor(() => {
-			const player2Label = screen.getByText('Player 2')
-			expect(player2Label.parentElement).toHaveTextContent('Turn')
+			const player2Label = screen.getByText('game.player2')
+			expect(player2Label.parentElement).toHaveTextContent('game.turn')
 		})
 
-		fireEvent.click(screen.getByRole('button', { name: /Undo/i }))
+		fireEvent.click(screen.getByRole('button', { name: /game\.undo/i }))
 		await waitFor(() => {
-			const player1Label = screen.getByText('Player 1')
-			expect(player1Label.parentElement).toHaveTextContent('Turn')
-			expect(screen.getByRole('button', { name: /Undo/i })).toBeDisabled()
+			const player1Label = screen.getByText('game.player1')
+			expect(player1Label.parentElement).toHaveTextContent('game.turn')
+			expect(screen.getByRole('button', { name: /game\.undo/i })).toBeDisabled()
 		})
 	})
 
@@ -554,14 +554,14 @@ it('no debe hacer la petición si se hace clic en una celda ya ocupada', async (
 
 		const { container } = render(<GamePage />)
 		await waitFor(() =>
-			expect(screen.queryByText('Game service is unavailable.')).not.toBeInTheDocument(),
+			expect(screen.queryByText('game.serviceUnavailable')).not.toBeInTheDocument(),
 		)
 
 		fireEvent.click(container.querySelector('g')!)
-		fireEvent.click(screen.getByRole('button', { name: /Undo/i }))
+		fireEvent.click(screen.getByRole('button', { name: /game\.undo/i }))
 
 		await waitFor(() => {
-			expect(screen.getByRole('button', { name: /Undo/i })).toBeDisabled()
+			expect(screen.getByRole('button', { name: /game\.undo/i })).toBeDisabled()
 		})
 	})
 
@@ -593,16 +593,16 @@ it('no debe hacer la petición si se hace clic en una celda ya ocupada', async (
 		fireEvent.click(swapBtn)
 
 		await waitFor(() =>
-			expect(screen.getByRole('button', { name: /Undo/i })).toBeInTheDocument(),
+			expect(screen.getByRole('button', { name: /game\.undo/i })).toBeInTheDocument(),
 		)
 
-		fireEvent.click(screen.getByRole('button', { name: /Undo/i }))
+		fireEvent.click(screen.getByRole('button', { name: /game\.undo/i }))
 
 		// Tras deshacer el swap se restaura el turno previo (Player 2 antes del swap)
 		await waitFor(() => {
 			// Solución: Verificamos en la UI que la tarjeta de 'Player 2' tiene la etiqueta 'Turn'
-			const player2Label = screen.getByText('Player 2')
-			expect(player2Label.parentElement).toHaveTextContent('Turn')
+			const player2Label = screen.getByText('game.player2')
+			expect(player2Label.parentElement).toHaveTextContent('game.turn')
 		})
 	})
 
@@ -623,14 +623,14 @@ it('no debe hacer la petición si se hace clic en una celda ya ocupada', async (
 
 		// Comprobamos que el botón Undo se ha HABILITADO tras el movimiento
 		await waitFor(() =>
-			expect(screen.getByRole('button', { name: /Undo/i })).not.toBeDisabled(),
+			expect(screen.getByRole('button', { name: /game\.undo/i })).not.toBeDisabled(),
 		)
 
-		fireEvent.click(screen.getByRole('button', { name: /New Game/i }))
+		fireEvent.click(screen.getByRole('button', { name: /game\.newGame/i }))
 
 		// Al hacer "New Game", el botón Undo debe quedar deshabilitado
 		await waitFor(() => {
-			expect(screen.getByRole('button', { name: /Undo/i })).toBeDisabled()
+			expect(screen.getByRole('button', { name: /game\.undo/i })).toBeDisabled()
 		})
 	})
 
@@ -655,9 +655,9 @@ it('no debe hacer la petición si se hace clic en una celda ya ocupada', async (
 		fireEvent.click(container.querySelector('g')!)
 
 		await waitFor(() => {
-			expect(screen.getByText('Player B wins!')).toBeInTheDocument()
+			expect(screen.getByText('game.dialog.pvpTitle')).toBeInTheDocument()
 		})
 
-		expect(screen.queryByRole('button', { name: /Undo/i })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: /game\.undo/i })).not.toBeInTheDocument()
 	})
 })

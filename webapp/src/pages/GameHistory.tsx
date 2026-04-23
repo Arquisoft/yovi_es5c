@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { styled } from "@mui/material/styles";
 import { useNavigate, Navigate } from "react-router-dom";
 import { useSession } from "../SessionContext";
 import axios from "axios";
-import { EmptyState, EmptyIcon, EmptyText, BackButton, LoadingText } from "../components/CommonComponents";
-
+import { PageWrapper, DivColumn, Title, SubTitle, EmptyState, EmptyIcon, EmptyText, BackButton, LoadingText } from "../components/CommonComponents";
+import { useTranslation } from "react-i18next";
 
 //endpoint
 const apiEndpoint = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -33,44 +32,29 @@ const formatDuration = (seconds: number): string => {
   return m > 0 ? `${m}m ${s}s` : `${s}s`;
 };
 
-// ─── Styled components ───────────────────────────────────────
-  flex: 1,
-  overflowY: "auto",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "flex-start",
-  paddingTop: 32,
-  paddingBottom: 32,
-  gap: 40,
-  backgroundColor: "#0d0d0d",
-});
+const formatDate = (iso: string, t: (key: string, options?: any) => string): string => {
+  const now = new Date();
+  const date = new Date(iso);
 
-const DivColumn = styled("div")({
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  width: "100%",
-  gap: 6,
-  maxWidth: 600,
-});
+  const diffMs = now.getTime() - date.getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
 
-const Title = styled("h1")({
-  fontFamily: "Georgia, serif",
-  fontSize: "2rem",
-  color: "#e8d89a",
-  letterSpacing: "0.08em",
-  margin: 0,
-});
+  if (diffSec < 60) return t('history.time.seconds');
+  if (diffMin < 60) return t('history.time.minutes', { n: diffMin });
+  if (diffHour < 24) return t('history.time.hours', { n: diffHour });
+  if (diffDay < 7) return t('history.time.days', { n: diffDay });
 
-const SubTitle = styled("p")({
-  fontFamily: "Georgia, serif",
-  fontSize: "0.9rem",
-  color: "#666",
-  letterSpacing: "0.05em",
-  margin: 0,
-});
+  // Si es más antiguo, mostramos fecha normal
+  return date.toLocaleDateString(undefined, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
 
 const StatsRow = styled("div")({
   display: "flex",
@@ -190,8 +174,7 @@ const GameHistory = () => {
         );
         setHistory(res.data);
       } catch (err: any) {
-        const backendError = err.response?.data?.error || err.message || t('history.fetchError');
-        setError(backendError);
+        const backendError = err.response?.data?.error || err.message || t('history.fetchError');        setError(backendError);
       } finally {
         setLoading(false);
       }
@@ -205,33 +188,6 @@ const GameHistory = () => {
   }
 
   const wins = history.filter((g) => g.result === "won").length;
-
-  const formatDate = (iso: string): string => {
-    const now = new Date();
-    const date = new Date(iso);
-
-    const diffMs = now.getTime() - date.getTime();
-    const diffSec = Math.floor(diffMs / 1000);
-    const diffMin = Math.floor(diffSec / 60);
-    const diffHour = Math.floor(diffMin / 60);
-    const diffDay = Math.floor(diffHour / 24);
-
-    if (diffSec < 60) return t('history.time.seconds');
-    if (diffMin < 60) return t('history.time.minutes', { n: diffMin });
-    if (diffHour < 24) return t('history.time.hours', { n: diffHour });
-    if (diffDay < 7) {
-      return diffDay === 1 
-        ? t('history.time.days', { count: 1 })
-        : t('history.time.days', { count: diffDay });
-    }
-
-    // Si es más antiguo, mostramos fecha normal
-    return date.toLocaleDateString(undefined, {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  };
   const losses = history.filter((g) => g.result === "lost").length;
   const winRate =
     history.length > 0 ? Math.round((wins / history.length) * 100) : 0;
@@ -291,12 +247,13 @@ const GameHistory = () => {
 
           {history.map((game) => (
             <TableRow key={game._id} result={game.result}>
-              <Cell>{formatDate(game.createdAt)}</Cell>
+              <Cell>{formatDate(game.createdAt, t)}</Cell>
               <Cell>
-                <RivalBadge rival={game.rival}>
-                  {game.rival === "bot" ? `${t('history.bot')}` : `${t('history.player')}`}
-                  {game.rival === "multiplayer" ? `${t('history.player')}` : + game.rival}
-                </RivalBadge>
+              <RivalBadge rival={game.rival}>
+                {game.rival === "multiplayer" 
+                  ? `👤 ${t('history.player')}` 
+                  : `🤖 ${game.rival === 'bot' ? t('history.bot') : game.rival}`}
+              </RivalBadge>
               </Cell>
               <Cell style={{ color: "#666" }}>{game.level ?? "—"}</Cell>
               <Cell>{formatDuration(game.duration)}</Cell>
@@ -310,7 +267,7 @@ const GameHistory = () => {
         </TableWrapper>
       )}
 
-      <BackButton onClick={() => navigate("/set")}>{t("history.back")}</BackButton>
+      <BackButton onClick={() => navigate("/set")}>{t('history.back')}</BackButton>
     </PageWrapper>
   );
 };

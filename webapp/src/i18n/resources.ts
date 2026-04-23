@@ -342,7 +342,7 @@ export const resources = {
         decreaseBoardSize: "Reducir tamaño del tablero",
         increaseBoardSize: "Aumentar tamaño del tablero",
         bots: {
-          random: {
+          random: {   
             label: "Bot aleatorio",
             description: "Hace movimientos aleatorios",
           },
