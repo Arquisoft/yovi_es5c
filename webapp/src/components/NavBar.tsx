@@ -4,6 +4,7 @@ import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded'
 import HistoryRounded from '@mui/icons-material/HistoryRounded'
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded'
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded'
+import EmojiEventsRoundedIcon from '@mui/icons-material/EmojiEventsRounded'
 import { Avatar, Box, ButtonBase, Divider, ListItemIcon, ListItemText, Menu, MenuItem, Typography } from '@mui/material'
 import { useSession } from '../SessionContext'
 import { useNavigate } from 'react-router-dom'
@@ -140,6 +141,13 @@ export default function NavBar() {
                   <HistoryRounded fontSize="small" />
                 </ListItemIcon>
                 <ListItemText primary="History" />
+              </MenuItem>
+
+              <MenuItem onClick={() => navigateFromMenu('/game/ranking')}>
+                <ListItemIcon>
+                  <EmojiEventsRoundedIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary="Ranking" />
               </MenuItem>
 
               <Divider />

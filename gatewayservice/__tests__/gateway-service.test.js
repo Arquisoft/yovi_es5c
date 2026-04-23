@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'; 
 const request = require('supertest');
 const axios = require('axios');
-const { app, resolvePublicBotConfig } = require('../gateway-service');
+const { app, parseYenPosition, resolvePublicBotConfig } = require('../gateway-service');
 
 vi.mock('axios');
 
@@ -157,125 +157,123 @@ describe('Gateway Service - Bot play API', () => {
 
     it('should resolve public bot defaults for tournament play', () => {
         expect(resolvePublicBotConfig()).toEqual({
-            bot_id: 'center_bot',
-            difficulty: 'Hard',
-            registry_bot_id: 'center_bot',
+            bot_id: 'alpha_bot',
+            registry_bot_id: 'alpha_bot',
         });
     });
 
-    it('should route POST /play to the Rust play endpoint with defaults', async () => {
-        axios.post = vi.fn();
+    it('should parse a valid YEN query payload', () => {
+        expect(parseYenPosition('{"size":3,"turn":0,"players":["B","R"],"layout":"./../..."}')).toEqual({
+            position: {
+                size: 3,
+                turn: 0,
+                players: ['B', 'R'],
+                layout: './../...'
+            }
+        });
+    });
+
+    it('should route GET /play to the Rust play endpoint with defaults', async () => {
+        axios.get = vi.fn();
         const mockResponse = {
             data: {
-                size: 3,
-                turn: 1,
-                players: ['B', 'R'],
-                layout: 'B/../...'
+                coords: { x: 1, y: 1, z: 0 }
             }
         };
-        axios.post.mockResolvedValueOnce(mockResponse);
+        axios.get.mockResolvedValueOnce(mockResponse);
 
-        const position = {
-            size: 3,
-            turn: 0,
-            players: ['B', 'R'],
-            layout: './../...'
-        };
+        const position = '{"size":3,"turn":0,"players":["B","R"],"layout":"./../..."}';
 
         const res = await request(app)
-            .post('/play')
-            .send(position);
+            .get('/play')
+            .query({ position });
 
         expect(res.status).toBe(200);
-        expect(res.body.turn).toBe(1);
-        expect(res.body.layout).toBe('B/../...');
-        expect(axios.post).toHaveBeenCalledWith(
+        expect(res.body).toEqual({ coords: { x: 1, y: 1, z: 0 } });
+        expect(axios.get).toHaveBeenCalledWith(
             expect.stringContaining('/v1/ybot/play'),
-            {
-                position,
-                bot_id: 'center_bot',
-                difficulty: 'Hard',
-            }
+            expect.objectContaining({
+                params: {
+                    position,
+                    bot_id: 'alpha_bot',
+                }
+            })
         );
     });
 
-    it('should still route POST /play with the legacy position wrapper', async () => {
-        axios.post = vi.fn();
-        axios.post.mockResolvedValueOnce({
-            data: {
-                size: 3,
-                turn: 1,
-                players: ['B', 'R'],
-                layout: 'B/../...'
-            }
+    it('should route GET /play with an explicit public bot', async () => {
+        axios.get = vi.fn();
+        axios.get.mockResolvedValueOnce({
+            data: { coords: { x: 0, y: 2, z: 0 } }
         });
 
-        const position = {
-            size: 3,
-            turn: 0,
-            players: ['B', 'R'],
-            layout: './../...'
-        };
+        const position = '{"size":3,"turn":0,"players":["B","R"],"layout":"./../..."}';
 
         const res = await request(app)
-            .post('/play')
-            .send({ position });
+            .get('/play')
+            .query({ position, bot_id: 'smart_bot' });
 
         expect(res.status).toBe(200);
-        expect(axios.post).toHaveBeenCalledWith(
+        expect(axios.get).toHaveBeenCalledWith(
             expect.stringContaining('/v1/ybot/play'),
-            {
-                position,
-                bot_id: 'center_bot',
-                difficulty: 'Hard',
-            }
+            expect.objectContaining({
+                params: {
+                    position,
+                    bot_id: 'smart_bot',
+                }
+            })
         );
     });
 
-    it('should reject POST /play when YEN position is missing', async () => {
+    it('should reject GET /play when YEN position is missing', async () => {
         const res = await request(app)
-            .post('/play')
-            .send({ bot_id: 'center_bot' });
+            .get('/play')
+            .query({ bot_id: 'alpha_bot' });
 
         expect(res.status).toBe(400);
         expect(res.body.error).toBe('YEN position is required');
     });
 
-    it('should reject POST /play with unknown difficulty', async () => {
+    it('should reject GET /play when YEN position is not valid JSON', async () => {
         const res = await request(app)
-            .post('/play')
-            .send({
-                position: {
-                    size: 3,
-                    turn: 0,
-                    players: ['B', 'R'],
-                    layout: './../...'
-                },
-                difficulty: 'Impossible'
+            .get('/play')
+            .query({ position: 'not-json' });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe('YEN position must be valid JSON');
+    });
+
+    it('should reject GET /play with an unknown public bot', async () => {
+        const res = await request(app)
+            .get('/play')
+            .query({
+                position: '{"size":3,"turn":0,"players":["B","R"],"layout":"./../..."}',
+                bot_id: 'random_bot'
             });
 
         expect(res.status).toBe(400);
-        expect(res.body.error).toContain('Unknown difficulty');
+        expect(res.body.error).toContain('Unknown bot_id');
     });
 
-    it('should forward backend errors from POST /play', async () => {
-        axios.post = vi.fn();
-        axios.post.mockRejectedValueOnce({
+    it('should forward backend errors from GET /play', async () => {
+        axios.get = vi.fn();
+        axios.get.mockRejectedValueOnce({
             response: { status: 400, data: { message: 'Invalid YEN format' } }
         });
 
         const res = await request(app)
-            .post('/play')
-            .send({
-                position: {
-                    size: 3,
-                    turn: 0,
-                    players: ['B', 'R'],
-                    layout: 'invalid'
-                }
+            .get('/play')
+            .query({
+                position: '{"size":3,"turn":0,"players":["B","R"],"layout":"invalid"}'
             });
 
         expect(res.status).toBe(400);
         expect(res.body.error).toBe('Invalid YEN format');
+    });
+
+    it('should reject incomplete YEN payloads', async () => {
+        expect(parseYenPosition('{"size":3,"turn":0}')).toEqual({
+            error: 'YEN position is required'
+        });
     });
 });

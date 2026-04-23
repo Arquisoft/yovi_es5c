@@ -95,4 +95,45 @@ describe("Login page", () => {
     // Verificamos que el input password es inválido por la validación nativa HTML
     expect(passwordInput).toBeInvalid();
   });
+
+  it("handles network error and logs it", async () => {
+  const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+  (global.fetch as any).mockRejectedValue(new Error("Network error"));
+
+
+  await act(async () => {
+      render(<MemoryRouter><Login /></MemoryRouter>);
+    });
+  
+
+  const user = userEvent.setup();
+  const usernameInput = document.querySelector('input[name="username"]') as HTMLInputElement;
+  const passwordInput = document.querySelector('input[name="password"]') as HTMLInputElement;
+
+
+  await act(async () => {
+      await user.type(usernameInput, "miguel1235");
+      await user.type(passwordInput, "Miguel1**");
+    });
+
+  
+
+  const loginButton = screen.getByRole("button", { name: /log-in/i });
+
+  await act(async () => {
+      await user.click(loginButton);
+    });
+  
+  
+  await waitFor(() => {
+    expect(consoleSpy).toHaveBeenCalledWith("Network error");
+
+    expect(
+      screen.getByText(/error de conexión con el servidor/i)
+    ).toBeInTheDocument();
+  });
+
+  consoleSpy.mockRestore();
+});
 });
