@@ -39,6 +39,12 @@ function makeEmptyBoard(size: number): Board {
   return Array.from({ length: size }, (_, row) => Array.from({ length: row + 1 }, () => '.' as Cell))
 }
 
+const formatTime = (seconds: number) => {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+};
+
 function cloneBoard(board: Board): Board {
   return board.map((row) => [...row])
 }
@@ -206,6 +212,8 @@ export default function GamePage() {
 
   const [timerP1, setTimerP1] = useState(initialSessionTime)
   const [timerP2, setTimerP2] = useState(initialSessionTime)
+  const [incrementMsgP1, setIncrementMsgP1] = useState<string | null>(null)
+  const [incrementMsgP2, setIncrementMsgP2] = useState<string | null>(null)
 
   const [currentPlayer, setCurrentPlayer] = useState<'B' | 'R'>('B')
   const [playerOneColor, setPlayerOneColor] = useState<'B' | 'R'>('B')
@@ -219,21 +227,21 @@ export default function GamePage() {
     if (isGameOver || busy || winner) return;
 
     const interval = setInterval(() => {
-      if (currentPlayer === 'B') {
+      if (currentPlayer === playerOneColor) {
         setTimerP1((prev) => {
-          if (prev <= 1) { clearInterval(interval); handleGameOver('R'); return 0; }
+          if (prev <= 1) { clearInterval(interval); handleGameOver(playerTwoColor); return 0; }
           return prev - 1;
         });
-      } else if (currentPlayer === 'R' && mode === 'pvp') {
+      } else if (currentPlayer === playerTwoColor && mode === 'pvp') {
         setTimerP2((prev) => {
-          if (prev <= 1) { clearInterval(interval); handleGameOver('B'); return 0; }
+          if (prev <= 1) { clearInterval(interval); handleGameOver(playerOneColor); return 0; }
           return prev - 1;
         });
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [currentPlayer, isGameOver, busy, winner, mode]);
+  }, [currentPlayer, isGameOver, busy, winner, mode, playerOneColor, playerTwoColor]);
   
 
   useEffect(() => {
@@ -363,6 +371,8 @@ export default function GamePage() {
     color: 'B' | 'R',
     isActive: boolean,
     touchedSides: { touchesA: boolean; touchesB: boolean; touchesC: boolean },
+    timerValue: number,
+    incrementMsg: string | null,
   ) => {
     const triangle = getTriangleVertices()
     const stroke = color === 'B' ? '#1565c0' : '#c62828'
@@ -403,6 +413,24 @@ export default function GamePage() {
             {isActive ? 'Turn' : 'Waiting'}
           </Box>
         </Stack>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5, height: 32 }}>
+          <Typography 
+            variant="h5" 
+            sx={{ 
+              fontWeight: 800, 
+              fontFamily: 'monospace', 
+              color: timerValue < 10 ? '#d32f2f' : 'inherit' 
+            }}
+          >
+            {formatTime(timerValue)}
+          </Typography>
+          {incrementMsg && (
+            <Typography variant="body2" sx={{ color: '#2e7d32', fontWeight: 700 }}>
+              {incrementMsg}
+            </Typography>
+          )}
+        </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <svg
@@ -461,11 +489,19 @@ export default function GamePage() {
 
     setBusy(true)
 
-    // Aplicar incremento de tiempo tras el movimiento
-    if (currentPlayer === 'B') {
-      setTimerP1(prev => Math.min(prev + incrementPerMove, initialSessionTime));
-    } else if (mode === 'pvp' && currentPlayer === 'R') {
-      setTimerP2(prev => Math.min(prev + incrementPerMove, initialSessionTime));
+    // Mostrar animación y luego aplicar incremento
+    if (currentPlayer === playerOneColor) {
+      setIncrementMsgP1(`+${incrementPerMove.toFixed(0)}s`);
+      setTimeout(() => {
+        setIncrementMsgP1(null);
+        setTimerP1(prev => Math.min(prev + incrementPerMove, initialSessionTime));
+      }, 1000);
+    } else if (mode === 'pvp' && currentPlayer === playerTwoColor) {
+      setIncrementMsgP2(`+${incrementPerMove.toFixed(0)}s`);
+      setTimeout(() => {
+        setIncrementMsgP2(null);
+        setTimerP2(prev => Math.min(prev + incrementPerMove, initialSessionTime));
+      }, 1000);
     }
 
     const previousBoard = cloneBoard(board)
@@ -538,11 +574,13 @@ export default function GamePage() {
         throw new Error(data.error || 'Unable to apply pie rule')
       }
 
-      // El jugador que usa el Pie Rule también recibe incremento por su acción
-      if (currentPlayer === 'B') {
-        setTimerP1(prev => Math.min(prev + incrementPerMove, initialSessionTime));
-      } else {
-        setTimerP2(prev => Math.min(prev + incrementPerMove, initialSessionTime));
+      // El jugador que usa el Pie Rule (Player 2) recibe incremento
+      if (currentPlayer === playerOneColor) {
+        setIncrementMsgP1(`+${incrementPerMove.toFixed(0)}s`);
+        setTimeout(() => { setIncrementMsgP1(null); setTimerP1(p => Math.min(p + incrementPerMove, initialSessionTime)); }, 1000);
+      } else if (currentPlayer === playerTwoColor) {
+        setIncrementMsgP2(`+${incrementPerMove.toFixed(0)}s`);
+        setTimeout(() => { setIncrementMsgP2(null); setTimerP2(p => Math.min(p + incrementPerMove, initialSessionTime)); }, 1000);
       }
 
       const moveData = data as MoveTurnResponse
@@ -626,9 +664,16 @@ export default function GamePage() {
             gap: 2,
           }}
         >
-          <Box sx={{ width: { xs: '100%', lg: 210 }, flexShrink: 0 }}>
-            {renderPlayerTriangle(playerOneLabel, playerOneColor, playerOneActive, playerOneSides)}
-          </Box>
+        <Box sx={{ width: { xs: '100%', lg: 210 }, flexShrink: 0 }}>
+          {renderPlayerTriangle(
+            playerOneLabel, 
+            playerOneColor, 
+            playerOneActive, 
+            playerOneSides, 
+            timerP1, 
+            incrementMsgP1
+          )}
+        </Box>
 
           <Box sx={{ width: '100%', maxWidth: 560, p: 2 }}>
             <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} width="100%" aria-label="Y game board">
@@ -675,7 +720,14 @@ export default function GamePage() {
           </Box>
 
           <Box sx={{ width: { xs: '100%', lg: 210 }, flexShrink: 0 }}>
-            {renderPlayerTriangle(playerTwoLabel, playerTwoColor, playerTwoActive, playerTwoSides)}
+            {renderPlayerTriangle(
+              playerTwoLabel, 
+              playerTwoColor, 
+              playerTwoActive, 
+              playerTwoSides, 
+              timerP2, 
+              incrementMsgP2
+            )}
             {canUsePieRule && (
               <Button
                 variant="contained"
