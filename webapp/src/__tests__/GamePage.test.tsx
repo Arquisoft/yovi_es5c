@@ -394,4 +394,270 @@ it('no debe hacer la petición si se hace clic en una celda ya ocupada', async (
 	// El contador de llamadas a fetch debe seguir en 1 (el click fue bloqueado)
 	expect(global.fetch).toHaveBeenCalledTimes(1)
 	})
+
+	// ─── Undo ────────────────────────────────────────────────────────────────────
+
+	it('no debe mostrar el botón Undo al inicio de la partida (historial vacío)', () => {
+		; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+		; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
+
+		render(<GamePage />)
+
+		expect(screen.getByRole('button', { name: /Undo/i })).toBeDisabled()
+	})
+
+	it('debe mostrar el botón Undo tras realizar un movimiento en PvP', async () => {
+		; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+		; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
+		; (global.fetch as Mock).mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				game_over: false,
+				winner: null,
+				state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+			}),
+		})
+
+		const { container } = render(<GamePage />)
+		fireEvent.click(container.querySelector('g')!)
+
+		await waitFor(() => {
+			expect(screen.getByRole('button', { name: /Undo/i })).toBeInTheDocument()
+		})
+	})
+
+	it('debe mostrar el botón Undo deshabilitado mientras el bot está pensando', async () => {
+		; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+		; (useLocation as Mock).mockReturnValue({ state: { mode: 'bot' } })
+		; (global.fetch as Mock).mockImplementation(async (url) => {
+			if (String(url).includes('/status')) return { ok: true, text: async () => 'OK' }
+			if (String(url).includes('/move')) {
+				await new Promise((r) => setTimeout(r, 200))
+				return {
+					ok: true,
+					json: async () => ({
+						game_over: false,
+						winner: null,
+						state: { size: 3, turn: 0, players: ['B', 'R'], layout: 'B/../R.' },
+					}),
+				}
+			}
+			return { ok: true, text: async () => 'OK', json: async () => ({}) }
+		})
+
+		const { container } = render(<GamePage />)
+		await waitFor(() =>
+			expect(screen.queryByText('Game service is unavailable.')).not.toBeInTheDocument(),
+		)
+
+		fireEvent.click(container.querySelector('g')!)
+
+		await waitFor(() => {
+			const undoBtn = screen.getByRole('button', { name: /Undo/i })
+			expect(undoBtn).toBeDisabled()
+		})
+	})
+
+	it('debe ocultar el botón Undo después de deshacer el único movimiento', async () => {
+		; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+		; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
+		; (global.fetch as Mock).mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				game_over: false,
+				winner: null,
+				state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+			}),
+		})
+
+		const { container } = render(<GamePage />)
+		fireEvent.click(container.querySelector('g')!)
+
+		await waitFor(() =>
+			expect(screen.getByRole('button', { name: /Undo/i })).not.toBeDisabled(),
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: /Undo/i }))
+
+		await waitFor(() => {
+			expect(screen.getByRole('button', { name: /Undo/i })).toBeDisabled()
+		})
+	})
+
+	it('debe permitir deshacer varios movimientos en PvP hasta vaciar el historial', async () => {
+		; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+		; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
+		; (global.fetch as Mock)
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({
+					game_over: false,
+					winner: null,
+					state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+				}),
+			})
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({
+					game_over: false,
+					winner: null,
+					state: { size: 3, turn: 0, players: ['B', 'R'], layout: 'B/BR/...' },
+				}),
+			})
+
+		const { container } = render(<GamePage />)
+		const cells = container.querySelectorAll('g')
+
+		fireEvent.click(cells[0])
+		await waitFor(() => {
+			const player2Label = screen.getByText('Player 2')
+			expect(player2Label.parentElement).toHaveTextContent('Turn')
+		})
+
+		fireEvent.click(cells[1])
+		await waitFor(() => {
+			const player1Label = screen.getByText('Player 1')
+			expect(player1Label.parentElement).toHaveTextContent('Turn')
+		})
+
+		fireEvent.click(screen.getByRole('button', { name: /Undo/i }))
+		await waitFor(() => {
+			const player2Label = screen.getByText('Player 2')
+			expect(player2Label.parentElement).toHaveTextContent('Turn')
+		})
+
+		fireEvent.click(screen.getByRole('button', { name: /Undo/i }))
+		await waitFor(() => {
+			const player1Label = screen.getByText('Player 1')
+			expect(player1Label.parentElement).toHaveTextContent('Turn')
+			expect(screen.getByRole('button', { name: /Undo/i })).toBeDisabled()
+		})
+	})
+
+	it('debe deshacer el movimiento del usuario y la respuesta del bot juntos en modo bot', async () => {
+		; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+		; (useLocation as Mock).mockReturnValue({ state: { mode: 'bot' } })
+		; (global.fetch as Mock).mockImplementation(async (url) => {
+			if (String(url).includes('/status')) return { ok: true, text: async () => 'OK' }
+			if (String(url).includes('/move')) {
+				return {
+					ok: true,
+					json: async () => ({
+						game_over: false,
+						winner: null,
+						state: { size: 3, turn: 0, players: ['B', 'R'], layout: 'B/RR/...' },
+					}),
+				}
+			}
+			return { ok: true, text: async () => 'OK', json: async () => ({}) }
+		})
+
+		const { container } = render(<GamePage />)
+		await waitFor(() =>
+			expect(screen.queryByText('Game service is unavailable.')).not.toBeInTheDocument(),
+		)
+
+		fireEvent.click(container.querySelector('g')!)
+		fireEvent.click(screen.getByRole('button', { name: /Undo/i }))
+
+		await waitFor(() => {
+			expect(screen.getByRole('button', { name: /Undo/i })).toBeDisabled()
+		})
+	})
+
+	it('debe poder deshacer después de aplicar la pie rule en PvP', async () => {
+		; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+		; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
+		; (global.fetch as Mock)
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({
+					game_over: false,
+					winner: null,
+					state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+				}),
+			})
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({
+					game_over: false,
+					winner: null,
+					state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'R/../...' },
+				}),
+			})
+
+		const { container } = render(<GamePage />)
+		fireEvent.click(container.querySelector('g')!)
+
+		const swapBtn = await screen.findByRole('button', { name: /Swap/i })
+		fireEvent.click(swapBtn)
+
+		await waitFor(() =>
+			expect(screen.getByRole('button', { name: /Undo/i })).toBeInTheDocument(),
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: /Undo/i }))
+
+		// Tras deshacer el swap se restaura el turno previo (Player 2 antes del swap)
+		await waitFor(() => {
+			// Solución: Verificamos en la UI que la tarjeta de 'Player 2' tiene la etiqueta 'Turn'
+			const player2Label = screen.getByText('Player 2')
+			expect(player2Label.parentElement).toHaveTextContent('Turn')
+		})
+	})
+
+	it('debe limpiar el historial de undo al hacer "New Game"', async () => {
+		; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+		; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
+		; (global.fetch as Mock).mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				game_over: false,
+				winner: null,
+				state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+			}),
+		})
+
+		const { container } = render(<GamePage />)
+		fireEvent.click(container.querySelector('g')!)
+
+		// Comprobamos que el botón Undo se ha HABILITADO tras el movimiento
+		await waitFor(() =>
+			expect(screen.getByRole('button', { name: /Undo/i })).not.toBeDisabled(),
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: /New Game/i }))
+
+		// Al hacer "New Game", el botón Undo debe quedar deshabilitado
+		await waitFor(() => {
+			expect(screen.getByRole('button', { name: /Undo/i })).toBeDisabled()
+		})
+	})
+
+	it('no debe mostrar el botón Undo cuando hay ganador', async () => {
+		; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+		; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
+		; (global.fetch as Mock).mockImplementation(async (url) => {
+			if (String(url).includes('/move')) {
+				return {
+					ok: true,
+					json: async () => ({
+						game_over: true,
+						winner: 'B',
+						state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/BB/...' },
+					}),
+				}
+			}
+			return { ok: true, text: async () => 'OK', json: async () => ({}) }
+		})
+
+		const { container } = render(<GamePage />)
+		fireEvent.click(container.querySelector('g')!)
+
+		await waitFor(() => {
+			expect(screen.getByText('Player B wins!')).toBeInTheDocument()
+		})
+
+		expect(screen.queryByRole('button', { name: /Undo/i })).not.toBeInTheDocument()
+	})
 })

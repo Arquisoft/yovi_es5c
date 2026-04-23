@@ -12,8 +12,11 @@
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest --watch",
     "test:e2e:run": "cucumber-js --import test/e2e/support/setup.mjs --import test/e2e/steps/**/*.mjs test/e2e/features --format progress",
-    "test:e2e": "start-server-and-test start:all http://localhost:5173 test:e2e:run",
+    "test:e2e:services": "docker compose -f ../docker-compose.yml up -d mongodb gamey",
+    "pretest:e2e": "npm run test:e2e:services",
+    "test:e2e": "start-server-and-test start:all:e2e http://localhost:5173 test:e2e:run",
     "test:e2e:install-browsers": "npx playwright install",
+    "start:all:e2e": "concurrently \"npm run dev\" \"npm --prefix ../users start\" \"npm --prefix ../gatewayservice start\"",
     "start:all": "concurrently \"npm run dev\" \"npm --prefix ../users start\" \"npm --prefix ../gatewayservice start\" \"cargo run --manifest-path ../gamey/Cargo.toml -- --mode server --port 4000\""
   },
   "dependencies": {

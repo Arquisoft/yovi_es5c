@@ -4,6 +4,8 @@ import { styled } from "@mui/material/styles";
 import { useNavigate, Navigate } from "react-router-dom";
 import { useSession } from "../SessionContext";
 import axios from "axios";
+import { EmptyState, EmptyIcon, EmptyText, BackButton, LoadingText } from "../components/CommonComponents";
+
 
 //endpoint
 const apiEndpoint = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -70,6 +72,30 @@ const SubTitle = styled("p")({
   letterSpacing: "0.05em",
   margin: 0,
 });
+
+const formatDate = (iso: string): string => {
+  const now = new Date();
+  const date = new Date(iso);
+
+  const diffMs = now.getTime() - date.getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+
+  if (diffSec < 60) return "hace unos segundos";
+  if (diffMin < 60) return `hace ${diffMin} min`;
+  if (diffHour < 24) return `hace ${diffHour} h`;
+  if (diffDay < 7) return `hace ${diffDay} día${diffDay > 1 ? "s" : ""}`;
+
+  // Si es más antiguo, mostramos fecha normal
+  return date.toLocaleDateString("es-ES", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
 
 const StatsRow = styled("div")({
   display: "flex",
@@ -168,57 +194,6 @@ const ResultBadge = styled("span")<{ result: Result }>(({ result }) => ({
   color: result === "won" ? "#6aab7e" : "#ab6a6a",
   border: `1px solid ${result === "won" ? "rgba(74,124,89,0.25)" : "rgba(124,74,74,0.25)"}`,
 }));
-
-const EmptyState = styled("div")({
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  gap: 12,
-  padding: "60px 0",
-  color: "#333",
-});
-
-const EmptyIcon = styled("span")({
-  fontSize: "2.5rem",
-  opacity: 0.3,
-});
-
-const EmptyText = styled("p")({
-  fontFamily: "Georgia, serif",
-  fontSize: "0.9rem",
-  color: "#444",
-  letterSpacing: "0.05em",
-  margin: 0,
-});
-
-const BackButton = styled("button")({
-  background: "none",
-  border: "1px solid #2a2a2a",
-  color: "#555",
-  fontSize: "0.75rem",
-  letterSpacing: "0.08em",
-  padding: "8px 20px",
-  borderRadius: 4,
-  cursor: "pointer",
-  transition: "all 0.2s ease",
-  textTransform: "uppercase",
-  "&:hover": {
-    borderColor: "#c8a84b",
-    color: "#c8a84b",
-  },
-});
-
-const LoadingText = styled("p")({
-  fontFamily: "Georgia, serif",
-  fontSize: "0.85rem",
-  color: "#444",
-  letterSpacing: "0.08em",
-  animation: "pulse 1.5s ease-in-out infinite",
-  "@keyframes pulse": {
-    "0%, 100%": { opacity: 0.4 },
-    "50%": { opacity: 1 },
-  },
-});
 
 
 

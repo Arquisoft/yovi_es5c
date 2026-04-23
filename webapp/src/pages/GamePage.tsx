@@ -34,6 +34,13 @@ interface MoveTurnResponse {
   }
 }
 
+interface GameSnapshot {
+  board: Board
+  currentPlayer: 'B' | 'R'
+  playerOneColor: 'B' | 'R'
+  playerTwoColor: 'B' | 'R'
+  message: string
+}
 
 
 function makeEmptyBoard(size: number): Board {
@@ -104,7 +111,7 @@ function getDialogTitle(isPvP: boolean, winner: Winner, userWon: boolean, t: (ke
 
 function getAccentColor(isPvP: boolean, winner: Winner, userWon: boolean): string {
   if (isPvP) {
-    return winner === 'B' ? '#1565c0' : '#c62828'
+    return winner === 'B' ? 'var(--yovi-board-hex-playerB)' : 'var(--yovi-board-hex-playerR)'
   }
   return userWon ? '#2e7d32' : '#d32f2f'
 }
@@ -188,9 +195,9 @@ export default function GamePage() {
   const [message, setMessage] = useState(mode === 'pvp' ? t('game.playerTurn', { player: '1' }) : t('game.yourTurn'))
   const [playerOneColor, setPlayerOneColor] = useState<'B' | 'R'>('B')
   const [playerTwoColor, setPlayerTwoColor] = useState<'B' | 'R'>('R')
+  const [history, setHistory] = useState<GameSnapshot[]>([])
   const [error, setError] = useState('')
   const { isLoggedIn } = useSession();
-  
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -321,6 +328,7 @@ const getPvpPlayerLabel = (color: 'B' | 'R', p1Color = playerOneColor, p2Color =
     isActive: boolean,
     touchedSides: { touchesA: boolean; touchesB: boolean; touchesC: boolean },
   ) => {
+    const playerTestId = label.toLowerCase().replaceAll(/\s+/g, '-')
     const triangle = getTriangleVertices()
     const stroke = color === 'B' ? '#1565c0' : '#c62828'
     const fill = color === 'B' ? 'rgba(21, 101, 192, 0.14)' : 'rgba(198, 40, 40, 0.14)'
@@ -330,6 +338,7 @@ const getPvpPlayerLabel = (color: 'B' | 'R', p1Color = playerOneColor, p2Color =
 
     return (
       <Paper
+        data-testid={`${playerTestId}-card`}
         elevation={0}
         sx={{
           flex: 1,
@@ -345,6 +354,7 @@ const getPvpPlayerLabel = (color: 'B' | 'R', p1Color = playerOneColor, p2Color =
             {label}
           </Typography>
           <Box
+            data-testid={`${playerTestId}-status`}
             sx={{
               px: 1,
               py: 0.35,
@@ -416,6 +426,15 @@ const getPvpPlayerLabel = (color: 'B' | 'R', p1Color = playerOneColor, p2Color =
       setStartTime(Date.now())
     }
 
+    // Guardamos snapshot del tablero
+    setHistory(prev => [...prev, {
+      board: cloneBoard(board),
+      currentPlayer,
+      playerOneColor,
+      playerTwoColor,
+      message,
+    }])
+
     setBusy(true)
 
     const previousBoard = cloneBoard(board)
@@ -469,6 +488,16 @@ const getPvpPlayerLabel = (color: 'B' | 'R', p1Color = playerOneColor, p2Color =
     }
 
     setBusy(true)
+
+    // Guardamos snapshot del estado actudal del tablero
+    setHistory(prev => [...prev, {
+      board: cloneBoard(board),
+      currentPlayer,
+      playerOneColor,
+      playerTwoColor,
+      message,
+    }])
+
     setError('')
     setMessage(t('game.applyingPie'))
 
@@ -508,7 +537,24 @@ const getPvpPlayerLabel = (color: 'B' | 'R', p1Color = playerOneColor, p2Color =
     }
   }
 
+  const canUndo = history.length > 0 && !busy && winner === null;
+  const undoMove = () => {
+    if (history.length === 0) return
+    const previous = history.at(-1);
+    if (!previous) return;
+    setHistory(prev => prev.slice(0, -1))
+    setBoard(previous.board)
+    setCurrentPlayer(previous.currentPlayer)
+    setPlayerOneColor(previous.playerOneColor)
+    setPlayerTwoColor(previous.playerTwoColor)
+    setMessage(previous.message)
+    setWinner(null)
+    setIsGameOver(false)
+    setError('')
+  }
+
   const reset = () => {
+    setHistory([])
     setBoard(makeEmptyBoard(boardSize))
     setBusy(false)
     setWinner(null)
@@ -590,6 +636,8 @@ const getPvpPlayerLabel = (color: 'B' | 'R', p1Color = playerOneColor, p2Color =
                   
                   return (
                     <g
+                      data-testid={`cell-${rowIndex}-${cellIndex}`}
+                      aria-label={`Cell ${rowIndex} ${cellIndex}`}
                       key={`${rowIndex}-${cellIndex}`}
                       onClick={() => {
                         if (clickable) {
@@ -636,6 +684,11 @@ const getPvpPlayerLabel = (color: 'B' | 'R', p1Color = playerOneColor, p2Color =
         </Box>
 
         <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <Button variant="outlined" onClick={undoMove} disabled={!canUndo} sx={{ color: '#f8fafc', borderColor: '#f8fafc',
+            '&.Mui-disabled': {color: '#7f1d1d', borderColor: '#7f1d1d'},
+           }}>
+            Undo
+          </Button>
           <Button variant="outlined" onClick={reset} sx={{ color: '#f8fafc', borderColor: '#f8fafc' }}>
             {t('game.newGame')}
           </Button>
