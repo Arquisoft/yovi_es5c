@@ -108,6 +108,9 @@ To run the project locally without Docker, you will need to run each component i
 #### Prerequisites
 
 * [Node.js](https://nodejs.org/) and npm installed.
+* [Docker](https://www.docker.com/) available if you run the end-to-end tests locally.
+* A `JWT_SECRET` value configured in the environment for local login flows.
+* On Windows, if `gamey` fails with `dlltool.exe: program not found`, use the MSVC Rust toolchain or install the GNU binutils that provide `dlltool.exe`.
 
 #### 1. Running the User Service
 
@@ -165,8 +168,10 @@ Each component has its own set of scripts defined in its `package.json`. Here ar
 
 - `npm run dev`: Starts the development server for the webapp.
 - `npm test`: Runs the unit tests.
-- `npm run test:e2e`: Runs the end-to-end tests.
-- `npm run start:all`: A convenience script to start both the `webapp` and the `users` service concurrently.
+- `npm run test:e2e:services`: Starts MongoDB and `gamey` with Docker Compose for end-to-end tests.
+- `npm run test:e2e`: Starts MongoDB and `gamey` with Docker Compose, starts the app services, and runs the end-to-end tests.
+- `npm run test:e2e:run`: Runs only the Cucumber end-to-end tests against already running services.
+- `npm run start:all`: A convenience script to start the `webapp`, `users`, `gatewayservice`, and `gamey` services concurrently.
 
 ### Gateway (`gatewayservice/package.json`)
 
