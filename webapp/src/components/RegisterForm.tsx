@@ -66,11 +66,11 @@ const RegisterForm = () => {
     if (name === "surname") setSurnameError(null);
     if (name === "email") setEmailError(null);
     if (name === "password") {
-      if (!passwordRegex.test(value)) {
-        setPasswordError(t("auth.passwordRules"));
-      } else {
-        setPasswordError(null);
-      }
+    if (passwordRegex.test(value)) {
+      setPasswordError(null);
+    } else {
+      setPasswordError(t("auth.passwordRules"));
+    }
     }
     if (name === "confirmPassword") {
       if (value !== formData.password) {

@@ -32,18 +32,35 @@ const emptyProfile: ProfileData = { username: "", name: "", surname: "", email: 
 // ─── API ─────────────────────────────────────────────────────
 
 async function loadProfile(username: string, t: (key: string) => string): Promise<ProfileData> {
+  // Solo permitimos letras, números, puntos, guiones y guiones bajos
+  const isValidUsername = /^[a-zA-Z0-9._-]+$/.test(username);
+  
+  if (!isValidUsername) {
+    throw new Error(t("profile.invalidUsername") || "Invalid username format");
+  }
+
   const response = await fetch(`${apiEndpoint}/user/${encodeURIComponent(username)}`);
   const data = await response.json();
+  
   if (!response.ok) throw new Error(data.error || t("profile.loadError"));
   return data;
 }
 
 async function saveProfile(profile: ProfileData, t: (key: string) => string): Promise<ProfileData> {
+  if (!/^[a-zA-Z0-9._-]+$/.test(profile.username)) {
+    throw new Error(t("profile.invalidUsername"));
+  }
+
   const response = await fetch(`${apiEndpoint}/user/${encodeURIComponent(profile.username)}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: profile.name, surname: profile.surname, email: profile.email }),
+    body: JSON.stringify({ 
+      name: profile.name, 
+      surname: profile.surname, 
+      email: profile.email 
+    }),
   });
+  
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || t("profile.saveError"));
   return data;

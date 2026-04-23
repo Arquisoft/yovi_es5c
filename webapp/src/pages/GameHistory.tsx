@@ -155,7 +155,6 @@ const ResultBadge = styled("span")<{ result: Result }>(({ result }) => ({
 }));
 
 
-
 // ─── Component ───────────────────────────────────────────────
 const GameHistory = () => {
   const { t } = useTranslation();
@@ -186,6 +185,15 @@ const GameHistory = () => {
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
   }
+
+  const getRivalText = (rival: string) => {
+    if (rival === "multiplayer") {
+      return `👤 ${t('history.player')}`;
+    }
+    
+    const rivalName = rival === 'bot' ? t('history.bot') : rival;
+    return `🤖 ${rivalName}`;
+  };
 
   const wins = history.filter((g) => g.result === "won").length;
   const losses = history.filter((g) => g.result === "lost").length;
@@ -250,9 +258,7 @@ const GameHistory = () => {
               <Cell>{formatDate(game.createdAt, t)}</Cell>
               <Cell>
               <RivalBadge rival={game.rival}>
-                {game.rival === "multiplayer" 
-                  ? `👤 ${t('history.player')}` 
-                  : `🤖 ${game.rival === 'bot' ? t('history.bot') : game.rival}`}
+                {getRivalText(game.rival)}
               </RivalBadge>
               </Cell>
               <Cell style={{ color: "#666" }}>{game.level ?? "—"}</Cell>
