@@ -687,7 +687,7 @@ const getPvpPlayerLabel = (color: 'B' | 'R', p1Color = playerOneColor, p2Color =
           <Button variant="outlined" onClick={undoMove} disabled={!canUndo} sx={{ color: '#f8fafc', borderColor: '#f8fafc',
             '&.Mui-disabled': {color: '#7f1d1d', borderColor: '#7f1d1d'},
            }}>
-            Undo
+            {t('game.undo')}
           </Button>
           <Button variant="outlined" onClick={reset} sx={{ color: '#f8fafc', borderColor: '#f8fafc' }}>
             {t('game.newGame')}

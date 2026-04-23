@@ -165,6 +165,7 @@ export const resources = {
         you: "You",
         bot: "Bot",
         swap: "Swap",
+        undo: "Undo",
         applyingPie: "Applying pie rule...",
         unablePieRule: "Unable to apply pie rule",
         pieRuleError: "The pie rule could not be applied.",
@@ -337,9 +338,9 @@ export const resources = {
         bot: "▲ Jugador vs Bot 🤖 ▼",
         botDescription: "Juega contra nuestros bots",
         difficultyTitle: "{{bot}} — dificultad",
-        boardSize: "Tamano del tablero",
-        decreaseBoardSize: "Reducir tamano del tablero",
-        increaseBoardSize: "Aumentar tamano del tablero",
+        boardSize: "Tamaño del tablero",
+        decreaseBoardSize: "Reducir tamaño del tablero",
+        increaseBoardSize: "Aumentar tamaño del tablero",
         bots: {
           random: {
             label: "Bot aleatorio",
@@ -396,6 +397,7 @@ export const resources = {
         you: "Tú",
         bot: "Bot",
         swap: "Cambiar",
+        undo: "Deshacer",
         applyingPie: "Aplicando regla del pastel...",
         unablePieRule: "No se pudo aplicar la regla del pastel",
         pieRuleError: "La regla del pastel no se pudo aplicar.",
