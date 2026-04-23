@@ -296,16 +296,6 @@ const handleNextTurn = (moveData: MoveTurnResponse) => {
   }
 }
 
-const getPvpPlayerLabel = (color: 'B' | 'R', p1Color = playerOneColor, p2Color = playerTwoColor) => {
-  if (color === p1Color) {
-    return t('game.player1')
-  }
-  if (color === p2Color) {
-    return t('game.player2')
-  }
-  return `${t('game.player')} ${color}`
-}
-
   const pieceCount = countPieces(board)
   const canUsePieRule =
     mode === 'pvp' &&

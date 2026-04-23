@@ -229,41 +229,20 @@ const GameSetup = () => {
   const navigate = useNavigate();
   const { isLoggedIn } = useSession();
 
-  // Generate BOT_OPTIONS with translations
-  const BOT_OPTIONS: BotOption[] = [
-    {
-      bot_id: "random_bot",
-      label: t('setup.bots.random.label'),
-      description: t('setup.bots.random.description'),
-    },
-    {
-      bot_id: "center_bot",
-      label: t('setup.bots.center.label'),
-      description: t('setup.bots.center.description'),
-    },
-    {
-      bot_id: "edge_bot",
-      label: t('setup.bots.edge.label'),
-      description: t('setup.bots.edge.description'),
-    },
-    {
-      bot_id: "smart_bot",
-      label: t('setup.bots.smart.label'),
-      description: t('setup.bots.smart.description'),
-    },
-    {
-      bot_id: "mirror_bot",
-      label: t('setup.bots.mirror.label'),
-      description: t('setup.bots.mirror.description'),
-    },
-    {
-      bot_id: "alpha_bot",
-      label: t('setup.bots.alpha.label'),
-      description: t('setup.bots.alpha.description'),
-    },
+  const botKeys = [
+    "random",
+    "center",
+    "edge",
+    "smart",
+    "mirror",
+    "alpha",
   ];
 
-  const DIFFICULTIES: Difficulty[] = ["Easy", "Medium", "Hard"];
+  const BOT_OPTIONS: BotOption[] = botKeys.map(key => ({
+    bot_id: `${key}_bot`,
+    label: t(`setup.bots.${key}.label`),
+    description: t(`setup.bots.${key}.description`),
+  }));
 
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
