@@ -148,6 +148,28 @@ describe('Gateway Service - Login Routing', () => {
             gameData
         );
     });
+
+    it('should route GET /game/ranking with sort, order and limit to the user service', async () => {
+        axios.get = vi.fn();
+        axios.get.mockResolvedValueOnce({
+            data: [
+                { username: 'alice', played: 5, wins: 4, losses: 1, winRate: 80 }
+            ]
+        });
+
+        const res = await request(app)
+            .get('/game/ranking')
+            .query({ sortBy: 'wins', order: 'desc', limit: '3' });
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual([
+            { username: 'alice', played: 5, wins: 4, losses: 1, winRate: 80 }
+        ]);
+        expect(axios.get).toHaveBeenCalledTimes(1);
+        expect(axios.get).toHaveBeenCalledWith(
+            expect.stringContaining('/game/ranking?sortBy=wins&order=desc&limit=3')
+        );
+    });
 });
 
 describe('Gateway Service - Bot play API', () => {
