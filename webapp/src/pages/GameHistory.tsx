@@ -55,17 +55,38 @@ const formatDate = (iso: string): string => {
 
 // ─── Styled components ───────────────────────────────────────
 const PageWrapper = styled("div")({
+  width: "100%",
+  minHeight: "100dvh",
   flex: 1,
   overflowY: "auto",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "flex-start",
-  paddingTop: 32,
-  paddingBottom: 32,
-  gap: 40,
-  backgroundColor: "#0d0d0d",
+  boxSizing: "border-box",
+  padding: "clamp(16px, 4vw, 32px)",
+  gap: "clamp(24px, 5vw, 40px)",
+  background:
+    "radial-gradient(circle at top, rgba(200, 168, 75, 0.12), transparent 32%), #0d0d0d",
 });
+
+const ContentShell = styled("div")(({ theme }) => ({
+  width: "min(100%, 1100px)",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: "clamp(24px, 5vw, 40px)",
+  padding: "clamp(20px, 4vw, 40px)",
+  boxSizing: "border-box",
+  borderRadius: 28,
+  border: "1px solid rgba(232, 216, 154, 0.14)",
+  background:
+    "linear-gradient(180deg, rgba(21, 21, 21, 0.98), rgba(10, 10, 10, 0.95))",
+  boxShadow: "0 20px 60px rgba(0, 0, 0, 0.35)",
+  [theme.breakpoints.down("sm")]: {
+    borderRadius: 20,
+  },
+}));
 
 const DivColumn = styled("div")({
   display: "flex",
@@ -73,30 +94,41 @@ const DivColumn = styled("div")({
   alignItems: "center",
   justifyContent: "center",
   width: "100%",
-  gap: 6,
-  maxWidth: 600,
+  gap: 8,
+  minHeight: 160,
+  padding: "20px 18px",
+  boxSizing: "border-box",
+  borderRadius: 20,
+  border: "1px solid rgba(200, 168, 75, 0.18)",
+  background:
+    "linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015))",
+  backdropFilter: "blur(6px)",
 });
 
 const Title = styled("h1")({
   fontFamily: "Georgia, serif",
-  fontSize: "2rem",
+  fontSize: "clamp(2.1rem, 5vw, 3.4rem)",
   color: "#e8d89a",
   letterSpacing: "0.08em",
   margin: 0,
+  textAlign: "center",
 });
 
 const SubTitle = styled("p")({
   fontFamily: "Georgia, serif",
-  fontSize: "0.9rem",
-  color: "#666",
+  fontSize: "clamp(0.95rem, 2.7vw, 1.08rem)",
+  color: "#9d9d9d",
   letterSpacing: "0.05em",
   margin: 0,
+  textAlign: "center",
+  maxWidth: 680,
 });
 
 const StatsRow = styled("div")({
-  display: "flex",
-  gap: 24,
-  justifyContent: "center",
+  width: "100%",
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+  gap: "clamp(12px, 2vw, 20px)",
 });
 
 const StatCard = styled("div")({
@@ -104,9 +136,9 @@ const StatCard = styled("div")({
   flexDirection: "column",
   alignItems: "center",
   gap: 4,
-  padding: "16px 28px",
-  border: "1px solid #222",
-  borderRadius: 4,
+  padding: "18px 20px",
+  border: "1px solid rgba(200, 168, 75, 0.14)",
+  borderRadius: 18,
   backgroundColor: "#111",
 });
 
@@ -119,26 +151,33 @@ const StatValue = styled("span")({
 
 const StatLabel = styled("span")({
   fontSize: "0.7rem",
-  color: "#555",
+  color: "#777",
   letterSpacing: "0.08em",
   textTransform: "uppercase",
 });
 
-const TableWrapper = styled("div")({
+const TableWrapper = styled("div")(({ theme }) => ({
   width: "100%",
   maxWidth: 1000,
-  borderRadius: 4,
+  borderRadius: 22,
   border: "1px solid #1e1e1e",
   overflow: "hidden",
-});
+  [theme.breakpoints.down("sm")]: {
+    border: "none",
+    backgroundColor: "transparent",
+  },
+}));
 
-const TableHeader = styled("div")({
+const TableHeader = styled("div")(({ theme }) => ({
   display: "grid",
   gridTemplateColumns: "1fr 200px 80px 90px 80px",
   padding: "10px 20px",
   backgroundColor: "#111",
   borderBottom: "1px solid #222",
-});
+  [theme.breakpoints.down("sm")]: {
+    display: "none",
+  },
+}));
 
 const HeaderCell = styled("span")({
   fontSize: "0.65rem",
@@ -147,7 +186,7 @@ const HeaderCell = styled("span")({
   textTransform: "uppercase",
 });
 
-const TableRow = styled("div")<{ result: Result }>(({ result }) => ({
+const TableRow = styled("div")<{ result: Result }>(({ result, theme }) => ({
   display: "grid",
   gridTemplateColumns: "1fr 200px 80px 90px 80px",
   padding: "14px 20px",
@@ -161,18 +200,44 @@ const TableRow = styled("div")<{ result: Result }>(({ result }) => ({
   "&:hover": {
     backgroundColor: "#131313",
   },
+  [theme.breakpoints.down("sm")]: {
+    gridTemplateColumns: "1fr",
+    gap: 12,
+    padding: "16px",
+    marginBottom: 12,
+    border: `1px solid ${result === "won" ? "rgba(74,124,89,0.25)" : "rgba(124,74,74,0.25)"}`,
+    borderLeft: `3px solid ${result === "won" ? "#4a7c59" : "#7c4a4a"}`,
+    borderRadius: 18,
+    backgroundColor: "#111",
+    "&:last-child": {
+      marginBottom: 0,
+    },
+  },
 }));
 
-const Cell = styled("span")({
+const Cell = styled("span")(({ theme }) => ({
   fontSize: "0.82rem",
   color: "#888",
   letterSpacing: "0.03em",
-});
+  [theme.breakpoints.down("sm")]: {
+    display: "grid",
+    gridTemplateColumns: "92px minmax(0, 1fr)",
+    gap: 12,
+    alignItems: "center",
+    "&::before": {
+      content: "attr(data-label)",
+      fontSize: "0.68rem",
+      color: "#666",
+      letterSpacing: "0.08em",
+      textTransform: "uppercase",
+    },
+  },
+}));
 
 const RivalBadge = styled("span")<{ rival: string }>(({ rival }) => ({
   fontSize: "0.72rem",
   padding: "3px 8px",
-  borderRadius: 2,
+  borderRadius: 999,
   letterSpacing: "0.05em",
   backgroundColor:
   rival === "multiplayer" ? "rgba(100, 140, 200, 0.08)" : "rgba(200, 168, 75, 0.08)",
@@ -183,7 +248,7 @@ const RivalBadge = styled("span")<{ rival: string }>(({ rival }) => ({
 const ResultBadge = styled("span")<{ result: Result }>(({ result }) => ({
   fontSize: "0.72rem",
   padding: "3px 8px",
-  borderRadius: 2,
+  borderRadius: 999,
   letterSpacing: "0.05em",
   backgroundColor:
     result === "won" ? "rgba(74, 124, 89, 0.1)" : "rgba(124, 74, 74, 0.1)",
@@ -196,7 +261,7 @@ const EmptyState = styled("div")({
   flexDirection: "column",
   alignItems: "center",
   gap: 12,
-  padding: "60px 0",
+  padding: "40px 0",
   color: "#333",
 });
 
@@ -211,6 +276,7 @@ const EmptyText = styled("p")({
   color: "#444",
   letterSpacing: "0.05em",
   margin: 0,
+  textAlign: "center",
 });
 
 const BackButton = styled("button")({
@@ -220,10 +286,12 @@ const BackButton = styled("button")({
   fontSize: "0.75rem",
   letterSpacing: "0.08em",
   padding: "8px 20px",
-  borderRadius: 4,
+  borderRadius: 999,
   cursor: "pointer",
   transition: "all 0.2s ease",
   textTransform: "uppercase",
+  width: "100%",
+  maxWidth: 320,
   "&:hover": {
     borderColor: "#c8a84b",
     color: "#c8a84b",
@@ -282,10 +350,19 @@ const GameHistory = () => {
 
   return (
     <PageWrapper>
-      <DivColumn>
-        <Title>Game History</Title>
-        <SubTitle>Your past matches</SubTitle>
-      </DivColumn>
+      <ContentShell>
+        <DivColumn
+          style={{
+            minHeight: "auto",
+            padding: 0,
+            border: "none",
+            background: "transparent",
+            backdropFilter: "none",
+          }}
+        >
+          <Title>Game History</Title>
+          <SubTitle>Your past matches</SubTitle>
+        </DivColumn>
 
       {!loading && history.length > 0 && (
         <StatsRow>
@@ -335,15 +412,15 @@ const GameHistory = () => {
 
           {history.map((game) => (
             <TableRow key={game._id} result={game.result}>
-              <Cell>{formatDate(game.createdAt)}</Cell>
-              <Cell>
+              <Cell data-label="Date">{formatDate(game.createdAt)}</Cell>
+              <Cell data-label="Rival">
                 <RivalBadge rival={game.rival}>
                   {game.rival === "multiplayer" ? "👤 Player" : "🤖 "+game.rival}
                 </RivalBadge>
               </Cell>
-              <Cell style={{ color: "#666" }}>{game.level ?? "—"}</Cell>
-              <Cell>{formatDuration(game.duration)}</Cell>
-              <Cell>
+              <Cell data-label="Level" style={{ color: "#666" }}>{game.level ?? "—"}</Cell>
+              <Cell data-label="Duration">{formatDuration(game.duration)}</Cell>
+              <Cell data-label="Result">
                 <ResultBadge result={game.result}>
                   {game.result === "won" ? "Win" : "Lose"}
                 </ResultBadge>
@@ -354,6 +431,7 @@ const GameHistory = () => {
       )}
 
       <BackButton onClick={() => navigate("/set")}>← Back to select Mode</BackButton>
+      </ContentShell>
     </PageWrapper>
   );
 };

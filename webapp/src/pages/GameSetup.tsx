@@ -75,29 +75,61 @@ export function getInitialBoardSize(): number {
 // ─── Styled components ───────────────────────────────────────
 
 const PageWrapper = styled("div")({
+  width: "100%",
+  minHeight: "100dvh",
   flex: 1,
   overflowY: "auto",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "flex-start",
-  paddingTop: 20,
-  gap: 40,
-  backgroundColor: "#0d0d0d",
+  boxSizing: "border-box",
+  padding: "clamp(16px, 4vw, 32px)",
+  gap: "clamp(24px, 5vw, 40px)",
+  background:
+    "radial-gradient(circle at top, rgba(200, 168, 75, 0.12), transparent 32%), #0d0d0d",
 });
+
+const ContentShell = styled("div")(({ theme }) => ({
+  width: "min(100%, 1080px)",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: "clamp(24px, 5vw, 40px)",
+  padding: "clamp(20px, 4vw, 40px)",
+  boxSizing: "border-box",
+  borderRadius: 28,
+  border: "1px solid rgba(232, 216, 154, 0.14)",
+  background:
+    "linear-gradient(180deg, rgba(21, 21, 21, 0.98), rgba(10, 10, 10, 0.95))",
+  boxShadow: "0 20px 60px rgba(0, 0, 0, 0.35)",
+  [theme.breakpoints.down("sm")]: {
+    borderRadius: 20,
+  },
+}));
 
 const Title = styled("h1")({
   fontFamily: "Georgia, serif",
-  fontSize: "2rem",
+  fontSize: "clamp(2.1rem, 5vw, 3.4rem)",
   color: "#e8d89a",
   letterSpacing: "0.08em",
+  margin: 0,
+  textAlign: "center",
 });
 
-const DivRow = styled("div")({
-  display: "flex",
-  alignItems: "center",
-  gap: 16,
-});
+const DivRow = styled("div")(({ theme }) => ({
+  width: "100%",
+  display: "grid",
+  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+  alignItems: "stretch",
+  gap: "clamp(14px, 2vw, 20px)",
+  [theme.breakpoints.down("md")]: {
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+  },
+  [theme.breakpoints.down("sm")]: {
+    gridTemplateColumns: "1fr",
+  },
+}));
 
 const DivColumn = styled("div")({
   display: "flex",
@@ -105,20 +137,28 @@ const DivColumn = styled("div")({
   alignItems: "center",
   justifyContent: "center",
   width: "100%",
-  gap: 6,
-  maxWidth: 600,
+  gap: 10,
+  minHeight: 188,
+  padding: "20px 18px",
+  boxSizing: "border-box",
+  borderRadius: 20,
+  border: "1px solid rgba(200, 168, 75, 0.18)",
+  background:
+    "linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015))",
+  backdropFilter: "blur(6px)",
 });
 
 const ModeButton = styled(Button)({
-  width: 220,
-  padding: "14px 0",
-  fontSize: "0.9rem",
+  width: "100%",
+  maxWidth: 280,
+  padding: "14px 18px",
+  fontSize: "clamp(0.88rem, 2.5vw, 0.96rem)",
   letterSpacing: "0.06em",
   borderColor: "#c8a84b",
   color: "#c8a84b",
-  borderRadius: 4,
+  borderRadius: 999,
   transition: "all 0.2s ease",
-  minWidth: "150px",
+  minWidth: 0,
   "&:hover": {
     backgroundColor: "rgba(200, 168, 75, 0.07)",
     borderColor: "#e8d89a",
@@ -127,15 +167,16 @@ const ModeButton = styled(Button)({
 });
 
 const BotMenuButton = styled(Button)({
-  width: 220,
-  padding: "14px 0",
-  fontSize: "0.9rem",
+  width: "100%",
+  maxWidth: 280,
+  padding: "14px 18px",
+  fontSize: "clamp(0.88rem, 2.5vw, 0.96rem)",
   letterSpacing: "0.06em",
   borderColor: "#c8a84b",
   color: "#c8a84b",
-  borderRadius: 4,
+  borderRadius: 999,
   transition: "all 0.2s ease",
-  minWidth: "150px",
+  minWidth: 0,
   "&:hover": {
     backgroundColor: "rgba(200, 168, 75, 0.07)",
     borderColor: "#e8d89a",
@@ -147,9 +188,10 @@ const StyledMenu = styled(Menu)({
   "& .MuiPaper-root": {
     backgroundColor: "#1a1a1a",
     border: "1px solid #333",
-    borderRadius: 4,
+    borderRadius: 16,
     boxShadow: "0 8px 24px rgba(0, 0, 0, 0.6)",
     minWidth: 220,
+    maxWidth: "min(320px, calc(100vw - 32px))",
   },
 });
 
@@ -173,7 +215,7 @@ const BotLabel = styled(Typography)({
 
 const BotDescription = styled(Typography)({
   fontSize: "0.72rem",
-  color: "#555",
+  color: "#8a8a8a",
   letterSpacing: "0.03em",
 });
 
@@ -211,18 +253,21 @@ const DifficultyLabel = styled(Typography)({
 
 const SubTitle = styled("p")({
   fontFamily: "Georgia, serif",
-  fontSize: "0.9rem",
-  color: "#666",
+  fontSize: "clamp(0.95rem, 2.7vw, 1.08rem)",
+  color: "#9d9d9d",
   letterSpacing: "0.05em",
   margin: 0,
+  textAlign: "center",
+  maxWidth: 680,
 });
 
 const ModeDescription = styled("p")({
-  fontSize: "0.75rem",
-  color: "#555",
+  fontSize: "0.82rem",
+  color: "#949494",
   margin: "4px 0 0 0",
   letterSpacing: "0.03em",
   textAlign: "center",
+  maxWidth: 280,
 });
 
 // ─── Estilos del Spinner Numérico ────────────────────────────
@@ -231,16 +276,18 @@ const SpinnerContainer = styled("div")({
   display: "flex",
   alignItems: "center",
   border: "1px solid #c8a84b",
-  borderRadius: "4px",
+  borderRadius: "999px",
   overflow: "hidden",
   backgroundColor: "#1a1a1a",
+  width: "fit-content",
+  maxWidth: "100%",
 });
 
 const SpinnerBtn = styled("button")({
   backgroundColor: "transparent",
   color: "#c8a84b",
   border: "none",
-  padding: "14px 10px",
+  padding: "14px 14px",
   fontSize: "1.2rem",
   cursor: "pointer",
   transition: "all 0.2s ease",
@@ -266,6 +313,17 @@ const SpinnerValue = styled(Typography)({
   letterSpacing: "0.05em",
   userSelect: "none",
 });
+
+const Logo = styled("img")(({ theme }) => ({
+  width: "clamp(112px, 26vw, 196px)",
+  height: "auto",
+  aspectRatio: "1 / 1",
+  objectFit: "contain",
+  filter: "drop-shadow(0 18px 28px rgba(0, 0, 0, 0.45))",
+  [theme.breakpoints.down("sm")]: {
+    width: "clamp(96px, 34vw, 148px)",
+  },
+}));
 
 // ─── Component ───────────────────────────────────────────────
 const GameSetup = () => {
@@ -348,15 +406,23 @@ const GameSetup = () => {
 
   return (
     <PageWrapper>
-      <DivColumn>
+      <ContentShell>
+      <DivColumn
+        style={{
+          minHeight: "auto",
+          padding: 0,
+          border: "none",
+          background: "transparent",
+          backdropFilter: "none",
+        }}
+      >
         <Title>New Game</Title>
         <SubTitle>Select a game mode to start playing</SubTitle>
       </DivColumn>
 
-      <img
+      <Logo
         src="/logo.svg"
         alt="game logo"
-        style={{ width: "20vw", height: "20vw" }}
       />
 
       <DivRow>
@@ -381,6 +447,8 @@ const GameSetup = () => {
             open={Boolean(botAnchorEl)}
             onClose={handleBotMenuClose}
             disableAutoFocusItem
+            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+            transformOrigin={{ vertical: "top", horizontal: "left" }}
           >
             {BOT_OPTIONS.map((bot) => (
               <BotMenuItem
@@ -399,7 +467,7 @@ const GameSetup = () => {
             anchorEl={diffAnchorEl}
             open={Boolean(diffAnchorEl)}
             onClose={handleDiffMenuClose}
-            anchorOrigin={{ vertical: "top", horizontal: "right" }}
+            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
             transformOrigin={{ vertical: "top", horizontal: "left" }}
           >
             <MenuHeader>{selectedBot?.label} — difficulty</MenuHeader>
@@ -441,8 +509,7 @@ const GameSetup = () => {
         
       </DivColumn>
       </DivRow>
-
-      
+      </ContentShell>
     </PageWrapper>
   );
 };
