@@ -14,7 +14,7 @@ const GameSession = require('./model/gameSession-model');
 const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/userdb';
 mongoose.connect(mongoUri);
 
-const metricsMiddleware = promBundle({includeMethod: true});
+const metricsMiddleware = promBundle({includeMethod: true, includePath: true});
 app.use(metricsMiddleware);
 
 try {
@@ -290,7 +290,7 @@ app.get('/game/ranking', async (req, res) => {
         { $addFields: {
             winRate: { $round: [{ $multiply: [{ $divide: ["$wins", "$played"] }, 100] }, 0] }
         }},
-        { $sort: { [field]: direction } },
+        { $sort: { [field]: direction, winRate: -1, played: -1 } },
         { $project: { _id: 0, username: "$_id", played: 1, wins: 1, losses: 1, winRate: 1 } }
     ]);
     res.json(data);
