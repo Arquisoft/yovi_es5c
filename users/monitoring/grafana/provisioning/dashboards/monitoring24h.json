@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 2,
+  "id": 0,
   "links": [],
   "panels": [
     {
@@ -168,7 +168,7 @@
         "y": 1
       },
       "id": 5,
-      "interval": "1m",
+      "interval": "1h",
       "options": {
         "legend": {
           "calcs": [],
@@ -187,14 +187,14 @@
         {
           "editorMode": "code",
           "exemplar": false,
-          "expr": "round(sum(increase(http_request_duration_seconds_count[1m])))",
+          "expr": "round(sum(increase(http_request_duration_seconds_count[1h])))",
           "instant": false,
           "legendFormat": "Request",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Tráfico última hora",
+      "title": "Tráfico último día",
       "type": "timeseries"
     },
     {
@@ -526,5 +526,5 @@
   "timezone": "browser",
   "title": "Monitoring 24h",
   "uid": "addw5mq",
-  "version": 24
+  "version": 27
 }
