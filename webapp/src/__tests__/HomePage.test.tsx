@@ -33,12 +33,12 @@ describe("HomePage", () => {
 
     it("renders the Play button", () => {
       render(<HomePage />);
-      expect(screen.getByRole("button", { name: /play/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /^play$/i })).toBeInTheDocument();
     });
 
     it("does not show the help modal on load", () => {
       render(<HomePage />);
-      expect(screen.queryByText(/how to play/i)).not.toBeInTheDocument();
+      expect(screen.queryByRole("dialog", { name: /how to play/i })).not.toBeInTheDocument();
     });
   });
 
@@ -47,7 +47,7 @@ describe("HomePage", () => {
       const user = userEvent.setup();
       render(<HomePage />);
       
-      const playButton = screen.getByRole("button", { name: /play/i });
+      const playButton = screen.getByRole("button", { name: /^play$/i });
       await user.click(playButton);
 
       expect(mockNavigate).toHaveBeenCalledWith("/set");
@@ -59,16 +59,16 @@ describe("HomePage", () => {
       const user = userEvent.setup();
       render(<HomePage />);
       
-      const helpButton = screen.getByText("?");
+      const helpButton = screen.getByRole("button", { name: /^how to play$/i });
       await user.click(helpButton);
 
-      expect(screen.getByText(/how to play/i)).toBeInTheDocument();
+      expect(screen.getByRole("dialog", { name: /how to play/i })).toBeInTheDocument();
     });
 
     it("shows the Rules tab content by default", async () => {
       const user = userEvent.setup();
       render(<HomePage />);
-      await user.click(screen.getByText("?"));
+      await user.click(screen.getByRole("button", { name: /^how to play$/i }));
 
       expect(screen.getByText(/connect the/i)).toBeInTheDocument();
       expect(screen.getByText(/three sides/i)).toBeInTheDocument();
@@ -78,7 +78,7 @@ describe("HomePage", () => {
     it("switches to the Opponents tab and shows bot descriptions", async () => {
       const user = userEvent.setup();
       render(<HomePage />);
-      await user.click(screen.getByText("?"));
+      await user.click(screen.getByRole("button", { name: /^how to play$/i }));
 
       const opponentsTab = screen.getByRole("tab", { name: /opponents/i });
       await user.click(opponentsTab);
@@ -91,14 +91,14 @@ describe("HomePage", () => {
       const user = userEvent.setup();
       render(<HomePage />);
       
-      await user.click(screen.getByText("?"));
-      expect(screen.getByText(/how to play/i)).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: /^how to play$/i }));
+      expect(screen.getByRole("dialog", { name: /how to play/i })).toBeInTheDocument();
 
-      const closeButton = screen.getByTestId("CloseIcon").closest("button");
-      await user.click(closeButton!);
+      const closeButton = screen.getByRole("button", { name: /close help modal/i });
+      await user.click(closeButton);
 
       await waitFor(() => {
-        expect(screen.queryByText(/how to play/i)).not.toBeInTheDocument();
+        expect(screen.queryByRole("dialog", { name: /how to play/i })).not.toBeInTheDocument();
       });
     });
   });

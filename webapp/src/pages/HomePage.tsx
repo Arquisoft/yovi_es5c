@@ -73,6 +73,7 @@ export default function HomePage() {
   const navigate = useNavigate();
   const [helpOpen, setHelpOpen] = useState(false);
   const [tab, setTab] = useState(0);
+  const helpTitleId = 'home-help-title';
 
   return (
     <div className="home-container">
@@ -84,21 +85,26 @@ export default function HomePage() {
       <GameTitle variant="h1">GAME Y</GameTitle>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, zIndex: 1 }}>
-        <PlayButton onClick={() => navigate('/set')}>
+        <PlayButton aria-label="Play" onClick={() => navigate('/set')}>
           <PlayArrowIcon fontSize="small" /> Play
         </PlayButton>
-        <HelpBtn onClick={() => { setHelpOpen(true); setTab(0); }}>
+        <HelpBtn aria-label="How to play" onClick={() => { setHelpOpen(true); setTab(0); }}>
           <HelpOutlineIcon sx={{ fontSize: '18px' }} /> How to play
         </HelpBtn>
       </Box>
 
       {helpOpen && (
-        <Box sx={{
-          position: 'absolute', inset: 0,
-          backgroundColor: 'rgba(0,0,0,0.65)',
-          zIndex: 10,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
+        <Box
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={helpTitleId}
+          sx={{
+            position: 'absolute', inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.65)',
+            zIndex: 10,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
           <Box sx={{
             bgcolor: '#1a2744',
             borderRadius: 3,
@@ -110,10 +116,15 @@ export default function HomePage() {
           }}>
             {/* Header */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-              <Typography fontWeight={600} fontSize={17} color="#fff">
+              <Typography id={helpTitleId} fontWeight={600} fontSize={17} color="#fff">
                 How to play
               </Typography>
-              <IconButton size="small" onClick={() => setHelpOpen(false)} sx={{ color: '#fff' }}>
+              <IconButton
+                aria-label="Close help modal"
+                size="small"
+                onClick={() => setHelpOpen(false)}
+                sx={{ color: '#fff' }}
+              >
                 <CloseIcon fontSize="small" />
               </IconButton>
             </Box>
