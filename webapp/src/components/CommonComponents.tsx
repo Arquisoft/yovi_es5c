@@ -33,8 +33,8 @@ export const Title = styled("h1")({
 
 export const SubTitle = styled("p")({
   fontFamily: "Georgia, serif",
-  fontSize: "0.9rem",
-  color: "#666",
+  fontSize: "1.25rem",
+  color: "#ddd8c8",
   letterSpacing: "0.05em",
   margin: 0,
 });
@@ -52,8 +52,8 @@ export const EmptyIcon = styled("span")({ fontSize: "2.5rem", opacity: 0.3 });
 
 export const EmptyText = styled("p")({
   fontFamily: "Georgia, serif",
-  fontSize: "0.9rem",
-  color: "#444",
+  fontSize: "1.25rem",
+  color: "#ddd8c8",
   letterSpacing: "0.05em",
   margin: 0,
 });
@@ -61,8 +61,8 @@ export const EmptyText = styled("p")({
 export const BackButton = styled("button")({
   background: "none",
   border: "1px solid #2a2a2a",
-  color: "#555",
-  fontSize: "0.75rem",
+  color: "#ddd8c8",
+  fontSize: "1rem",
   letterSpacing: "0.08em",
   padding: "8px 20px",
   borderRadius: 4,

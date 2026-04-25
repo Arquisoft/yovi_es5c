@@ -212,14 +212,14 @@ const DifficultyLabel = styled(Typography)({
 const SubTitle = styled("p")({
   fontFamily: "Georgia, serif",
   fontSize: "0.9rem",
-  color: "#666",
+  color: "#ddd8c8",
   letterSpacing: "0.05em",
   margin: 0,
 });
 
 const ModeDescription = styled("p")({
-  fontSize: "0.75rem",
-  color: "#555",
+  fontSize: "0.9rem",
+  color: "#ddd8c8",
   margin: "4px 0 0 0",
   letterSpacing: "0.03em",
   textAlign: "center",

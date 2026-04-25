@@ -72,7 +72,7 @@ const Title = styled("h1")({
 const SubTitle = styled("p")({
   fontFamily: "Georgia, serif",
   fontSize: "0.85rem",
-  color: "#666",
+  color: "#ddd8c8",
   letterSpacing: "0.05em",
   margin: 0,
 });
@@ -101,7 +101,7 @@ const CardTitle = styled(Typography)({
 
 const FieldLabel = styled(Typography)({
   fontSize: "0.7rem",
-  color: "#444",
+  color: "#ddd8c8",
   letterSpacing: "0.1em",
   textTransform: "uppercase",
   marginBottom: 2,
