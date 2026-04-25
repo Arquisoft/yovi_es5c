@@ -424,7 +424,7 @@ const GameHistory = () => {
               <Cell data-label="Duration">{formatDuration(game.duration)}</Cell>
               <Cell data-label="Result">
                 <Badge {...resultColors(game.result)}>
-                  {game.result === "won" ? "Win" : "Lose"}
+                  {game.result === "won" ? "Win" : "Lost"}
                 </Badge>
               </Cell>
             </TableRow>
