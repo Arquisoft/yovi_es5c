@@ -60,7 +60,9 @@ const BOTS = [
   { name: 'Random bot',  desc: 'Places pieces at random. Great for learning the board.' },
   { name: 'Center bot',  desc: 'Targets the center of the board to reach all three sides.' },
   { name: 'Edge bot',    desc: 'Prioritizes corners and edges for quick side connections.' },
+  { name: 'Smart bot',   desc: 'Balances offense and defense with tactical blocking and winning moves.' },
   { name: 'Mirror bot',  desc: 'Copies your moves using rotational symmetry. Hard to read.' },
+  { name: 'Alpha bot',   desc: 'Uses minimax algorithm with alpha-beta pruning for deep analysis.' },
 ];
 
 export default function HomePage() {
