@@ -194,25 +194,19 @@ const TableRow = styled("div")<{ result: Result }>(({ result, theme }) => ({
   borderBottom: "1px solid #161616",
   alignItems: "center",
   transition: "background-color 0.15s ease",
-  borderLeft: `2px solid ${result === "won" ? "#4a7c59" : "#7c4a4a"}`,
-  "&:last-child": {
-    borderBottom: "none",
-  },
-  "&:hover": {
-    backgroundColor: "#131313",
-  },
+  borderLeft: `2px solid ${RESULT_COLORS[result].solid}`,
+  "&:last-child": { borderBottom: "none" },
+  "&:hover": { backgroundColor: "#131313" },
   [theme.breakpoints.down("sm")]: {
     gridTemplateColumns: "1fr",
     gap: 12,
     padding: "16px",
     marginBottom: 12,
-    border: `1px solid ${result === "won" ? "rgba(74,124,89,0.25)" : "rgba(124,74,74,0.25)"}`,
-    borderLeft: `3px solid ${result === "won" ? "#4a7c59" : "#7c4a4a"}`,
+    border: `1px solid ${RESULT_COLORS[result].muted}`,
+    borderLeft: `3px solid ${RESULT_COLORS[result].solid}`,
     borderRadius: 18,
     backgroundColor: "#111",
-    "&:last-child": {
-      marginBottom: 0,
-    },
+    "&:last-child": { marginBottom: 0 },
   },
 }));
 
@@ -235,27 +229,34 @@ const Cell = styled("span")(({ theme }) => ({
   },
 }));
 
-const RivalBadge = styled("span")<{ rival: string }>(({ rival }) => ({
-  fontSize: "0.72rem",
-  padding: "3px 8px",
-  borderRadius: 999,
-  letterSpacing: "0.05em",
-  backgroundColor:
-  rival === "multiplayer" ? "rgba(100, 140, 200, 0.08)" : "rgba(200, 168, 75, 0.08)",
-  color: rival === "multiplayer" ? "#6a9cc8" : "#c8a84b",
-  border: `1px solid ${rival === "multiplayer" ? "rgba(100,140,200,0.2)" : "rgba(200,168,75,0.2)" }`,
-}));
 
-const ResultBadge = styled("span")<{ result: Result }>(({ result }) => ({
-  fontSize: "0.72rem",
-  padding: "3px 8px",
-  borderRadius: 999,
-  letterSpacing: "0.05em",
-  backgroundColor:
-    result === "won" ? "rgba(74, 124, 89, 0.1)" : "rgba(124, 74, 74, 0.1)",
-  color: result === "won" ? "#6aab7e" : "#ab6a6a",
-  border: `1px solid ${result === "won" ? "rgba(74,124,89,0.25)" : "rgba(124,74,74,0.25)"}`,
-}));
+const RESULT_COLORS: Record<Result, { solid: string; muted: string }> = {
+  won:  { solid: "#4a7c59", muted: "rgba(74,124,89,0.25)" },
+  lost: { solid: "#7c4a4a", muted: "rgba(124,74,74,0.25)" },
+};
+
+const rivalColors = (rival: string) =>
+  rival === "multiplayer"
+    ? { color: "#6a9cc8", bg: "rgba(100,140,200,0.08)", border: "rgba(100,140,200,0.2)" }
+    : { color: "#c8a84b", bg: "rgba(200,168,75,0.08)",  border: "rgba(200,168,75,0.2)" };
+
+const resultColors = (result: Result) =>
+  result === "won"
+    ? { color: "#6aab7e", bg: "rgba(74,124,89,0.1)",  border: RESULT_COLORS.won.muted }
+    : { color: "#ab6a6a", bg: "rgba(124,74,74,0.1)", border: RESULT_COLORS.lost.muted };
+
+// ─── Badge unificado (RivalBadge + ResultBadge) ─────
+const Badge = styled("span")<{ color: string; bg: string; border: string }>(
+  ({ color, bg, border }) => ({
+    fontSize: "0.72rem",
+    padding: "3px 8px",
+    borderRadius: 999,
+    letterSpacing: "0.05em",
+    backgroundColor: bg,
+    color,
+    border: `1px solid ${border}`,
+  })
+);
 
 const EmptyState = styled("div")({
   display: "flex",
@@ -415,16 +416,16 @@ const GameHistory = () => {
             <TableRow key={game._id} result={game.result}>
               <Cell data-label="Date">{formatDate(game.createdAt)}</Cell>
               <Cell data-label="Rival">
-                <RivalBadge rival={game.rival}>
+                <Badge {...rivalColors(game.rival)}>
                   {game.rival === "multiplayer" ? "👤 Player" : "🤖 "+game.rival}
-                </RivalBadge>
+                </Badge>
               </Cell>
               <Cell data-label="Level" style={{ color: "#666" }}>{game.level ?? "—"}</Cell>
               <Cell data-label="Duration">{formatDuration(game.duration)}</Cell>
               <Cell data-label="Result">
-                <ResultBadge result={game.result}>
+                <Badge {...resultColors(game.result)}>
                   {game.result === "won" ? "Win" : "Lose"}
-                </ResultBadge>
+                </Badge>
               </Cell>
             </TableRow>
           ))}

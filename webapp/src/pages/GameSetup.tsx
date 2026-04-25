@@ -166,23 +166,6 @@ const ModeButton = styled(Button)({
   },
 });
 
-const BotMenuButton = styled(Button)({
-  width: "100%",
-  maxWidth: 280,
-  padding: "14px 18px",
-  fontSize: "clamp(0.88rem, 2.5vw, 0.96rem)",
-  letterSpacing: "0.06em",
-  borderColor: "#c8a84b",
-  color: "#c8a84b",
-  borderRadius: 999,
-  transition: "all 0.2s ease",
-  minWidth: 0,
-  "&:hover": {
-    backgroundColor: "rgba(200, 168, 75, 0.07)",
-    borderColor: "#e8d89a",
-    color: "#e8d89a",
-  },
-});
 
 const StyledMenu = styled(Menu)({
   "& .MuiPaper-root": {
@@ -436,9 +419,9 @@ const GameSetup = () => {
 
         {/* ── Modo Bot ── */}
         <DivColumn>
-          <BotMenuButton variant="outlined" onClick={handleBotMenuOpen}>
+          <ModeButton  variant="outlined" onClick={handleBotMenuOpen}>
             ▲ Player vs Bot 🤖 ▾
-          </BotMenuButton>
+          </ModeButton >
           <ModeDescription>Play against our bots</ModeDescription>
 
           {/* Primer nivel: lista de bots */}
