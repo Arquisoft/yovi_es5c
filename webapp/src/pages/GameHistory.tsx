@@ -3,9 +3,8 @@ import { styled } from "@mui/material/styles";
 import { useNavigate, Navigate } from "react-router-dom";
 import { useSession } from "../SessionContext";
 import axios from "axios";
+import { PageWrapper, ContentShell, DivColumn, Title, SubTitle } from "../components/PageLayout";
 
-
-//endpoint
 const apiEndpoint = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // ─── Types ───────────────────────────────────────────────────
@@ -21,8 +20,6 @@ interface GameSession {
   createdAt: string;
 }
 
-
-
 // ─── Helpers ─────────────────────────────────────────────────
 const formatDuration = (seconds: number): string => {
   if (!seconds) return "—";
@@ -34,7 +31,6 @@ const formatDuration = (seconds: number): string => {
 const formatDate = (iso: string): string => {
   const now = new Date();
   const date = new Date(iso);
-
   const diffMs = now.getTime() - date.getTime();
   const diffSec = Math.floor(diffMs / 1000);
   const diffMin = Math.floor(diffSec / 60);
@@ -46,7 +42,6 @@ const formatDate = (iso: string): string => {
   if (diffHour < 24) return `hace ${diffHour} h`;
   if (diffDay < 7) return `hace ${diffDay} día${diffDay > 1 ? "s" : ""}`;
 
-  // Si es más antiguo, mostramos fecha normal
   return date.toLocaleDateString("es-ES", {
     day: "2-digit",
     month: "short",
@@ -54,76 +49,34 @@ const formatDate = (iso: string): string => {
   });
 };
 
+// ─── Colores centralizados ────────────────────────────────────
+const RESULT_COLORS: Record<Result, { solid: string; muted: string }> = {
+  won:  { solid: "#4a7c59", muted: "rgba(74,124,89,0.25)" },
+  lost: { solid: "#7c4a4a", muted: "rgba(124,74,74,0.25)" },
+};
+
+const rivalColors = (rival: string) =>
+  rival === "multiplayer"
+    ? { color: "#6a9cc8", bg: "rgba(100,140,200,0.08)", border: "rgba(100,140,200,0.2)" }
+    : { color: "#c8a84b", bg: "rgba(200,168,75,0.08)",  border: "rgba(200,168,75,0.2)" };
+
+const resultColors = (result: Result) =>
+  result === "won"
+    ? { color: "#6aab7e", bg: "rgba(74,124,89,0.1)",  border: RESULT_COLORS.won.muted }
+    : { color: "#ab6a6a", bg: "rgba(124,74,74,0.1)", border: RESULT_COLORS.lost.muted };
+
 // ─── Styled components ───────────────────────────────────────
-const PageWrapper = styled("div")({
-  width: "100%",
-  minHeight: "100dvh",
-  flex: 1,
-  overflowY: "auto",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "flex-start",
-  boxSizing: "border-box",
-  padding: "clamp(16px, 4vw, 32px)",
-  gap: "clamp(24px, 5vw, 40px)",
-  background:
-    "radial-gradient(circle at top, rgba(200, 168, 75, 0.12), transparent 32%), #0d0d0d",
-});
-
-const ContentShell = styled("div")(({ theme }) => ({
-  width: "min(100%, 1100px)",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  gap: "clamp(24px, 5vw, 40px)",
-  padding: "clamp(20px, 4vw, 40px)",
-  boxSizing: "border-box",
-  borderRadius: 28,
-  border: "1px solid rgba(232, 216, 154, 0.14)",
-  background:
-    "linear-gradient(180deg, rgba(21, 21, 21, 0.98), rgba(10, 10, 10, 0.95))",
-  boxShadow: "0 20px 60px rgba(0, 0, 0, 0.35)",
-  [theme.breakpoints.down("sm")]: {
-    borderRadius: 20,
-  },
-}));
-
-const DivColumn = styled("div")({
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  width: "100%",
-  gap: 8,
-  minHeight: 160,
-  padding: "20px 18px",
-  boxSizing: "border-box",
-  borderRadius: 20,
-  border: "1px solid rgba(200, 168, 75, 0.18)",
-  background:
-    "linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015))",
-  backdropFilter: "blur(6px)",
-});
-
-const Title = styled("h1")({
-  fontFamily: "Georgia, serif",
-  fontSize: "clamp(2.1rem, 5vw, 3.4rem)",
-  color: "#e8d89a",
-  letterSpacing: "0.08em",
-  margin: 0,
-  textAlign: "center",
-});
-
-const SubTitle = styled("p")({
-  fontFamily: "Georgia, serif",
-  fontSize: "clamp(0.95rem, 2.7vw, 1.08rem)",
-  color: "#9d9d9d",
-  letterSpacing: "0.05em",
-  margin: 0,
-  textAlign: "center",
-  maxWidth: 680,
-});
+const Badge = styled("span")<{ color: string; bg: string; border: string }>(
+  ({ color, bg, border }) => ({
+    fontSize: "0.72rem",
+    padding: "3px 8px",
+    borderRadius: 999,
+    letterSpacing: "0.05em",
+    backgroundColor: bg,
+    color,
+    border: `1px solid ${border}`,
+  })
+);
 
 const StatsRow = styled("div")({
   width: "100%",
@@ -229,35 +182,6 @@ const Cell = styled("span")(({ theme }) => ({
   },
 }));
 
-
-const RESULT_COLORS: Record<Result, { solid: string; muted: string }> = {
-  won:  { solid: "#4a7c59", muted: "rgba(74,124,89,0.25)" },
-  lost: { solid: "#7c4a4a", muted: "rgba(124,74,74,0.25)" },
-};
-
-const rivalColors = (rival: string) =>
-  rival === "multiplayer"
-    ? { color: "#6a9cc8", bg: "rgba(100,140,200,0.08)", border: "rgba(100,140,200,0.2)" }
-    : { color: "#c8a84b", bg: "rgba(200,168,75,0.08)",  border: "rgba(200,168,75,0.2)" };
-
-const resultColors = (result: Result) =>
-  result === "won"
-    ? { color: "#6aab7e", bg: "rgba(74,124,89,0.1)",  border: RESULT_COLORS.won.muted }
-    : { color: "#ab6a6a", bg: "rgba(124,74,74,0.1)", border: RESULT_COLORS.lost.muted };
-
-// ─── Badge unificado (RivalBadge + ResultBadge) ─────
-const Badge = styled("span")<{ color: string; bg: string; border: string }>(
-  ({ color, bg, border }) => ({
-    fontSize: "0.72rem",
-    padding: "3px 8px",
-    borderRadius: 999,
-    letterSpacing: "0.05em",
-    backgroundColor: bg,
-    color,
-    border: `1px solid ${border}`,
-  })
-);
-
 const EmptyState = styled("div")({
   display: "flex",
   flexDirection: "column",
@@ -312,8 +236,6 @@ const LoadingText = styled("p")({
   },
 });
 
-
-
 // ─── Component ───────────────────────────────────────────────
 const GameHistory = () => {
   const [history, setHistory] = useState<GameSession[]>([]);
@@ -347,8 +269,7 @@ const GameHistory = () => {
 
   const wins = history.filter((g) => g.result === "won").length;
   const losses = history.filter((g) => g.result === "lost").length;
-  const winRate =
-    history.length > 0 ? Math.round((wins / history.length) * 100) : 0;
+  const winRate = history.length > 0 ? Math.round((wins / history.length) * 100) : 0;
 
   return (
     <PageWrapper>
@@ -417,22 +338,22 @@ const GameHistory = () => {
               <Cell data-label="Date">{formatDate(game.createdAt)}</Cell>
               <Cell data-label="Rival">
                 <Badge {...rivalColors(game.rival)}>
-                  {game.rival === "multiplayer" ? "👤 Player" : "🤖 "+game.rival}
+                  {game.rival === "multiplayer" ? "👤 Player" : "🤖 " + game.rival}
                 </Badge>
               </Cell>
               <Cell data-label="Level" style={{ color: "#666" }}>{game.level ?? "—"}</Cell>
               <Cell data-label="Duration">{formatDuration(game.duration)}</Cell>
               <Cell data-label="Result">
                 <Badge {...resultColors(game.result)}>
-                  {game.result === "won" ? "Win" : "Lost"}
+                  {game.result === "won" ? "Win" : "Lose"}
                 </Badge>
               </Cell>
             </TableRow>
           ))}
         </TableWrapper>
-      )}
+        )}
 
-      <BackButton onClick={() => navigate("/set")}>← Back to select Mode</BackButton>
+        <BackButton onClick={() => navigate("/set")}>← Back to select Mode</BackButton>
       </ContentShell>
     </PageWrapper>
   );

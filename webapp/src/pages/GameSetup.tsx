@@ -3,6 +3,7 @@ import { Button, Divider, Menu, MenuItem, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useSession } from "../SessionContext";
 import { Navigate, useNavigate } from "react-router-dom";
+import { PageWrapper, ContentShell, DivColumn, Title, SubTitle } from "../components/PageLayout";
 
 // ─── Types ───────────────────────────────────────────────────
 type GameMode = "pvp" | "bot";
@@ -15,38 +16,13 @@ interface BotOption {
 }
 
 // ─── Constants ───────────────────────────────────────────────
-
 const BOT_OPTIONS: BotOption[] = [
-  {
-    bot_id: "random_bot",
-    label: "Random Bot",
-    description: "Makes random moves",
-  },
-  {
-    bot_id: "center_bot",
-    label: "Center bot",
-    description: "Controls the center",
-  },
-  {
-    bot_id: "edge_bot",
-    label: "Edge bot",
-    description: "Controls the sides",
-  },
-  {
-    bot_id: "smart_bot",
-    label: "Smart bot",
-    description: "Always searchs the victory",
-  },
-  {
-    bot_id: "mirror_bot",
-    label: "Mirror bot",
-    description: "Mirrors the opponent's moves",
-  },
-  {
-    bot_id: "alpha_bot",
-    label: "Alpha bot",
-    description: "The best bot, try to win it",
-  },
+  { bot_id: "random_bot", label: "Random Bot",  description: "Makes random moves" },
+  { bot_id: "center_bot", label: "Center bot",  description: "Controls the center" },
+  { bot_id: "edge_bot",   label: "Edge bot",    description: "Controls the sides" },
+  { bot_id: "smart_bot",  label: "Smart bot",   description: "Always searchs the victory" },
+  { bot_id: "mirror_bot", label: "Mirror bot",  description: "Mirrors the opponent's moves" },
+  { bot_id: "alpha_bot",  label: "Alpha bot",   description: "The best bot, try to win it" },
 ];
 
 const DIFFICULTIES: Difficulty[] = ["Easy", "Medium", "Hard"];
@@ -61,62 +37,15 @@ export const minBoardSize = 3;
 export const maxBoardSize = 15;
 
 // ─── Helpers ─────────────────────────────────────────────────
-
 export function getInitialBoardSize(): number {
   const savedSize = sessionStorage.getItem('boardSize');
   if (!savedSize) return 5;
-
   const parsedSize = Number.parseInt(savedSize, 10);
   if (Number.isNaN(parsedSize)) return 5;
-
   return Math.max(minBoardSize, Math.min(maxBoardSize, parsedSize));
 }
 
 // ─── Styled components ───────────────────────────────────────
-
-const PageWrapper = styled("div")({
-  width: "100%",
-  minHeight: "100dvh",
-  flex: 1,
-  overflowY: "auto",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "flex-start",
-  boxSizing: "border-box",
-  padding: "clamp(16px, 4vw, 32px)",
-  gap: "clamp(24px, 5vw, 40px)",
-  background:
-    "radial-gradient(circle at top, rgba(200, 168, 75, 0.12), transparent 32%), #0d0d0d",
-});
-
-const ContentShell = styled("div")(({ theme }) => ({
-  width: "min(100%, 1080px)",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  gap: "clamp(24px, 5vw, 40px)",
-  padding: "clamp(20px, 4vw, 40px)",
-  boxSizing: "border-box",
-  borderRadius: 28,
-  border: "1px solid rgba(232, 216, 154, 0.14)",
-  background:
-    "linear-gradient(180deg, rgba(21, 21, 21, 0.98), rgba(10, 10, 10, 0.95))",
-  boxShadow: "0 20px 60px rgba(0, 0, 0, 0.35)",
-  [theme.breakpoints.down("sm")]: {
-    borderRadius: 20,
-  },
-}));
-
-const Title = styled("h1")({
-  fontFamily: "Georgia, serif",
-  fontSize: "clamp(2.1rem, 5vw, 3.4rem)",
-  color: "#e8d89a",
-  letterSpacing: "0.08em",
-  margin: 0,
-  textAlign: "center",
-});
-
 const DivRow = styled("div")(({ theme }) => ({
   width: "100%",
   display: "grid",
@@ -130,23 +59,6 @@ const DivRow = styled("div")(({ theme }) => ({
     gridTemplateColumns: "1fr",
   },
 }));
-
-const DivColumn = styled("div")({
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  width: "100%",
-  gap: 10,
-  minHeight: 188,
-  padding: "20px 18px",
-  boxSizing: "border-box",
-  borderRadius: 20,
-  border: "1px solid rgba(200, 168, 75, 0.18)",
-  background:
-    "linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015))",
-  backdropFilter: "blur(6px)",
-});
 
 const ModeButton = styled(Button)({
   width: "100%",
@@ -165,7 +77,6 @@ const ModeButton = styled(Button)({
     color: "#e8d89a",
   },
 });
-
 
 const StyledMenu = styled(Menu)({
   "& .MuiPaper-root": {
@@ -234,16 +145,6 @@ const DifficultyLabel = styled(Typography)({
   letterSpacing: "0.04em",
 });
 
-const SubTitle = styled("p")({
-  fontFamily: "Georgia, serif",
-  fontSize: "clamp(0.95rem, 2.7vw, 1.08rem)",
-  color: "#9d9d9d",
-  letterSpacing: "0.05em",
-  margin: 0,
-  textAlign: "center",
-  maxWidth: 680,
-});
-
 const ModeDescription = styled("p")({
   fontSize: "0.82rem",
   color: "#949494",
@@ -252,8 +153,6 @@ const ModeDescription = styled("p")({
   textAlign: "center",
   maxWidth: 280,
 });
-
-// ─── Estilos del Spinner Numérico ────────────────────────────
 
 const SpinnerContainer = styled("div")({
   display: "flex",
@@ -322,8 +221,6 @@ const GameSetup = () => {
     return <Navigate to="/login" replace />;
   }
 
-  // ── Tamaño de tablero ───────────────────────────
-
   const handleDecreaseSize = () => {
     if (boardSize > minBoardSize) {
       const newSize = boardSize - 1;
@@ -340,8 +237,6 @@ const GameSetup = () => {
     }
   };
 
-  // ── Menú de bots ──────────────────────────────────────────
-
   const handleBotMenuOpen = (e: React.MouseEvent<HTMLElement>) => {
     setBotAnchorEl(e.currentTarget);
   };
@@ -352,13 +247,10 @@ const GameSetup = () => {
     setSelectedBot(null);
   };
 
-  
   const handleBotClick = (e: React.MouseEvent<HTMLElement>, bot: BotOption) => {
     setSelectedBot(bot);
     setDiffAnchorEl(e.currentTarget);
   };
-
-  // ── Menú de dificultad ────────────────────────────────────
 
   const handleDiffMenuClose = () => {
     setDiffAnchorEl(null);
@@ -367,21 +259,13 @@ const GameSetup = () => {
 
   const handleDifficultySelect = (difficulty: Difficulty) => {
     if (!selectedBot) return;
-
     setBotAnchorEl(null);
     setDiffAnchorEl(null);
     setSelectedBot(null);
-
     navigate("/game", {
-      state: {
-        mode: "bot" as GameMode,
-        bot_id: selectedBot.bot_id,
-        difficulty,
-      },
+      state: { mode: "bot" as GameMode, bot_id: selectedBot.bot_id, difficulty },
     });
   };
-
-  // ── PvP ──────────────────────────────────────────────────
 
   const handleStartPvp = () => {
     navigate("/game", { state: { mode: "pvp" as GameMode } });
@@ -389,109 +273,95 @@ const GameSetup = () => {
 
   return (
     <PageWrapper>
-      <ContentShell>
-      <DivColumn
-        style={{
-          minHeight: "auto",
-          padding: 0,
-          border: "none",
-          background: "transparent",
-          backdropFilter: "none",
-        }}
-      >
-        <Title>New Game</Title>
-        <SubTitle>Select a game mode to start playing</SubTitle>
-      </DivColumn>
-
-      <Logo
-        src="/logo.svg"
-        alt="game logo"
-      />
-
-      <DivRow>
-        {/* ── Modo PvP ── */}
-        <DivColumn>
-          <ModeButton data-testid="start-pvp-game" variant="outlined" onClick={handleStartPvp}>
-            ▲ Player vs Player ▲
-          </ModeButton>
-          <ModeDescription>Play locally against a friend</ModeDescription>
+      <ContentShell maxWidth={1080}>
+        <DivColumn
+          style={{
+            minHeight: "auto",
+            padding: 0,
+            border: "none",
+            background: "transparent",
+            backdropFilter: "none",
+          }}
+        >
+          <Title>New Game</Title>
+          <SubTitle>Select a game mode to start playing</SubTitle>
         </DivColumn>
 
-        {/* ── Modo Bot ── */}
-        <DivColumn>
-          <ModeButton  variant="outlined" onClick={handleBotMenuOpen}>
-            ▲ Player vs Bot 🤖 ▾
-          </ModeButton >
-          <ModeDescription>Play against our bots</ModeDescription>
+        <Logo src="/logo.svg" alt="game logo" />
 
-          {/* Primer nivel: lista de bots */}
-          <StyledMenu
-            anchorEl={botAnchorEl}
-            open={Boolean(botAnchorEl)}
-            onClose={handleBotMenuClose}
-            disableAutoFocusItem
-            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-            transformOrigin={{ vertical: "top", horizontal: "left" }}
-          >
-            {BOT_OPTIONS.map((bot) => (
-              <BotMenuItem
-                key={bot.bot_id}
-                selected={selectedBot?.bot_id === bot.bot_id}
-                onClick={(e) => handleBotClick(e, bot)}
+        <DivRow>
+          <DivColumn minHeight={188} gap={10}>
+            <ModeButton data-testid="start-pvp-game" variant="outlined" onClick={handleStartPvp}>
+              ▲ Player vs Player ▲
+            </ModeButton>
+            <ModeDescription>Play locally against a friend</ModeDescription>
+          </DivColumn>
+
+          <DivColumn minHeight={188} gap={10}>
+            <ModeButton variant="outlined" onClick={handleBotMenuOpen}>
+              ▲ Player vs Bot 🤖 ▾
+            </ModeButton>
+            <ModeDescription>Play against our bots</ModeDescription>
+
+            <StyledMenu
+              anchorEl={botAnchorEl}
+              open={Boolean(botAnchorEl)}
+              onClose={handleBotMenuClose}
+              disableAutoFocusItem
+              anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+              transformOrigin={{ vertical: "top", horizontal: "left" }}
+            >
+              {BOT_OPTIONS.map((bot) => (
+                <BotMenuItem
+                  key={bot.bot_id}
+                  selected={selectedBot?.bot_id === bot.bot_id}
+                  onClick={(e) => handleBotClick(e, bot)}
+                >
+                  <BotLabel>{bot.label} ▸</BotLabel>
+                  <BotDescription>{bot.description}</BotDescription>
+                </BotMenuItem>
+              ))}
+            </StyledMenu>
+
+            <StyledMenu
+              anchorEl={diffAnchorEl}
+              open={Boolean(diffAnchorEl)}
+              onClose={handleDiffMenuClose}
+              anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+              transformOrigin={{ vertical: "top", horizontal: "left" }}
+            >
+              <MenuHeader>{selectedBot?.label} — difficulty</MenuHeader>
+              <Divider sx={{ borderColor: "#2a2a2a", mb: 0.5 }} />
+              {DIFFICULTIES.map((d) => (
+                <DifficultyMenuItem key={d} onClick={() => handleDifficultySelect(d)}>
+                  <DifficultyDot color={DIFFICULTY_COLOR[d]} />
+                  <DifficultyLabel>{d}</DifficultyLabel>
+                </DifficultyMenuItem>
+              ))}
+            </StyledMenu>
+          </DivColumn>
+
+          <DivColumn minHeight={188} gap={10}>
+            <SpinnerContainer>
+              <SpinnerBtn
+                onClick={handleDecreaseSize}
+                disabled={boardSize <= minBoardSize}
+                aria-label="Decrease board size"
               >
-                <BotLabel>{bot.label} ▸</BotLabel>
-                <BotDescription>{bot.description}</BotDescription>
-              </BotMenuItem>
-            ))}
-          </StyledMenu>
-
-          {/* Segundo nivel: dificultades del bot seleccionado */}
-          <StyledMenu
-            anchorEl={diffAnchorEl}
-            open={Boolean(diffAnchorEl)}
-            onClose={handleDiffMenuClose}
-            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-            transformOrigin={{ vertical: "top", horizontal: "left" }}
-          >
-            <MenuHeader>{selectedBot?.label} — difficulty</MenuHeader>
-            <Divider sx={{ borderColor: "#2a2a2a", mb: 0.5 }} />
-
-            {DIFFICULTIES.map((d) => (
-              <DifficultyMenuItem
-                key={d}
-                onClick={() => handleDifficultySelect(d)}
+                −
+              </SpinnerBtn>
+              <SpinnerValue>{boardSize}</SpinnerValue>
+              <SpinnerBtn
+                onClick={handleIncreaseSize}
+                disabled={boardSize >= maxBoardSize}
+                aria-label="Increase board size"
               >
-                <DifficultyDot color={DIFFICULTY_COLOR[d]} />
-                <DifficultyLabel>{d}</DifficultyLabel>
-              </DifficultyMenuItem>
-            ))}
-          </StyledMenu>
-        </DivColumn>
-        <DivColumn>
-        
-        <SpinnerContainer>
-          <SpinnerBtn 
-            onClick={handleDecreaseSize} 
-            disabled={boardSize <= minBoardSize}
-            aria-label="Decrease board size"
-          >
-            −
-          </SpinnerBtn>
-          
-          <SpinnerValue>{boardSize}</SpinnerValue>
-          
-          <SpinnerBtn 
-            onClick={handleIncreaseSize} 
-            disabled={boardSize >= maxBoardSize}
-            aria-label="Increase board size"
-          >
-            +
-          </SpinnerBtn>
-        </SpinnerContainer>
-        <ModeDescription>Board size</ModeDescription>
-        
-      </DivColumn>
-      </DivRow>
+                +
+              </SpinnerBtn>
+            </SpinnerContainer>
+            <ModeDescription>Board size</ModeDescription>
+          </DivColumn>
+        </DivRow>
       </ContentShell>
     </PageWrapper>
   );
