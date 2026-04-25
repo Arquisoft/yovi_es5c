@@ -177,4 +177,27 @@ describe("GameSetup page", () => {
       });
     });
   });
+
+
+  it("debería lanzar una partida aleatoria (ruleta) y navegar a /game con bot y dificultad", async () => {
+	  const user = userEvent.setup();
+	  render(<GameSetup />);
+
+	  const randomButton = screen.getByRole("button", {
+		  name: /random game/i,
+	  });
+
+	  await user.click(randomButton);
+
+	  await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith("/game", {
+        state: {
+          mode: "bot",
+          bot_id: expect.any(String),
+          difficulty: expect.stringMatching(/Easy|Medium|Hard/),
+        },
+      });
+      },
+    { timeout: 3000 });
+  });
 });
