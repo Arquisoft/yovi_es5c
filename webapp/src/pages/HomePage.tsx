@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Typography, Box, IconButton, Tabs, Tab, Divider, Chip } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import CloseIcon from '@mui/icons-material/Close';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import '../components/HomePage.css';
@@ -39,21 +40,24 @@ const PlayButton = styled('button')({
 });
 
 const HelpBtn = styled('button')({
-  width: 42,
-  height: 42,
-  borderRadius: '50%',
+  padding: '10px 20px',
+  borderRadius: '8px',
   border: '2px solid rgba(255,255,255,0.6)',
   background: 'rgba(255,255,255,0.08)',
   color: '#fff',
-  fontSize: '17px',
-  fontWeight: 700,
+  fontSize: '0.95rem',
+  fontWeight: 600,
   cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
+  gap: '6px',
   zIndex: 1,
-  transition: 'background 0.2s',
-  '&:hover': { background: 'rgba(255,255,255,0.22)' },
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    background: 'rgba(255,255,255,0.18)',
+    transform: 'scale(1.05)',
+  },
 });
 
 const BOTS = [
@@ -79,12 +83,12 @@ export default function HomePage() {
 
       <GameTitle variant="h1">GAME Y</GameTitle>
 
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, zIndex: 1 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, zIndex: 1 }}>
         <PlayButton onClick={() => navigate('/set')}>
           <PlayArrowIcon fontSize="small" /> Play
         </PlayButton>
         <HelpBtn onClick={() => { setHelpOpen(true); setTab(0); }}>
-          ?
+          <HelpOutlineIcon sx={{ fontSize: '18px' }} /> How to play
         </HelpBtn>
       </Box>
 
