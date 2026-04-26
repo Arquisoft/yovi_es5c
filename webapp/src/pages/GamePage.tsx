@@ -373,6 +373,7 @@ export default function GamePage() {
     touchedSides: { touchesA: boolean; touchesB: boolean; touchesC: boolean },
     timerValue: number,
     incrementMsg: string | null,
+    showTimer: boolean,
   ) => {
     const triangle = getTriangleVertices()
     const stroke = color === 'B' ? '#1565c0' : '#c62828'
@@ -414,23 +415,27 @@ export default function GamePage() {
           </Box>
         </Stack>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5, height: 32 }}>
-          <Typography 
-            variant="h5" 
-            sx={{ 
-              fontWeight: 800, 
-              fontFamily: 'monospace', 
-              color: timerValue < 10 ? '#d32f2f' : 'inherit' 
-            }}
-          >
-            {formatTime(timerValue)}
-          </Typography>
-          {incrementMsg && (
-            <Typography variant="body2" sx={{ color: '#2e7d32', fontWeight: 700 }}>
-              {incrementMsg}
+        {showTimer ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5, height: 32 }}>
+            <Typography 
+              variant="h5" 
+              sx={{ 
+                fontWeight: 800, 
+                fontFamily: 'monospace', 
+                color: timerValue < 10 ? '#d32f2f' : 'inherit' 
+              }}
+            >
+              {formatTime(timerValue)}
             </Typography>
-          )}
-        </Box>
+            {incrementMsg && (
+              <Typography variant="body2" sx={{ color: '#2e7d32', fontWeight: 700 }}>
+                {incrementMsg}
+              </Typography>
+            )}
+          </Box>
+        ) : (
+          <Box sx={{ mb: 1.5, height: 32 }} />
+        )}
 
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <svg
@@ -671,7 +676,8 @@ export default function GamePage() {
             playerOneActive, 
             playerOneSides, 
             timerP1, 
-            incrementMsgP1
+            incrementMsgP1,
+            true
           )}
         </Box>
 
@@ -726,7 +732,8 @@ export default function GamePage() {
               playerTwoActive, 
               playerTwoSides, 
               timerP2, 
-              incrementMsgP2
+              incrementMsgP2,
+              mode === 'pvp'
             )}
             {canUsePieRule && (
               <Button
