@@ -44,7 +44,7 @@ export function calculatePlayerTimer(boardSize: number, difficulty: Difficulty) 
   // 1. Determinar el Factor de Escala del Tablero (boardScaleFactor)
   let boardScaleFactor = 0;
   if (boardSize >= 3 && boardSize <= 6) {
-    boardScaleFactor = 1.0;
+    boardScaleFactor = 1;
   } else if (boardSize >= 7 && boardSize <= 10) {
     boardScaleFactor = 1.5;
   } else if (boardSize >= 11 && boardSize <= 15) {
@@ -52,10 +52,9 @@ export function calculatePlayerTimer(boardSize: number, difficulty: Difficulty) 
   }
 
 // 2. Determinar el Multiplicador de Dificultad (difficultyMultiplier)
-let difficultyMultiplier = 1.0; // default neutral
+let difficultyMultiplier = 1; // default (Medium)
 switch (difficulty) {
   case "Easy":   difficultyMultiplier = 1.5; break;
-  case "Medium": difficultyMultiplier = 1.0;  break;
   case "Hard":   difficultyMultiplier = 0.5; break;
 }
 
