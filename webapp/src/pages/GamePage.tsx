@@ -421,7 +421,7 @@ const handleNextTurn = (moveData: MoveTurnResponse) => {
   }
 
   const abandonGame = () => {
-    if (isGameOver || hasAbandoned.current) return;
+    if (isGameOver || hasAbandoned.current || mode==='pvp') return;
     hasAbandoned.current = true;
 
     const duration = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
@@ -429,7 +429,7 @@ const handleNextTurn = (moveData: MoveTurnResponse) => {
 
     const payload = JSON.stringify({
       userId: username,
-      rival: mode === 'pvp' ? 'multiplayer' : 'bot',
+      rival: bot_id,
       level: difficulty,
       duration: duration
     });
