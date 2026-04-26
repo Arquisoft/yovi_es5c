@@ -102,6 +102,52 @@ describe("GameSetup page", () => {
     });
   });
 
+  it("navigates with correct timer values for board size 8 (scale 1.5)", async () => {
+    sessionStorage.setItem("boardSize", "8");
+    render(<GameSetup />);
+
+    const user = userEvent.setup();
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /setup\.pvp/i,
+      })
+    );
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith("/game", { 
+        state: { 
+          mode: "pvp",
+          initialSessionTime: 45, // 30 * 1.5 * 1.0 = 45
+          incrementPerMove: 3     // 2 * 1.5 * 1.0 = 3
+        } 
+      });
+    });
+  });
+
+  it("navigates with correct timer values for board size 12 (scale 1.75)", async () => {
+    sessionStorage.setItem("boardSize", "12");
+    render(<GameSetup />);
+
+    const user = userEvent.setup();
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /setup\.pvp/i,
+      })
+    );
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith("/game", { 
+        state: { 
+          mode: "pvp",
+          initialSessionTime: 52, // floor(30 * 1.75 * 1.0) = floor(52.5) = 52
+          incrementPerMove: 3     // floor(2 * 1.75 * 1.0) = floor(3.5) = 3
+        } 
+      });
+    });
+  });
+
   // --- SPINNER SIZE ---
 
   it("debería permitir incrementar el tamaño del tablero y guardarlo en sessionStorage", async () => {
