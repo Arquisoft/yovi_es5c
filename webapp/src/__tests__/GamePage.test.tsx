@@ -1,5 +1,6 @@
 ﻿import '@testing-library/jest-dom'
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { act } from 'react';
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
 import GamePage from '../pages/GamePage'
 import { useSession } from '../SessionContext'
@@ -689,7 +690,7 @@ it('el temporizador debe decrementar con el paso del tiempo', async () => {
 	render(<GamePage />)
 
 	// Avanzamos 3 segundos
-	act(() => {
+	await act(async () => {
 		vi.advanceTimersByTime(3000)
 	})
 
@@ -717,7 +718,7 @@ it('debe aplicar incremento de tiempo tras realizar un movimiento y mostrar el m
 	const { container } = render(<GamePage />)
 	
 	// Pasamos 20 segundos para que baje a 1:20 (80s)
-	act(() => { vi.advanceTimersByTime(20000) })
+	await act(async () => { vi.advanceTimersByTime(20000) })
 	expect(screen.getByText('1:20')).toBeInTheDocument()
 
 	const firstCell = container.querySelector('g')
@@ -729,7 +730,7 @@ it('debe aplicar incremento de tiempo tras realizar un movimiento y mostrar el m
 	expect(screen.getByText('+10s')).toBeInTheDocument()
 
 	// El incremento se aplica tras el timeout de 1s
-	act(() => { vi.advanceTimersByTime(1000) })
+	await act(async () => { vi.advanceTimersByTime(1000) })
 
 	// 80 + 10 = 90 -> 1:30
 	expect(screen.getByText('1:30')).toBeInTheDocument()
@@ -747,12 +748,12 @@ it('debe terminar la partida por tiempo si el cronómetro llega a cero', async (
 	render(<GamePage />)
 
 	// Avanzamos 2 segundos
-	act(() => {
+	await act(async () => {
 		vi.advanceTimersByTime(2000)
 	})
 
 	// Al avanzar el tiempo exacto, el componente debe haber re-renderizado el fin de partida
-	expect(screen.getByText('Player R wins!')).toBeInTheDocument()
+	expect(screen.getByText('game.dialog.pvpTitle')).toBeInTheDocument()
 	
 	vi.useRealTimers()
 })
