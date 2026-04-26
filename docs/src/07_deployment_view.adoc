@@ -123,16 +123,14 @@ graph LR
     User((User))
 
     subgraph Azure [Azure]
-        subgraph Docker [Docker]
-            App[Yovi App]
-            Gateway[Gateway Service]
-            
-            GameY[GameY Service]
-            UserS[User Service]
-
-            MongoDb[MongoDb]
-        end
+        App[Web App]
+        Gateway[Gateway Service]
+        
+        GameY[GameY Service]
+        UserS[User Service]
     end
+
+    MongoDb[MongoDb]
 
     %% Conexiones principales
     User --> App
