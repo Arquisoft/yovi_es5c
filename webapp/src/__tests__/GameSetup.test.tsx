@@ -94,7 +94,13 @@ describe("GameSetup page", () => {
     });
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/game", { state: { mode: "pvp" } });
+      expect(mockNavigate).toHaveBeenCalledWith("/game", { 
+        state: { 
+          mode: "pvp",
+          initialSessionTime: 30, // Calculado para size 5 y dificultad Medium (default PvP)
+          incrementPerMove: 2     // Calculado para size 5 y dificultad Medium
+        } 
+      });
     });
   });
 
@@ -173,6 +179,8 @@ describe("GameSetup page", () => {
           mode: "bot",
           bot_id: "random_bot",
           difficulty: "Hard",
+          initialSessionTime: 15, // Calculado para size 5 y dificultad Hard (30 * 0.5)
+          incrementPerMove: 1     // Calculado para size 5 y dificultad Hard (2 * 0.5)
         },
       });
     });

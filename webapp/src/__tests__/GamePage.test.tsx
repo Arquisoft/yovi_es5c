@@ -1,5 +1,5 @@
 ﻿import '@testing-library/jest-dom'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
 import GamePage from '../pages/GamePage'
 import { useSession } from '../SessionContext'
@@ -73,7 +73,7 @@ it('debe renderizar el tablero en modo bot por defecto si está logueado', async
 	expect(screen.getByText('Game Y - Player vs Bot')).toBeInTheDocument()
 
 	expect(screen.getByText('You')).toBeInTheDocument()
-	expect(screen.getByText('Bot')).toBeInTheDocument()
+	expect(screen.getByText('Random Bot')).toBeInTheDocument()
 })
 
 it('debe renderizar en modo pvp si se pasa por el estado de navegación', () => {
@@ -197,7 +197,7 @@ it('debe resetear el tablero al hacer clic en "New Game"', () => {
 	fireEvent.click(newGameButton)
 
 	expect(screen.getByText('You')).toBeInTheDocument()
-	expect(screen.getByText('Bot')).toBeInTheDocument()
+	expect(screen.getByText('Random Bot')).toBeInTheDocument()
 	expect(screen.queryByRole('button', { name: /Swap/i })).not.toBeInTheDocument()
 })
 
@@ -386,5 +386,111 @@ it('no debe hacer la petición si se hace clic en una celda ya ocupada', async (
 
 	// El contador de llamadas a fetch debe seguir en 1 (el click fue bloqueado)
 	expect(global.fetch).toHaveBeenCalledTimes(1)
+	})
+
+	it('debe inicializar los temporizadores con los valores recibidos por el estado', () => {
+		; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+		; (useLocation as Mock).mockReturnValue({ 
+			state: { 
+				mode: 'pvp', 
+				initialSessionTime: 120, 
+				incrementPerMove: 5 
+			} 
+		})
+
+		render(<GamePage />)
+
+		// 120 segundos es 2:00
+		const timers = screen.getAllByText('2:00')
+		expect(timers.length).toBe(2)
+	})
+
+	it('el temporizador debe decrementar con el paso del tiempo', async () => {
+		vi.useFakeTimers()
+		; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+		; (useLocation as Mock).mockReturnValue({ 
+			state: { mode: 'pvp', initialSessionTime: 60 } 
+		})
+
+		render(<GamePage />)
+
+		// Avanzamos 3 segundos
+		act(() => {
+			vi.advanceTimersByTime(3000)
+		})
+
+		// 60 - 3 = 57 -> 0:57
+		expect(screen.getByText('0:57')).toBeInTheDocument()
+		vi.useRealTimers()
+	})
+
+	it('debe aplicar incremento de tiempo tras realizar un movimiento y mostrar el mensaje', async () => {
+		vi.useFakeTimers()
+		; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+		; (useLocation as Mock).mockReturnValue({ 
+			state: { mode: 'pvp', initialSessionTime: 100, incrementPerMove: 10 } 
+		})
+
+		; (global.fetch as Mock).mockResolvedValue({
+			ok: true,
+			json: async () => ({
+				game_over: false,
+				winner: null,
+				state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+			}),
+		})
+
+		const { container } = render(<GamePage />)
+		
+		// Pasamos 20 segundos para que baje a 1:20 (80s)
+		act(() => { vi.advanceTimersByTime(20000) })
+		expect(screen.getByText('1:20')).toBeInTheDocument()
+
+		const firstCell = container.querySelector('g')
+		await act(async () => {
+			fireEvent.click(firstCell!)
+		})
+
+		// Debe aparecer el mensaje de incremento
+		expect(screen.getByText('+10s')).toBeInTheDocument()
+
+		// El incremento se aplica tras el timeout de 1s
+		act(() => { vi.advanceTimersByTime(1000) })
+
+		// 80 + 10 = 90 -> 1:30
+		expect(screen.getByText('1:30')).toBeInTheDocument()
+		
+		vi.useRealTimers()
+	})
+
+	it('debe terminar la partida por tiempo si el cronómetro llega a cero', async () => {
+		vi.useFakeTimers()
+		; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+		; (useLocation as Mock).mockReturnValue({ 
+			state: { mode: 'pvp', initialSessionTime: 2 } 
+		})
+
+		render(<GamePage />)
+
+		// Avanzamos 2 segundos
+		act(() => {
+			vi.advanceTimersByTime(2000)
+		})
+
+		// Al avanzar el tiempo exacto, el componente debe haber re-renderizado el fin de partida
+		expect(screen.getByText('Player R wins!')).toBeInTheDocument()
+		
+		vi.useRealTimers()
+	})
+
+	it('no debe mostrar el temporizador para el bot en modo vs Bot', () => {
+		; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+		; (useLocation as Mock).mockReturnValue({ state: { mode: 'bot', initialSessionTime: 300 } })
+
+		render(<GamePage />)
+
+		// Solo el temporizador de "You" (P1) debe estar (5:00)
+		const timers = screen.queryAllByText('5:00')
+		expect(timers.length).toBe(1)
 	})
 })
