@@ -35,7 +35,7 @@ try {
   console.log(error)
 }
 
-const limiter = rateLimit({ windowMs: 60 * 1000, max: 100 })
+const limiter = rateLimit({ windowMs: 60 * 1000, max: 500 })
 app.use(limiter)
 
 const handleErrors = (res, error) => {
@@ -103,9 +103,9 @@ app.post('/logout', async (req, res) => {
       return res.status(400).json({ error: 'username is required' });
     }
 
-    const usersServiceUrl = process.env.USERS_SERVICE_URL || 'http://users:3000';
+    const logoutUrl = new URL(`/logout`, userServiceUrl);
 
-    const response = await axios.post(`${usersServiceUrl}/logout`, {
+    const response = await axios.post(logoutUrl.href, {
       username: username.trim(),
     });
 
