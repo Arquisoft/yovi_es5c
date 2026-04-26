@@ -80,24 +80,23 @@ export function calculatePlayerTimer(boardSize: number, difficulty: Difficulty) 
   } else if (boardSize >= 7 && boardSize <= 10) {
     boardScaleFactor = 1.5;
   } else if (boardSize >= 11 && boardSize <= 15) {
-    boardScaleFactor = 2.2;
+    boardScaleFactor = 1.75;
   }
 
-  // 2. Determinar el Multiplicador de Dificultad (difficultyMultiplier)
-  let difficultyMultiplier = 0;
-  switch (difficulty) {
-    case "Easy":   difficultyMultiplier = 1.0; break;
-    case "Medium": difficultyMultiplier = 1.5; break;
-    case "Hard":   difficultyMultiplier = 2.0; break;
-    default:       difficultyMultiplier = 1.0;
-  }
+// 2. Determinar el Multiplicador de Dificultad (difficultyMultiplier)
+let difficultyMultiplier = 1.0; // default neutral
+switch (difficulty) {
+  case "Easy":   difficultyMultiplier = 1.5; break;
+  case "Medium": difficultyMultiplier = 1.0;  break;
+  case "Hard":   difficultyMultiplier = 0.5; break;
+}
 
-  const baseSeconds = 60;
-  const baseIncrement = 3;
+  const baseSeconds = 30;
+  const baseIncrement = 2;
 
   return {
-    initialSessionTime: (baseSeconds * boardScaleFactor) * difficultyMultiplier,
-    incrementPerMove: (baseIncrement * boardScaleFactor) * difficultyMultiplier,
+    initialSessionTime: Math.floor((baseSeconds * boardScaleFactor) * difficultyMultiplier),
+    incrementPerMove: Math.floor((baseIncrement * boardScaleFactor) * difficultyMultiplier),
   };
 }
 
