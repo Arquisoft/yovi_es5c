@@ -4,7 +4,7 @@ import { Button, Divider, Menu, MenuItem, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useSession } from "../SessionContext";
 import { Navigate, useNavigate } from "react-router-dom";
-import { PageWrapper, ContentShell, DivColumn, Title, SubTitle } from "../components/PageLayout";
+import { PageWrapper, ContentShell, DivColumn, Title, SubTitle } from "../components/CommonComponents";
 
 // ─── Types ───────────────────────────────────────────────────
 type GameMode = "pvp" | "bot";
@@ -279,7 +279,7 @@ const GameSetup = () => {
         {/* ── Modo PvP ── */}
         <DivColumn minHeight={188} gap={10}>
           <ModeButton data-testid="start-pvp-game" variant="outlined" onClick={handleStartPvp}>
-            ▲ Player vs Player ▲
+            {t('setup.pvp')}
           </ModeButton>
           <ModeDescription>{t('setup.pvpDescription')}</ModeDescription>
         </DivColumn>
@@ -287,7 +287,7 @@ const GameSetup = () => {
         {/* ── Modo Bot ── */}
         <DivColumn minHeight={188} gap={10}>
           <ModeButton variant="outlined" onClick={handleBotMenuOpen}>
-            ▲ Player vs Bot 🤖 ▾
+            {t('setup.bot')}
           </ModeButton>
           <ModeDescription>{t('setup.botDescription')}</ModeDescription>
 
