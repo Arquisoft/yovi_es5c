@@ -4,7 +4,7 @@ import { useNavigate, Navigate } from "react-router-dom";
 import { useSession } from "../SessionContext";
 import axios from "axios";
 import { PageWrapper, DivColumn, Title, SubTitle, EmptyState, EmptyIcon, EmptyText, BackButton, LoadingText } from "../components/CommonComponents";
-
+import { useTranslation } from "react-i18next";
 
 //endpoint
 const apiEndpoint = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -32,7 +32,7 @@ const formatDuration = (seconds: number): string => {
   return m > 0 ? `${m}m ${s}s` : `${s}s`;
 };
 
-const formatDate = (iso: string): string => {
+const formatDate = (iso: string, t: (key: string, options?: any) => string): string => {
   const now = new Date();
   const date = new Date(iso);
 
@@ -42,13 +42,13 @@ const formatDate = (iso: string): string => {
   const diffHour = Math.floor(diffMin / 60);
   const diffDay = Math.floor(diffHour / 24);
 
-  if (diffSec < 60) return "hace unos segundos";
-  if (diffMin < 60) return `hace ${diffMin} min`;
-  if (diffHour < 24) return `hace ${diffHour} h`;
-  if (diffDay < 7) return `hace ${diffDay} día${diffDay > 1 ? "s" : ""}`;
+  if (diffSec < 60) return t('history.time.seconds');
+  if (diffMin < 60) return t('history.time.minutes', { n: diffMin });
+  if (diffHour < 24) return t('history.time.hours', { n: diffHour });
+  if (diffDay < 7) return t('history.time.days', { n: diffDay });
 
   // Si es más antiguo, mostramos fecha normal
-  return date.toLocaleDateString("es-ES", {
+  return date.toLocaleDateString(undefined, {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -155,9 +155,9 @@ const ResultBadge = styled("span")<{ result: Result }>(({ result }) => ({
 }));
 
 
-
 // ─── Component ───────────────────────────────────────────────
 const GameHistory = () => {
+  const { t } = useTranslation();
   const [history, setHistory] = useState<GameSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -173,19 +173,27 @@ const GameHistory = () => {
         );
         setHistory(res.data);
       } catch (err: any) {
-        const backendError = err.response?.data?.error || err.message || "Error fetching history";
-        setError(backendError);
+        const backendError = err.response?.data?.error || err.message || t('history.fetchError');        setError(backendError);
       } finally {
         setLoading(false);
       }
     };
 
     if (username) fetchHistory();
-  }, [username]);
+  }, [username, t]);
 
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
   }
+
+  const getRivalText = (rival: string) => {
+    if (rival === "multiplayer") {
+      return `👤 ${t('history.player')}`;
+    }
+    
+    const rivalName = rival === 'bot' ? t('history.bot') : rival;
+    return `🤖 ${rivalName}`;
+  };
 
   const wins = history.filter((g) => g.result === "won").length;
   const losses = history.filter((g) => g.result === "lost").length;
@@ -195,69 +203,69 @@ const GameHistory = () => {
   return (
     <PageWrapper>
       <DivColumn>
-        <Title>Game History</Title>
-        <SubTitle>Your past matches</SubTitle>
+        <Title>{t('history.title')}</Title>
+        <SubTitle>{t('history.subtitle')}</SubTitle>
       </DivColumn>
 
       {!loading && history.length > 0 && (
         <StatsRow>
           <StatCard>
             <StatValue>{history.length}</StatValue>
-            <StatLabel>Played</StatLabel>
+            <StatLabel>{t('history.played')}</StatLabel>
           </StatCard>
           <StatCard>
             <StatValue>{wins}</StatValue>
-            <StatLabel>Wins</StatLabel>
+            <StatLabel>{t('history.wins')}</StatLabel>
           </StatCard>
           <StatCard>
             <StatValue>{losses}</StatValue>
-            <StatLabel>Losses</StatLabel>
+            <StatLabel>{t('history.losses')}</StatLabel>
           </StatCard>
           <StatCard>
             <StatValue>{winRate}%</StatValue>
-            <StatLabel>Win rate</StatLabel>
+            <StatLabel>{t('history.winRate')}</StatLabel>
           </StatCard>
         </StatsRow>
       )}
 
-      {loading && <LoadingText>Loading matches...</LoadingText>}
+      {loading && <LoadingText>{t('history.loading')}</LoadingText>}
 
       {error && (
         <SubTitle style={{ color: "#7c4a4a" }}>
-          Could not load history.
+          {t('history.loadError')}
         </SubTitle>
       )}
 
       {!loading && !error && history.length === 0 && (
         <EmptyState>
           <EmptyIcon>♟</EmptyIcon>
-          <EmptyText>No games played yet</EmptyText>
+          <EmptyText>{t('history.empty')}</EmptyText>
         </EmptyState>
       )}
 
       {!loading && !error && history.length > 0 && (
         <TableWrapper>
           <TableHeader>
-            <HeaderCell>Date</HeaderCell>
-            <HeaderCell>Rival</HeaderCell>
-            <HeaderCell>Level</HeaderCell>
-            <HeaderCell>Duration</HeaderCell>
-            <HeaderCell>Result</HeaderCell>
+            <HeaderCell>{t('history.date')}</HeaderCell>
+            <HeaderCell>{t('history.rival')}</HeaderCell>
+            <HeaderCell>{t('history.level')}</HeaderCell>
+            <HeaderCell>{t('history.duration')}</HeaderCell>
+            <HeaderCell>{t('history.result')}</HeaderCell>
           </TableHeader>
 
           {history.map((game) => (
             <TableRow key={game._id} result={game.result}>
-              <Cell>{formatDate(game.createdAt)}</Cell>
+              <Cell>{formatDate(game.createdAt, t)}</Cell>
               <Cell>
-                <RivalBadge rival={game.rival}>
-                  {game.rival === "multiplayer" ? "👤 Player" : "🤖 "+game.rival}
-                </RivalBadge>
+              <RivalBadge rival={game.rival}>
+                {getRivalText(game.rival)}
+              </RivalBadge>
               </Cell>
               <Cell style={{ color: "#666" }}>{game.level ?? "—"}</Cell>
               <Cell>{formatDuration(game.duration)}</Cell>
               <Cell>
                 <ResultBadge result={game.result}>
-                  {game.result === "won" ? "Win" : "Lose"}
+                  {game.result === "won" ? t('history.win') : t('history.lose')}
                 </ResultBadge>
               </Cell>
             </TableRow>
@@ -265,7 +273,7 @@ const GameHistory = () => {
         </TableWrapper>
       )}
 
-      <BackButton onClick={() => navigate("/set")}>← Back to select Mode</BackButton>
+      <BackButton onClick={() => navigate("/set")}>{t('history.back')}</BackButton>
     </PageWrapper>
   );
 };
