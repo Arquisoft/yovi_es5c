@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button, Divider, Menu, MenuItem, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useSession } from "../SessionContext";
@@ -16,15 +17,6 @@ interface BotOption {
 }
 
 // ─── Constants ───────────────────────────────────────────────
-const BOT_OPTIONS: BotOption[] = [
-  { bot_id: "random_bot", label: "Random Bot",  description: "Makes random moves" },
-  { bot_id: "center_bot", label: "Center bot",  description: "Controls the center" },
-  { bot_id: "edge_bot",   label: "Edge bot",    description: "Controls the sides" },
-  { bot_id: "smart_bot",  label: "Smart bot",   description: "Always searchs the victory" },
-  { bot_id: "mirror_bot", label: "Mirror bot",  description: "Mirrors the opponent's moves" },
-  { bot_id: "alpha_bot",  label: "Alpha bot",   description: "The best bot, try to win it" },
-];
-
 const DIFFICULTIES: Difficulty[] = ["Easy", "Medium", "Hard"];
 
 const DIFFICULTY_COLOR: Record<Difficulty, string> = {
@@ -196,19 +188,9 @@ const SpinnerValue = styled(Typography)({
   userSelect: "none",
 });
 
-const Logo = styled("img")(({ theme }) => ({
-  width: "clamp(112px, 26vw, 196px)",
-  height: "auto",
-  aspectRatio: "1 / 1",
-  objectFit: "contain",
-  filter: "drop-shadow(0 18px 28px rgba(0, 0, 0, 0.45))",
-  [theme.breakpoints.down("sm")]: {
-    width: "clamp(96px, 34vw, 148px)",
-  },
-}));
-
 // ─── Component ───────────────────────────────────────────────
 const GameSetup = () => {
+  const { t } = useTranslation();
   const [boardSize, setBoardSize] = useState(getInitialBoardSize);
   const [botAnchorEl, setBotAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedBot, setSelectedBot] = useState<BotOption | null>(null);
@@ -216,6 +198,14 @@ const GameSetup = () => {
 
   const navigate = useNavigate();
   const { isLoggedIn } = useSession();
+
+  const botKeys = ["random", "center", "edge", "smart", "mirror", "alpha"];
+
+  const BOT_OPTIONS: BotOption[] = botKeys.map((key) => ({
+    bot_id: `${key}_bot`,
+    label: t(`setup.bots.${key}.label`),
+    description: t(`setup.bots.${key}.description`),
+  }));
 
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
@@ -273,95 +263,98 @@ const GameSetup = () => {
 
   return (
     <PageWrapper>
-      <ContentShell maxWidth={1080}>
-        <DivColumn
-          style={{
-            minHeight: "auto",
-            padding: 0,
-            border: "none",
-            background: "transparent",
-            backdropFilter: "none",
-          }}
-        >
-          <Title>New Game</Title>
-          <SubTitle>Select a game mode to start playing</SubTitle>
+      <ContentShell>
+        <DivColumn>
+        <Title>{t('setup.title')}</Title>
+        <SubTitle>{t('setup.subtitle')}</SubTitle>
+      </DivColumn>
+
+      <img
+        src="/logo.svg"
+        alt={t('setup.logoAlt')}
+        style={{ width: "20vw", height: "20vw" }}
+      />
+
+      <DivRow>
+        {/* ── Modo PvP ── */}
+        <DivColumn minHeight={188} gap={10}>
+          <ModeButton data-testid="start-pvp-game" variant="outlined" onClick={handleStartPvp}>
+            ▲ Player vs Player ▲
+          </ModeButton>
+          <ModeDescription>{t('setup.pvpDescription')}</ModeDescription>
         </DivColumn>
 
-        <Logo src="/logo.svg" alt="game logo" />
+        {/* ── Modo Bot ── */}
+        <DivColumn minHeight={188} gap={10}>
+          <ModeButton variant="outlined" onClick={handleBotMenuOpen}>
+            ▲ Player vs Bot 🤖 ▾
+          </ModeButton>
+          <ModeDescription>{t('setup.botDescription')}</ModeDescription>
 
-        <DivRow>
-          <DivColumn minHeight={188} gap={10}>
-            <ModeButton data-testid="start-pvp-game" variant="outlined" onClick={handleStartPvp}>
-              ▲ Player vs Player ▲
-            </ModeButton>
-            <ModeDescription>Play locally against a friend</ModeDescription>
-          </DivColumn>
-
-          <DivColumn minHeight={188} gap={10}>
-            <ModeButton variant="outlined" onClick={handleBotMenuOpen}>
-              ▲ Player vs Bot 🤖 ▾
-            </ModeButton>
-            <ModeDescription>Play against our bots</ModeDescription>
-
-            <StyledMenu
-              anchorEl={botAnchorEl}
-              open={Boolean(botAnchorEl)}
-              onClose={handleBotMenuClose}
-              disableAutoFocusItem
-              anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-              transformOrigin={{ vertical: "top", horizontal: "left" }}
-            >
-              {BOT_OPTIONS.map((bot) => (
-                <BotMenuItem
-                  key={bot.bot_id}
-                  selected={selectedBot?.bot_id === bot.bot_id}
-                  onClick={(e) => handleBotClick(e, bot)}
-                >
-                  <BotLabel>{bot.label} ▸</BotLabel>
-                  <BotDescription>{bot.description}</BotDescription>
-                </BotMenuItem>
-              ))}
-            </StyledMenu>
-
-            <StyledMenu
-              anchorEl={diffAnchorEl}
-              open={Boolean(diffAnchorEl)}
-              onClose={handleDiffMenuClose}
-              anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-              transformOrigin={{ vertical: "top", horizontal: "left" }}
-            >
-              <MenuHeader>{selectedBot?.label} — difficulty</MenuHeader>
-              <Divider sx={{ borderColor: "#2a2a2a", mb: 0.5 }} />
-              {DIFFICULTIES.map((d) => (
-                <DifficultyMenuItem key={d} onClick={() => handleDifficultySelect(d)}>
-                  <DifficultyDot color={DIFFICULTY_COLOR[d]} />
-                  <DifficultyLabel>{d}</DifficultyLabel>
-                </DifficultyMenuItem>
-              ))}
-            </StyledMenu>
-          </DivColumn>
-
-          <DivColumn minHeight={188} gap={10}>
-            <SpinnerContainer>
-              <SpinnerBtn
-                onClick={handleDecreaseSize}
-                disabled={boardSize <= minBoardSize}
-                aria-label="Decrease board size"
+          {/* Primer nivel: selección de bot */}
+          <StyledMenu
+            anchorEl={botAnchorEl}
+            open={Boolean(botAnchorEl)}
+            onClose={handleBotMenuClose}
+            disableAutoFocusItem
+            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+            transformOrigin={{ vertical: "top", horizontal: "left" }}
+          >
+            {BOT_OPTIONS.map((bot) => (
+              <BotMenuItem
+                key={bot.bot_id}
+                selected={selectedBot?.bot_id === bot.bot_id}
+                onClick={(e) => handleBotClick(e, bot)}
               >
-                −
-              </SpinnerBtn>
-              <SpinnerValue>{boardSize}</SpinnerValue>
-              <SpinnerBtn
-                onClick={handleIncreaseSize}
-                disabled={boardSize >= maxBoardSize}
-                aria-label="Increase board size"
-              >
-                +
-              </SpinnerBtn>
-            </SpinnerContainer>
-            <ModeDescription>Board size</ModeDescription>
-          </DivColumn>
-        </DivRow>
+                <BotLabel>{bot.label} ▸</BotLabel>
+                <BotDescription>{bot.description}</BotDescription>
+              </BotMenuItem>
+            ))}
+          </StyledMenu>
+
+          {/* Segundo nivel: dificultades del bot seleccionado */}
+          <StyledMenu
+            anchorEl={diffAnchorEl}
+            open={Boolean(diffAnchorEl)}
+            onClose={handleDiffMenuClose}
+            anchorOrigin={{ vertical: "top", horizontal: "right" }}
+            transformOrigin={{ vertical: "top", horizontal: "left" }}
+          >
+            <MenuHeader>
+              {t('setup.difficultyTitle', { bot: selectedBot?.label ?? '' })}
+            </MenuHeader>
+            <Divider sx={{ borderColor: "#2a2a2a", mb: 0.5 }} />
+            {DIFFICULTIES.map((d) => (
+              <DifficultyMenuItem key={d} onClick={() => handleDifficultySelect(d)}>
+                <DifficultyDot color={DIFFICULTY_COLOR[d]} />
+                <DifficultyLabel>{t(`home.difficulties.${d.toLowerCase()}`)}</DifficultyLabel>
+              </DifficultyMenuItem>
+            ))}
+          </StyledMenu>
+        </DivColumn>
+
+        {/* ── Tamaño del tablero ── */}
+        <DivColumn minHeight={188} gap={10}>
+          <SpinnerContainer>
+            <SpinnerBtn
+              onClick={handleDecreaseSize}
+              disabled={boardSize <= minBoardSize}
+              aria-label={t('setup.decreaseBoardSize')}
+            >
+              −
+            </SpinnerBtn>
+            <SpinnerValue>{boardSize}</SpinnerValue>
+            <SpinnerBtn
+              onClick={handleIncreaseSize}
+              disabled={boardSize >= maxBoardSize}
+              aria-label={t('setup.increaseBoardSize')}
+            >
+              +
+            </SpinnerBtn>
+          </SpinnerContainer>
+          <ModeDescription>{t('setup.boardSize')}</ModeDescription>
+        </DivColumn>
+      </DivRow>
       </ContentShell>
     </PageWrapper>
   );
