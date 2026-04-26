@@ -1,18 +1,22 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined'
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded'
 import HistoryRounded from '@mui/icons-material/HistoryRounded'
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded'
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded'
+import EmojiEventsRoundedIcon from '@mui/icons-material/EmojiEventsRounded'
 import { Avatar, Box, ButtonBase, Divider, ListItemIcon, ListItemText, Menu, MenuItem, Typography } from '@mui/material'
 import { useSession } from '../SessionContext'
 import { useNavigate } from 'react-router-dom'
+import LanguageSwitcher from './LanguageSwitcher'
 
 const apiEndpoint = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 export default function NavBar() {
   const { isLoggedIn, username, destroySession } = useSession()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
   const menuOpen = Boolean(anchorEl)
@@ -101,10 +105,12 @@ export default function NavBar() {
                 <Avatar sx={{ width: 32, height: 32, fontSize: '0.9rem' }}>
                   {username?.slice(0, 1).toUpperCase() || <AccountCircleOutlinedIcon fontSize="small" />}
                 </Avatar>
-                <Typography sx={{ fontWeight: 700 }}>Profile</Typography>
+                <Typography sx={{ fontWeight: 700 }}>{t('nav.profile')}</Typography>
                 <ExpandMoreRoundedIcon fontSize="small" />
               </Box>
             </ButtonBase>
+
+            <LanguageSwitcher />
 
             <Menu
               anchorEl={anchorEl}
@@ -132,14 +138,21 @@ export default function NavBar() {
                 <ListItemIcon>
                   <PersonRoundedIcon fontSize="small" />
                 </ListItemIcon>
-                <ListItemText primary="My profile" />
+                <ListItemText primary={t('nav.myProfile')} />
               </MenuItem>
 
               <MenuItem onClick={() => navigateFromMenu('/history')}>
                 <ListItemIcon>
                   <HistoryRounded fontSize="small" />
                 </ListItemIcon>
-                <ListItemText primary="History" />
+                <ListItemText primary={t('nav.history')} />
+              </MenuItem>
+
+              <MenuItem onClick={() => navigateFromMenu('/game/ranking')}>
+                <ListItemIcon>
+                  <EmojiEventsRoundedIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary="Ranking" />
               </MenuItem>
 
               <Divider />
@@ -148,7 +161,7 @@ export default function NavBar() {
                 <ListItemIcon>
                   <LogoutRoundedIcon fontSize="small" />
                 </ListItemIcon>
-                <ListItemText primary="Logout" />
+                <ListItemText primary={t('nav.logout')} />
               </MenuItem>
             </Menu>
           </>

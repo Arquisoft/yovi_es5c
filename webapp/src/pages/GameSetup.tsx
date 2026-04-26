@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button, Divider, Menu, MenuItem, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useSession } from "../SessionContext";
@@ -15,39 +16,6 @@ interface BotOption {
 }
 
 // ─── Constants ───────────────────────────────────────────────
-
-const BOT_OPTIONS: BotOption[] = [
-  {
-    bot_id: "random_bot",
-    label: "Random Bot",
-    description: "Makes random moves",
-  },
-  {
-    bot_id: "center_bot",
-    label: "Center bot",
-    description: "Controls the center",
-  },
-  {
-    bot_id: "edge_bot",
-    label: "Edge bot",
-    description: "Controls the sides",
-  },
-  {
-    bot_id: "smart_bot",
-    label: "Smart bot",
-    description: "Always searchs the victory",
-  },
-  {
-    bot_id: "mirror_bot",
-    label: "Mirror bot",
-    description: "Mirrors the opponent's moves",
-  },
-  {
-    bot_id: "alpha_bot",
-    label: "Alpha bot",
-    description: "The best bot, try to win it",
-  },
-];
 
 const DIFFICULTIES: Difficulty[] = ["Easy", "Medium", "Hard"];
 
@@ -109,24 +77,7 @@ const DivColumn = styled("div")({
   maxWidth: 600,
 });
 
-const ModeButton = styled(Button)({
-  width: 220,
-  padding: "14px 0",
-  fontSize: "0.9rem",
-  letterSpacing: "0.06em",
-  borderColor: "#c8a84b",
-  color: "#c8a84b",
-  borderRadius: 4,
-  transition: "all 0.2s ease",
-  minWidth: "150px",
-  "&:hover": {
-    backgroundColor: "rgba(200, 168, 75, 0.07)",
-    borderColor: "#e8d89a",
-    color: "#e8d89a",
-  },
-});
-
-const BotMenuButton = styled(Button)({
+const GameButton = styled(Button)({
   width: 220,
   padding: "14px 0",
   fontSize: "0.9rem",
@@ -269,6 +220,7 @@ const SpinnerValue = styled(Typography)({
 
 // ─── Component ───────────────────────────────────────────────
 const GameSetup = () => {
+  const { t } = useTranslation();
   const [boardSize, setBoardSize] = useState(getInitialBoardSize);
   const [botAnchorEl, setBotAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedBot, setSelectedBot] = useState<BotOption | null>(null);
@@ -276,6 +228,21 @@ const GameSetup = () => {
 
   const navigate = useNavigate();
   const { isLoggedIn } = useSession();
+
+  const botKeys = [
+    "random",
+    "center",
+    "edge",
+    "smart",
+    "mirror",
+    "alpha",
+  ];
+
+  const BOT_OPTIONS: BotOption[] = botKeys.map(key => ({
+    bot_id: `${key}_bot`,
+    label: t(`setup.bots.${key}.label`),
+    description: t(`setup.bots.${key}.description`),
+  }));
 
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
@@ -311,7 +278,6 @@ const GameSetup = () => {
     setSelectedBot(null);
   };
 
-  
   const handleBotClick = (e: React.MouseEvent<HTMLElement>, bot: BotOption) => {
     setSelectedBot(bot);
     setDiffAnchorEl(e.currentTarget);
@@ -349,31 +315,31 @@ const GameSetup = () => {
   return (
     <PageWrapper>
       <DivColumn>
-        <Title>New Game</Title>
-        <SubTitle>Select a game mode to start playing</SubTitle>
+        <Title>{t('setup.title')}</Title>
+        <SubTitle>{t('setup.subtitle')}</SubTitle>
       </DivColumn>
 
       <img
         src="/logo.svg"
-        alt="game logo"
+        alt={t('setup.logoAlt')}
         style={{ width: "20vw", height: "20vw" }}
       />
 
       <DivRow>
         {/* ── Modo PvP ── */}
         <DivColumn>
-          <ModeButton variant="outlined" onClick={handleStartPvp}>
-            ▲ Player vs Player ▲
-          </ModeButton>
-          <ModeDescription>Play locally against a friend</ModeDescription>
+          <GameButton data-testid="start-pvp-game" variant="outlined" onClick={handleStartPvp}>
+            {t('setup.pvp')}
+          </GameButton>
+          <ModeDescription>{t('setup.pvpDescription')}</ModeDescription>
         </DivColumn>
 
         {/* ── Modo Bot ── */}
         <DivColumn>
-          <BotMenuButton variant="outlined" onClick={handleBotMenuOpen}>
-            ▲ Player vs Bot 🤖 ▾
-          </BotMenuButton>
-          <ModeDescription>Play against our bots</ModeDescription>
+          <GameButton variant="outlined" onClick={handleBotMenuOpen}>
+            {t('setup.bot')}
+          </GameButton>
+          <ModeDescription>{t('setup.botDescription')}</ModeDescription>
 
           {/* Primer nivel: lista de bots */}
           <StyledMenu
@@ -402,7 +368,7 @@ const GameSetup = () => {
             anchorOrigin={{ vertical: "top", horizontal: "right" }}
             transformOrigin={{ vertical: "top", horizontal: "left" }}
           >
-            <MenuHeader>{selectedBot?.label} — difficulty</MenuHeader>
+            <MenuHeader>{selectedBot?.label} — {t('setup.difficultyTitle', { bot: selectedBot?.label || '' })}</MenuHeader>
             <Divider sx={{ borderColor: "#2a2a2a", mb: 0.5 }} />
 
             {DIFFICULTIES.map((d) => (
@@ -411,38 +377,35 @@ const GameSetup = () => {
                 onClick={() => handleDifficultySelect(d)}
               >
                 <DifficultyDot color={DIFFICULTY_COLOR[d]} />
-                <DifficultyLabel>{d}</DifficultyLabel>
+                <DifficultyLabel>{t(`home.difficulties.${d.toLowerCase()}`)}</DifficultyLabel>
               </DifficultyMenuItem>
             ))}
           </StyledMenu>
         </DivColumn>
-        <DivColumn>
-        
-        <SpinnerContainer>
-          <SpinnerBtn 
-            onClick={handleDecreaseSize} 
-            disabled={boardSize <= minBoardSize}
-            aria-label="Decrease board size"
-          >
-            −
-          </SpinnerBtn>
-          
-          <SpinnerValue>{boardSize}</SpinnerValue>
-          
-          <SpinnerBtn 
-            onClick={handleIncreaseSize} 
-            disabled={boardSize >= maxBoardSize}
-            aria-label="Increase board size"
-          >
-            +
-          </SpinnerBtn>
-        </SpinnerContainer>
-        <ModeDescription>Board size</ModeDescription>
-        
-      </DivColumn>
-      </DivRow>
 
-      
+        <DivColumn>
+          <SpinnerContainer>
+            <SpinnerBtn
+              onClick={handleDecreaseSize}
+              disabled={boardSize <= minBoardSize}
+              aria-label={t('setup.decreaseBoardSize')}
+            >
+              −
+            </SpinnerBtn>
+
+            <SpinnerValue>{boardSize}</SpinnerValue>
+
+            <SpinnerBtn
+              onClick={handleIncreaseSize}
+              disabled={boardSize >= maxBoardSize}
+              aria-label={t('setup.increaseBoardSize')}
+            >
+              +
+            </SpinnerBtn>
+          </SpinnerContainer>
+          <ModeDescription>Board size</ModeDescription>
+        </DivColumn>
+      </DivRow>
     </PageWrapper>
   );
 };
