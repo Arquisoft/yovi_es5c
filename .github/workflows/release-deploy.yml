@@ -87,8 +87,7 @@ jobs:
           npm run test:e2e:install-browsers
       - name: Run E2E tests (start servers and run cucumber)
         run: |
-          cd gatewayservice && node gateway-service.js &
-          cd webapp && npm run test:e2e
+          cd webapp && npm run test:e2e:ci
         env:
           VITE_API_URL: http://localhost:8000
 

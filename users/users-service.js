@@ -176,21 +176,23 @@ app.put('/user/:username', async (req, res) => {
 app.post('/logout', async (req, res) => {
   try {
     const { username } = req.body;
-    if (!username?.trim()) {
-      return res.status(400).json({ error: 'username is required' });
+
+    //Username and password must be filled
+    if(!username || typeof username !== 'string') {
+        return res.status(400).json({ error: 'username is required' });
     }
 
-    const sanitizedUsername = username.trim().toLowerCase();
-    const user = await User.findOne({ username: sanitizedUsername });
+    const query = { username: String(username) }; // Forzado de tipo explícito
+    const user = await User.findOne(query);
 
     if (!user) {
-      return res.status(404).json({ error: `User ${sanitizedUsername} not found` });
+      return res.status(404).json({ error: `User ${username} not found` });
     }
 
     user.lastLogoutAt = new Date();
     await user.save();
 
-    res.json({ message: `User ${sanitizedUsername} logged out`, user });
+    res.json({ message: `User ${username} logged out`, user });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -270,4 +272,28 @@ app.post('/game/finish', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+
+app.get('/game/ranking', async (req, res) => {
+
+    const { sortBy = 'wins', order = 'desc' } = req.query;
+    const ALLOWED_FIELDS = ['wins', 'winRate', 'played', 'losses'];
+    const field = ALLOWED_FIELDS.includes(sortBy) ? sortBy : 'wins';
+    const direction = order === 'asc' ? 1 : -1;
+
+    const data = await GameSession.aggregate([
+        { $group: {
+            _id: "$userId",
+            played:  { $sum: 1 },
+            wins:    { $sum: { $cond: [{ $eq: ["$result", "won"] }, 1, 0] } },
+            losses:  { $sum: { $cond: [{ $eq: ["$result", "lost"] }, 1, 0] } },
+        }},
+        { $addFields: {
+            winRate: { $round: [{ $multiply: [{ $divide: ["$wins", "$played"] }, 100] }, 0] }
+        }},
+        { $sort: { [field]: direction } },
+        { $project: { _id: 0, username: "$_id", played: 1, wins: 1, losses: 1, winRate: 1 } }
+    ]);
+    res.json(data);
 });

@@ -3,6 +3,8 @@ import { styled } from "@mui/material/styles";
 import { useNavigate, Navigate } from "react-router-dom";
 import { useSession } from "../SessionContext";
 import axios from "axios";
+import { PageWrapper, DivColumn, Title, SubTitle, EmptyState, EmptyIcon, EmptyText, BackButton, LoadingText } from "../components/CommonComponents";
+import { useTranslation } from "react-i18next";
 
 //endpoint
 const apiEndpoint = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -30,7 +32,7 @@ const formatDuration = (seconds: number): string => {
   return m > 0 ? `${m}m ${s}s` : `${s}s`;
 };
 
-const formatDate = (iso: string): string => {
+const formatDate = (iso: string, t: (key: string, options?: any) => string): string => {
   const now = new Date();
   const date = new Date(iso);
 
@@ -40,58 +42,19 @@ const formatDate = (iso: string): string => {
   const diffHour = Math.floor(diffMin / 60);
   const diffDay = Math.floor(diffHour / 24);
 
-  if (diffSec < 60) return "hace unos segundos";
-  if (diffMin < 60) return `hace ${diffMin} min`;
-  if (diffHour < 24) return `hace ${diffHour} h`;
-  if (diffDay < 7) return `hace ${diffDay} día${diffDay > 1 ? "s" : ""}`;
+  if (diffSec < 60) return t('history.time.seconds');
+  if (diffMin < 60) return t('history.time.minutes', { n: diffMin });
+  if (diffHour < 24) return t('history.time.hours', { n: diffHour });
+  if (diffDay < 7) return t('history.time.days', { n: diffDay });
 
   // Si es más antiguo, mostramos fecha normal
-  return date.toLocaleDateString("es-ES", {
+  return date.toLocaleDateString(undefined, {
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
 };
 
-// ─── Styled components ───────────────────────────────────────
-const PageWrapper = styled("div")({
-  flex: 1,
-  overflowY: "auto",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "flex-start",
-  paddingTop: 32,
-  paddingBottom: 32,
-  gap: 40,
-  backgroundColor: "#0d0d0d",
-});
-
-const DivColumn = styled("div")({
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  width: "100%",
-  gap: 6,
-  maxWidth: 600,
-});
-
-const Title = styled("h1")({
-  fontFamily: "Georgia, serif",
-  fontSize: "2rem",
-  color: "#e8d89a",
-  letterSpacing: "0.08em",
-  margin: 0,
-});
-
-const SubTitle = styled("p")({
-  fontFamily: "Georgia, serif",
-  fontSize: "0.9rem",
-  color: "#666",
-  letterSpacing: "0.05em",
-  margin: 0,
-});
 
 const StatsRow = styled("div")({
   display: "flex",
@@ -191,61 +154,10 @@ const ResultBadge = styled("span")<{ result: Result }>(({ result }) => ({
   border: `1px solid ${result === "won" ? "rgba(74,124,89,0.25)" : "rgba(124,74,74,0.25)"}`,
 }));
 
-const EmptyState = styled("div")({
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  gap: 12,
-  padding: "60px 0",
-  color: "#333",
-});
-
-const EmptyIcon = styled("span")({
-  fontSize: "2.5rem",
-  opacity: 0.3,
-});
-
-const EmptyText = styled("p")({
-  fontFamily: "Georgia, serif",
-  fontSize: "0.9rem",
-  color: "#444",
-  letterSpacing: "0.05em",
-  margin: 0,
-});
-
-const BackButton = styled("button")({
-  background: "none",
-  border: "1px solid #2a2a2a",
-  color: "#555",
-  fontSize: "0.75rem",
-  letterSpacing: "0.08em",
-  padding: "8px 20px",
-  borderRadius: 4,
-  cursor: "pointer",
-  transition: "all 0.2s ease",
-  textTransform: "uppercase",
-  "&:hover": {
-    borderColor: "#c8a84b",
-    color: "#c8a84b",
-  },
-});
-
-const LoadingText = styled("p")({
-  fontFamily: "Georgia, serif",
-  fontSize: "0.85rem",
-  color: "#444",
-  letterSpacing: "0.08em",
-  animation: "pulse 1.5s ease-in-out infinite",
-  "@keyframes pulse": {
-    "0%, 100%": { opacity: 0.4 },
-    "50%": { opacity: 1 },
-  },
-});
-
-
 
 // ─── Component ───────────────────────────────────────────────
 const GameHistory = () => {
+  const { t } = useTranslation();
   const [history, setHistory] = useState<GameSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -261,19 +173,27 @@ const GameHistory = () => {
         );
         setHistory(res.data);
       } catch (err: any) {
-        const backendError = err.response?.data?.error || err.message || "Error fetching history";
-        setError(backendError);
+        const backendError = err.response?.data?.error || err.message || t('history.fetchError');        setError(backendError);
       } finally {
         setLoading(false);
       }
     };
 
     if (username) fetchHistory();
-  }, [username]);
+  }, [username, t]);
 
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
   }
+
+  const getRivalText = (rival: string) => {
+    if (rival === "multiplayer") {
+      return `👤 ${t('history.player')}`;
+    }
+    
+    const rivalName = rival === 'bot' ? t('history.bot') : rival;
+    return `🤖 ${rivalName}`;
+  };
 
   const wins = history.filter((g) => g.result === "won").length;
   const losses = history.filter((g) => g.result === "lost").length;
@@ -283,69 +203,69 @@ const GameHistory = () => {
   return (
     <PageWrapper>
       <DivColumn>
-        <Title>Game History</Title>
-        <SubTitle>Your past matches</SubTitle>
+        <Title>{t('history.title')}</Title>
+        <SubTitle>{t('history.subtitle')}</SubTitle>
       </DivColumn>
 
       {!loading && history.length > 0 && (
         <StatsRow>
           <StatCard>
             <StatValue>{history.length}</StatValue>
-            <StatLabel>Played</StatLabel>
+            <StatLabel>{t('history.played')}</StatLabel>
           </StatCard>
           <StatCard>
             <StatValue>{wins}</StatValue>
-            <StatLabel>Wins</StatLabel>
+            <StatLabel>{t('history.wins')}</StatLabel>
           </StatCard>
           <StatCard>
             <StatValue>{losses}</StatValue>
-            <StatLabel>Losses</StatLabel>
+            <StatLabel>{t('history.losses')}</StatLabel>
           </StatCard>
           <StatCard>
             <StatValue>{winRate}%</StatValue>
-            <StatLabel>Win rate</StatLabel>
+            <StatLabel>{t('history.winRate')}</StatLabel>
           </StatCard>
         </StatsRow>
       )}
 
-      {loading && <LoadingText>Loading matches...</LoadingText>}
+      {loading && <LoadingText>{t('history.loading')}</LoadingText>}
 
       {error && (
         <SubTitle style={{ color: "#7c4a4a" }}>
-          Could not load history.
+          {t('history.loadError')}
         </SubTitle>
       )}
 
       {!loading && !error && history.length === 0 && (
         <EmptyState>
           <EmptyIcon>♟</EmptyIcon>
-          <EmptyText>No games played yet</EmptyText>
+          <EmptyText>{t('history.empty')}</EmptyText>
         </EmptyState>
       )}
 
       {!loading && !error && history.length > 0 && (
         <TableWrapper>
           <TableHeader>
-            <HeaderCell>Date</HeaderCell>
-            <HeaderCell>Rival</HeaderCell>
-            <HeaderCell>Level</HeaderCell>
-            <HeaderCell>Duration</HeaderCell>
-            <HeaderCell>Result</HeaderCell>
+            <HeaderCell>{t('history.date')}</HeaderCell>
+            <HeaderCell>{t('history.rival')}</HeaderCell>
+            <HeaderCell>{t('history.level')}</HeaderCell>
+            <HeaderCell>{t('history.duration')}</HeaderCell>
+            <HeaderCell>{t('history.result')}</HeaderCell>
           </TableHeader>
 
           {history.map((game) => (
             <TableRow key={game._id} result={game.result}>
-              <Cell>{formatDate(game.createdAt)}</Cell>
+              <Cell>{formatDate(game.createdAt, t)}</Cell>
               <Cell>
-                <RivalBadge rival={game.rival}>
-                  {game.rival === "multiplayer" ? "👤 Player" : "🤖 "+game.rival}
-                </RivalBadge>
+              <RivalBadge rival={game.rival}>
+                {getRivalText(game.rival)}
+              </RivalBadge>
               </Cell>
               <Cell style={{ color: "#666" }}>{game.level ?? "—"}</Cell>
               <Cell>{formatDuration(game.duration)}</Cell>
               <Cell>
                 <ResultBadge result={game.result}>
-                  {game.result === "won" ? "Win" : "Lose"}
+                  {game.result === "won" ? t('history.win') : t('history.lose')}
                 </ResultBadge>
               </Cell>
             </TableRow>
@@ -353,7 +273,7 @@ const GameHistory = () => {
         </TableWrapper>
       )}
 
-      <BackButton onClick={() => navigate("/set")}>← Back to select Mode</BackButton>
+      <BackButton onClick={() => navigate("/set")}>{t('history.back')}</BackButton>
     </PageWrapper>
   );
 };

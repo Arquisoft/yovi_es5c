@@ -6,9 +6,11 @@ import {
   Grid,
   Alert,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useSession } from '../SessionContext';
+import { translateBackendError } from '../utils/translateBackendError';
 
 const apiEndpoint = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -25,6 +27,7 @@ const RegisterForm = () => {
   const navigate = useNavigate();
 
   const { createSession } = useSession();
+  const { t } = useTranslation();
 
   const [formData, setFormData] = useState<FormData>({
     username: "",
@@ -48,8 +51,6 @@ const RegisterForm = () => {
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_-])[A-Za-z\d@$!%*?&.#_-]{8,}$/;
 
-  const isPasswordValid = passwordRegex.test(formData.password); 
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -65,22 +66,19 @@ const RegisterForm = () => {
     if (name === "surname") setSurnameError(null);
     if (name === "email") setEmailError(null);
     if (name === "password") {
-      if (isPasswordValid) {
-        setPasswordError(null);
-      } else {
-        setPasswordError(
-        "The password must have at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character.");
-      }
+    if (passwordRegex.test(value)) {
+      setPasswordError(null);
+    } else {
+      setPasswordError(t("auth.passwordRules"));
+    }
     }
     if (name === "confirmPassword") {
-    if (value === formData.password) {
-      setConfirmPasswordError(null);
-    } else {
-      setConfirmPasswordError("Passwords do not match");
+      if (value !== formData.password) {
+        setConfirmPasswordError(t("auth.passwordsDoNotMatch"));
+      } else {
+        setConfirmPasswordError(null);
+      }
     }
-}
-      
-    
   };
 
 const handleSubmit = async (e: React.FormEvent) => {
@@ -90,35 +88,35 @@ const handleSubmit = async (e: React.FormEvent) => {
   let hasError = false;
 
   if (!formData.username.trim()) {
-    setUsernameError("Required field");
+    setUsernameError(t("auth.requiredField"));
     hasError = true;
   }
 
   if (!formData.name.trim()) {
-    setNameError("Required field");
+    setNameError(t("auth.requiredField"));
     hasError = true;
   }
 
   if (!formData.surname.trim()) {
-    setSurnameError("Required field");
+    setSurnameError(t("auth.requiredField"));
     hasError = true;
   }
 
   if (!formData.email.trim()) {
-    setEmailError("Required field");
+    setEmailError(t("auth.requiredField"));
     hasError = true;
   }
 
   if (!formData.password.trim()) {
-    setPasswordError("Required field");
+    setPasswordError(t("auth.requiredField"));
     hasError = true;
-  }else if (!isPasswordValid) {
-    setPasswordError(
-        "The password must have at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character.");
+  } else if (!passwordRegex.test(formData.password)) {
+    setPasswordError(t("auth.passwordRules"));
+    hasError = true;
   }
 
   if (formData.password !== formData.confirmPassword) {
-    setConfirmPasswordError("Passwords do not match");
+    setConfirmPasswordError(t("auth.passwordsDoNotMatch"));
     hasError = true;
   }
 
@@ -134,23 +132,16 @@ const handleSubmit = async (e: React.FormEvent) => {
         email: formData.email
       });
 
-      // automatic login after registration 
-      //await axios.post(`${apiEndpoint}/login`, { 
-       // username: formData.username, 
-       // password: formData.password 
-      //})
-
       // create session and navigate to homepage
       createSession(formData.username);
       navigate('/homepage');
 
     } catch (err: any) {
-      const backendError = err.response?.data?.error || "An unexpected error occurred during registration";
-      setError(backendError);
-    }finally{
+      const backendError = err.response?.data?.error;
+      setError(translateBackendError(backendError, t) || t("errors.genericRegister"));
+    } finally {
       setLoading(false);
     }
-
 };
 
   return (
@@ -161,7 +152,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           <TextField
             required
             fullWidth
-            label="Username"
+            label={t("auth.username")}
             name="username"
             value={formData.username}
             onChange={handleChange}
@@ -176,7 +167,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           <TextField
             required
             fullWidth
-            label="Name"
+            label={t("auth.name")}
             name="name"
             value={formData.name}
             onChange={handleChange}
@@ -191,7 +182,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           <TextField
             required
             fullWidth
-            label="Surname"
+            label={t("auth.surname")}
             name="surname"
             value={formData.surname}
             onChange={handleChange}
@@ -207,7 +198,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           <TextField
             required
             fullWidth
-            label="Email"
+            label={t("auth.email")}
             name="email"
             type="email"
             value={formData.email}
@@ -223,7 +214,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           <TextField
             required
             fullWidth
-            label="Password"
+            label={t("auth.password")}
             name="password"
             type="password"
             value={formData.password}
@@ -239,7 +230,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           <TextField
             required
             fullWidth
-            label="Confirm Password"
+            label={t("auth.confirmPassword")}
             name="confirmPassword"
             type="password"
             value={formData.confirmPassword}
@@ -264,7 +255,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         disabled={loading}
         sx={{ mt: 3 }}
       >
-        Register
+        {t("auth.register")}
       </Button>
     </Box>
   );
