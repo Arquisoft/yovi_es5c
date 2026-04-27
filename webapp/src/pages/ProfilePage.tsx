@@ -374,7 +374,7 @@ export default function ProfilePage() {
             {t("profile.changePassword")}
           </CardTitle>
           <SubTitle>{t("profile.passwordHelp")}</SubTitle>
-          <GoldButton variant="outlined" disabled>{t("profile.changePassword")}</GoldButton>
+          <GoldButton variant="outlined" onClick={() => navigate("/change-password")}>{t("profile.changePassword")}</GoldButton>
         </BottomCard>
 
         <BottomCard>
