@@ -460,7 +460,7 @@ describe('Login endpoints', () => {
   describe('POST /user/change-password', () => {
     it('should change password successfully', async () => {
       const hashedPassword = await bcrypt.hash('OldPass123', 10);
-      await new User({
+      const user = await new User({
         username: 'changepassuser',
         name: 'Test',
         surname: 'User',
@@ -468,8 +468,12 @@ describe('Login endpoints', () => {
         password: hashedPassword,
       }).save();
 
+      // Generamos el token
+      const token = jwt.sign({ userId: user._id, user: 'changepassuser' }, process.env.JWT_SECRET);
+
       const response = await request(app)
         .post('/user/change-password')
+        .set('Authorization', `Bearer ${token}`) // <-- AÑADIDO
         .send({
           username: 'changepassuser',
           currentPassword: 'OldPass123',
@@ -485,28 +489,36 @@ describe('Login endpoints', () => {
     });
 
     it('should return 400 if fields are missing', async () => {
+      const token = jwt.sign({ userId: 'dummyId', user: 'test' }, process.env.JWT_SECRET);
+      
       const response = await request(app)
         .post('/user/change-password')
+        .set('Authorization', `Bearer ${token}`) // <-- AÑADIDO
         .send({ username: 'test' });
+        
       expect(response.status).toBe(400);
       expect(response.body.error).toBe('Username, current password and new password are required.');
     });
 
     it('should return 404 if user not found', async () => {
+      const token = jwt.sign({ userId: 'dummyId', user: 'nonexistent' }, process.env.JWT_SECRET);
+      
       const response = await request(app)
         .post('/user/change-password')
+        .set('Authorization', `Bearer ${token}`) // <-- AÑADIDO
         .send({
           username: 'nonexistent',
           currentPassword: 'any',
           newPassword: 'any'
         });
+        
       expect(response.status).toBe(404);
       expect(response.body.error).toBe('User not found');
     });
 
     it('should return 401 if current password is incorrect', async () => {
       const hashedPassword = await bcrypt.hash('CorrectPass', 10);
-      await new User({
+      const user = await new User({
         username: 'wrongpassuser',
         name: 'Test',
         surname: 'User',
@@ -514,20 +526,24 @@ describe('Login endpoints', () => {
         password: hashedPassword,
       }).save();
 
+      const token = jwt.sign({ userId: user._id, user: 'wrongpassuser' }, process.env.JWT_SECRET);
+
       const response = await request(app)
         .post('/user/change-password')
+        .set('Authorization', `Bearer ${token}`) // <-- AÑADIDO
         .send({
           username: 'wrongpassuser',
           currentPassword: 'WrongPass',
           newPassword: 'NewPass'
         });
+        
       expect(response.status).toBe(401);
       expect(response.body.error).toBe('Incorrect current password');
     });
 
     it('should return 400 if new password is same as current', async () => {
       const hashedPassword = await bcrypt.hash('SamePass', 10);
-      await new User({
+      const user = await new User({
         username: 'samepassuser',
         name: 'Test',
         surname: 'User',
@@ -535,22 +551,28 @@ describe('Login endpoints', () => {
         password: hashedPassword,
       }).save();
 
+      const token = jwt.sign({ userId: user._id, user: 'samepassuser' }, process.env.JWT_SECRET);
+
       const response = await request(app)
         .post('/user/change-password')
+        .set('Authorization', `Bearer ${token}`) // <-- AÑADIDO
         .send({
           username: 'samepassuser',
           currentPassword: 'SamePass',
           newPassword: 'SamePass'
         });
+        
       expect(response.status).toBe(400);
       expect(response.body.error).toBe('The new password is the same as the current one.');
     });
 
     it('should return 500 on internal error', async () => {
+      const token = jwt.sign({ userId: 'dummyId', user: 'any' }, process.env.JWT_SECRET);
       const findOneSpy = vi.spyOn(User, 'findOne').mockRejectedValue(new Error('DB Error'));
       
       const response = await request(app)
         .post('/user/change-password')
+        .set('Authorization', `Bearer ${token}`) // <-- AÑADIDO
         .send({
           username: 'any',
           currentPassword: 'any',
