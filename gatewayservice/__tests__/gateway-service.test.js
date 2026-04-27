@@ -301,7 +301,8 @@ describe('Gateway Service - Bot play API', () => {
         userId: 'testuser',
         rival: 'random_bot',
         level: 'Medium',
-        duration: 15
+        duration: 15,
+        token: 'fake-token-123'
       };
 
       const response = await request(app)
@@ -314,16 +315,19 @@ describe('Gateway Service - Bot play API', () => {
       expect(axios.post).toHaveBeenCalledWith(
         expect.stringContaining('/game/finish'), 
         {
-          userId: 'testuser',
-          rival: 'random_bot',
-          level: 'Medium',
-          duration: 15,
-          result: 'lost'
+            userId: 'testuser',
+            rival: 'random_bot',
+            level: 'Medium',
+            duration: 15,
+            result: 'lost'
         },
         {
-          headers: { 'Content-Type': 'application/json' }
+            headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer fake-token-123'
+            }
         }
-      );
+        );
     });
 
     it('debe manejar errores si el microservicio de juegos/usuarios falla al abandonar', async () => {
