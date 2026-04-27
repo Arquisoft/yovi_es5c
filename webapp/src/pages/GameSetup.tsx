@@ -305,7 +305,7 @@ const GameSetup = () => {
   //Ruleta
 
   const getRandomElement = <T,>(arr: T[]): T =>
-    arr[Math.floor(Math.random() * arr.length)];
+    arr[Math.floor(Math.random() * arr.length)]; // NOSONAR
 
   const handleRandomGame = () => {
     if (isRolling) return;
