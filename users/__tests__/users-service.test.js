@@ -65,7 +65,10 @@ describe('User Service', () => {
   it('should return the full ranking when limit is not provided', async () => {
     await GameSession.insertMany([
       { userId: 'zoe', rival: 'smart_bot', level: 'Medium', duration: 100, result: 'won' },
+      { userId: 'zoe', rival: 'smart_bot', level: 'Medium', duration: 10, result: 'won' },
       { userId: 'alice', rival: 'smart_bot', level: 'Medium', duration: 95, result: 'won' },
+      { userId: 'alice', rival: 'smart_bot', level: 'Medium', duration: 80, result: 'lost' },
+      { userId: 'alice', rival: 'smart_bot', level: 'Medium', duration: 10, result: 'lost' },
       { userId: 'alice', rival: 'smart_bot', level: 'Medium', duration: 90, result: 'lost' },
       { userId: 'bob', rival: 'smart_bot', level: 'Medium', duration: 85, result: 'won' }
     ]);
@@ -74,9 +77,9 @@ describe('User Service', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual([
-      { username: 'alice', played: 2, wins: 1, losses: 1, winRate: 50 },
+      { username: 'zoe', played: 2, wins: 2, losses: 0, winRate: 100 },
       { username: 'bob', played: 1, wins: 1, losses: 0, winRate: 100 },
-      { username: 'zoe', played: 1, wins: 1, losses: 0, winRate: 100 }
+      { username: 'alice', played: 4, wins: 1, losses: 3, winRate: 25 },
     ]);
   });
 
