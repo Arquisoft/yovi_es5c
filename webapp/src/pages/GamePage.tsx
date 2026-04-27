@@ -197,7 +197,7 @@ export default function GamePage() {
   const [playerTwoColor, setPlayerTwoColor] = useState<'B' | 'R'>('R')
   const [history, setHistory] = useState<GameSnapshot[]>([])
   const [error, setError] = useState('')
-  const { isLoggedIn } = useSession();
+  const { isLoggedIn, sessionId } = useSession();
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -262,7 +262,10 @@ const handleGameOver = (winner: Winner) => {
 
       void fetch(`${apiEndpoint}/game/finish`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionId}`
+        },
         body: JSON.stringify({
           userId: username,
           rival: mode === 'pvp' ? 'multiplayer' : bot_id,
