@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Alert, Box, Button, Paper, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Stack } from '@mui/material'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
@@ -197,7 +197,20 @@ export default function GamePage() {
   const [playerTwoColor, setPlayerTwoColor] = useState<'B' | 'R'>('R')
   const [history, setHistory] = useState<GameSnapshot[]>([])
   const [error, setError] = useState('')
+  const hasAbandoned = useRef(false);
   const { isLoggedIn, sessionId } = useSession();
+
+  useEffect(() => {
+    const handlePageHide = () => {
+      abandonGame();
+    };
+
+    window.addEventListener('pagehide', handlePageHide);
+
+    return () => {
+      window.removeEventListener('pagehide', handlePageHide);
+    };
+  }, [startTime, isGameOver, mode, difficulty]);
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -409,6 +422,29 @@ const handleNextTurn = (moveData: MoveTurnResponse) => {
       </Paper>
     )
   }
+
+  const abandonGame = () => {
+    if (isGameOver || hasAbandoned.current || mode==='pvp') return;
+    hasAbandoned.current = true;
+
+    const duration = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+    const username = localStorage.getItem('username') || 'anonymous';
+
+    const payload = JSON.stringify({
+      userId: username,
+      rival: bot_id,
+      level: difficulty,
+      duration: duration
+    });
+
+    const blob = new Blob([payload], { type: 'text/plain' });
+    navigator.sendBeacon(`${apiEndpoint}/game/abandon`, blob);
+  };
+
+  const handleAbandonClick = () => {
+    abandonGame();
+    navigate('/homepage');
+  };
 
   const play = async (row: number, col: number) => {
     if (!validateMove(row, col)) return;
@@ -685,7 +721,7 @@ const handleNextTurn = (moveData: MoveTurnResponse) => {
           <Button variant="outlined" onClick={reset} sx={{ color: '#f8fafc', borderColor: '#f8fafc' }}>
             {t('game.newGame')}
           </Button>
-          <Button variant="outlined" onClick={() => navigate('/homepage')} sx={{ color: '#f8fafc', borderColor: '#f8fafc' }}>
+          <Button variant="outlined" onClick={handleAbandonClick} sx={{ color: '#f8fafc', borderColor: '#f8fafc' }}>
             {t('game.backToHome')}
           </Button>
         </Box>
