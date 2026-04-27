@@ -61,15 +61,6 @@ const HelpBtn = styled('button')({
   },
 });
 
-const BOTS = [
-  { name: 'Random bot',  desc: 'Places pieces at random. Great for learning the board.' },
-  { name: 'Center bot',  desc: 'Targets the center of the board to reach all three sides.' },
-  { name: 'Edge bot',    desc: 'Prioritizes corners and edges for quick side connections.' },
-  { name: 'Smart bot',   desc: 'Balances offense and defense with tactical blocking and winning moves.' },
-  { name: 'Mirror bot',  desc: 'Copies your moves using rotational symmetry. Hard to read.' },
-  { name: 'Alpha bot',   desc: 'Uses minimax algorithm with alpha-beta pruning for deep analysis.' },
-];
-
 export default function HomePage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -92,8 +83,16 @@ export default function HomePage() {
       desc: t('home.bots.edge.desc')
     },
     { 
+      name: t('home.bots.smart.name'),  
+      desc: t('home.bots.smart.desc')
+    },
+    { 
       name: t('home.bots.mirror.name'),  
       desc: t('home.bots.mirror.desc')
+    },
+        { 
+      name: t('home.bots.alpha.name'),  
+      desc: t('home.bots.alpha.desc')
     },
   ];
 
@@ -110,8 +109,8 @@ export default function HomePage() {
         <PlayButton onClick={() => navigate('/set')}>
           <PlayArrowIcon fontSize="small" /> {t('home.play')}
         </PlayButton>
-        <HelpBtn aria-label="How to play" onClick={() => { setHelpOpen(true); setTab(0); }}>
-          <HelpOutlineIcon sx={{ fontSize: '18px' }} /> How to play
+        <HelpBtn aria-label={"How to play"} onClick={() => { setHelpOpen(true); setTab(0); }}>
+          {t('home.howToPlay')}
         </HelpBtn>
       </Box>
 

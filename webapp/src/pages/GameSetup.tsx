@@ -137,14 +137,6 @@ const DifficultyLabel = styled(Typography)({
   letterSpacing: "0.04em",
 });
 
-const SubTitle = styled("p")({
-  fontFamily: "Georgia, serif",
-  fontSize: "0.9rem",
-  color: "#ddd8c8",
-  letterSpacing: "0.05em",
-  margin: 0,
-});
-
 const ModeDescription = styled("p")({
   fontSize: "0.9rem",
   color: "#ddd8c8",

@@ -38,7 +38,7 @@ describe("HomePage", () => {
 
     it("does not show the help modal on load", () => {
       render(<HomePage />);
-      expect(screen.queryByText(/home\.howToPlay/i)).not.toBeInTheDocument();
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });
 
@@ -91,8 +91,7 @@ describe("HomePage", () => {
       const user = userEvent.setup();
       render(<HomePage />);
       
-      await user.click(screen.getByText("?"));
-      expect(screen.getByText(/home\.howToPlay/i)).toBeInTheDocument();
+      await user.click(screen.getByText(/home\.howToPlay/i));
 
       const closeButton = screen.getByRole("button", { name: /close help modal/i });
       await user.click(closeButton);
