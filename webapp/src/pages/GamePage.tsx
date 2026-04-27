@@ -434,7 +434,8 @@ const handleNextTurn = (moveData: MoveTurnResponse) => {
       userId: username,
       rival: bot_id,
       level: difficulty,
-      duration: duration
+      duration: duration,
+      token: sessionId
     });
 
     const blob = new Blob([payload], { type: 'text/plain' });

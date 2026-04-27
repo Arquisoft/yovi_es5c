@@ -177,7 +177,7 @@ app.post('/game/abandon', express.text({ type: '*/*' }), async (req, res) => {
     if (origin && !origin.includes('localhost')) { 
       return res.status(403).json({ error: 'Origen no permitido / Posible CSRF' });
     }
-
+    
     let parsedBody = {};
     if (typeof req.body === 'string' && req.body.trim() !== '') {
       parsedBody = JSON.parse(req.body);
@@ -188,11 +188,16 @@ app.post('/game/abandon', express.text({ type: '*/*' }), async (req, res) => {
       return res.status(400).json({ error: 'Body is required' });
     }
 
+    const token = parsedBody.token;
+    delete parsedBody.token;
     parsedBody.result = 'lost';
 
     const finishUrl = new URL('/game/finish', userServiceUrl);
     const response = await axios.post(finishUrl.href, parsedBody, {
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
     });
     
     res.status(201).json(response.data);
