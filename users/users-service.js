@@ -313,12 +313,14 @@ app.post('/game/finish', async (req, res) => {
 
 app.get('/game/ranking', async (req, res) => {
 
-    const { sortBy = 'wins', order = 'desc' } = req.query;
+    const { sortBy = 'wins', order = 'desc', limit } = req.query;
     const ALLOWED_FIELDS = ['wins', 'winRate', 'played', 'losses'];
     const field = ALLOWED_FIELDS.includes(sortBy) ? sortBy : 'wins';
     const direction = order === 'asc' ? 1 : -1;
+    const parsedLimit = Number.parseInt(limit, 10);
+    const hasValidLimit = Number.isInteger(parsedLimit) && parsedLimit > 0;
 
-    const data = await GameSession.aggregate([
+    const pipeline = [
         { $group: {
             _id: "$userId",
             played:  { $sum: 1 },
@@ -328,8 +330,14 @@ app.get('/game/ranking', async (req, res) => {
         { $addFields: {
             winRate: { $round: [{ $multiply: [{ $divide: ["$wins", "$played"] }, 100] }, 0] }
         }},
-        { $sort: { [field]: direction } },
-        { $project: { _id: 0, username: "$_id", played: 1, wins: 1, losses: 1, winRate: 1 } }
-    ]);
+        { $project: { _id: 0, username: "$_id", played: 1, wins: 1, losses: 1, winRate: 1 } },
+        { $sort: { [field]: direction, username: 1 } },
+    ];
+
+    if (hasValidLimit) {
+        pipeline.push({ $limit: parsedLimit });
+    }
+
+    const data = await GameSession.aggregate(pipeline);
     res.json(data);
 });

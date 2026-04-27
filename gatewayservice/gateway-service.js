@@ -19,7 +19,8 @@ const app = express()
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
-  crossOriginOpenerPolicy: false
+  crossOriginOpenerPolicy: false,
+  crossOriginResourcePolicy: false
 }))
 app.use(cors())
 app.use(express.json())
@@ -158,6 +159,43 @@ app.post('/game/finish', async (req, res) => {
   }
 });
 
+// Middleware específico para aceptar peticiones de texto plano de sendBeacon
+const tolerantJsonParser = express.json({ type: ['application/json', 'text/plain'] });
+
+app.post('/game/abandon', express.text({ type: '*/*' }), async (req, res) => {
+  try {
+    const origin = req.headers.origin;
+    if (origin && !origin.includes('localhost')) { 
+      return res.status(403).json({ error: 'Origen no permitido / Posible CSRF' });
+    }
+
+    let parsedBody = {};
+    if (typeof req.body === 'string' && req.body.trim() !== '') {
+      parsedBody = JSON.parse(req.body);
+    } else if (typeof req.body === 'object' && Object.keys(req.body).length > 0) {
+      parsedBody = req.body;
+    } else {
+      console.error("[Gateway] Abandon error: Body vacío o ilegible.");
+      return res.status(400).json({ error: 'Body is required' });
+    }
+
+    parsedBody.result = 'lost';
+
+    const finishUrl = new URL('/game/finish', userServiceUrl);
+    const response = await axios.post(finishUrl.href, parsedBody, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    res.status(201).json(response.data);
+
+  } catch (error) {
+    
+    const errorReal = error.response && error.response.data ? error.response.data : error.message;
+    console.error("[Gateway] Error RECHAZADO por users-service en /abandon:", JSON.stringify(errorReal));
+    handleErrors(res, error);
+  }
+});
+    
 app.get('/game/ranking', async (req, res) => {
   try {
 
@@ -165,6 +203,7 @@ app.get('/game/ranking', async (req, res) => {
 
     if (req.query.sortBy) ranking.searchParams.set('sortBy', req.query.sortBy);
     if (req.query.order)  ranking.searchParams.set('order', req.query.order);
+    if (req.query.limit)  ranking.searchParams.set('limit', req.query.limit);
 
     const response = await axios.get(ranking.href);
 

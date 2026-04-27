@@ -148,6 +148,28 @@ describe('Gateway Service - Login Routing', () => {
             gameData
         );
     });
+
+    it('should route GET /game/ranking with sort, order and limit to the user service', async () => {
+        axios.get = vi.fn();
+        axios.get.mockResolvedValueOnce({
+            data: [
+                { username: 'alice', played: 5, wins: 4, losses: 1, winRate: 80 }
+            ]
+        });
+
+        const res = await request(app)
+            .get('/game/ranking')
+            .query({ sortBy: 'wins', order: 'desc', limit: '3' });
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual([
+            { username: 'alice', played: 5, wins: 4, losses: 1, winRate: 80 }
+        ]);
+        expect(axios.get).toHaveBeenCalledTimes(1);
+        expect(axios.get).toHaveBeenCalledWith(
+            expect.stringContaining('/game/ranking?sortBy=wins&order=desc&limit=3')
+        );
+    });
 });
 
 describe('Gateway Service - Bot play API', () => {
@@ -276,4 +298,57 @@ describe('Gateway Service - Bot play API', () => {
             error: 'YEN position is required'
         });
     });
+
+    describe('POST /game/abandon', () => {
+    it('debe reenviar la petición de abandono modificada y devolver 201 si tiene éxito', async () => {
+      const mockBackendResponse = { message: 'Partida abandonada guardada' };
+      axios.post.mockResolvedValueOnce({ data: mockBackendResponse, status: 201 });
+
+      const abandonPayload = {
+        userId: 'testuser',
+        rival: 'random_bot',
+        level: 'Medium',
+        duration: 15
+      };
+
+      const response = await request(app)
+        .post('/game/abandon')
+        .send(abandonPayload);
+
+      expect(response.statusCode).toBe(201);
+      expect(response.body).toEqual(mockBackendResponse);
+      
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.stringContaining('/game/finish'), 
+        {
+          userId: 'testuser',
+          rival: 'random_bot',
+          level: 'Medium',
+          duration: 15,
+          result: 'lost'
+        },
+        {
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    });
+
+    it('debe manejar errores si el microservicio de juegos/usuarios falla al abandonar', async () => {
+      axios.post.mockRejectedValueOnce(new Error('Backend error'));
+
+      const abandonPayload = {
+        userId: 'testuser',
+        rival: 'random_bot',
+        level: 'Medium',
+        duration: 15
+      };
+
+      const response = await request(app)
+        .post('/game/abandon')
+        .send(abandonPayload);
+
+      expect(response.statusCode).toBe(500);
+      expect(response.body).toHaveProperty('error');
+    });
+  });
 });
