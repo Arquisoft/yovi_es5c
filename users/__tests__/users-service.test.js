@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 
 import User from '../model/user-model.js'
 const bcrypt = require('bcrypt');
+const GameSession = require('../model/gameSession-model');
 
 let mongoServer
 let app
@@ -29,6 +30,7 @@ afterEach(async () => {
   vi.restoreAllMocks()
   const User = require('../model/user-model')
   await User.deleteMany({})
+  await GameSession.deleteMany({})
 })
 
 
@@ -59,6 +61,58 @@ describe('User Service', () => {
     // Assert that the password is encrypted
     const isPasswordValid = await bcrypt.compare('Admin123##', userInDb.password);
     expect(isPasswordValid).toBe(true);
+  });
+
+  it('should return the full ranking when limit is not provided', async () => {
+    await GameSession.insertMany([
+      { userId: 'zoe', rival: 'smart_bot', level: 'Medium', duration: 100, result: 'won' },
+      { userId: 'alice', rival: 'smart_bot', level: 'Medium', duration: 95, result: 'won' },
+      { userId: 'alice', rival: 'smart_bot', level: 'Medium', duration: 90, result: 'lost' },
+      { userId: 'bob', rival: 'smart_bot', level: 'Medium', duration: 85, result: 'won' }
+    ]);
+
+    const response = await request(app).get('/game/ranking');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([
+      { username: 'alice', played: 2, wins: 1, losses: 1, winRate: 50 },
+      { username: 'bob', played: 1, wins: 1, losses: 0, winRate: 100 },
+      { username: 'zoe', played: 1, wins: 1, losses: 0, winRate: 100 }
+    ]);
+  });
+
+  it('should limit ranking results when limit is valid', async () => {
+    await GameSession.insertMany([
+      { userId: 'alice', rival: 'smart_bot', level: 'Medium', duration: 100, result: 'won' },
+      { userId: 'alice', rival: 'smart_bot', level: 'Medium', duration: 95, result: 'won' },
+      { userId: 'bob', rival: 'smart_bot', level: 'Medium', duration: 90, result: 'won' },
+      { userId: 'carol', rival: 'smart_bot', level: 'Medium', duration: 85, result: 'lost' }
+    ]);
+
+    const response = await request(app).get('/game/ranking?limit=2');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(2);
+    expect(response.body).toEqual([
+      { username: 'alice', played: 2, wins: 2, losses: 0, winRate: 100 },
+      { username: 'bob', played: 1, wins: 1, losses: 0, winRate: 100 }
+    ]);
+  });
+
+  it('should ignore invalid limit values without breaking the ranking response', async () => {
+    await GameSession.insertMany([
+      { userId: 'alice', rival: 'smart_bot', level: 'Medium', duration: 100, result: 'won' },
+      { userId: 'bob', rival: 'smart_bot', level: 'Medium', duration: 90, result: 'lost' }
+    ]);
+
+    const response = await request(app).get('/game/ranking?limit=invalid');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(2);
+    expect(response.body).toEqual([
+      { username: 'alice', played: 1, wins: 1, losses: 0, winRate: 100 },
+      { username: 'bob', played: 1, wins: 0, losses: 1, winRate: 0 }
+    ]);
   });
 
   it('should not add a user if username already exists', async () => {
