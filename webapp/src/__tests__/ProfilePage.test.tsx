@@ -54,6 +54,7 @@ describe('ProfilePage', () => {
     expect(screen.getByText('Test')).toBeInTheDocument()
     expect(screen.getByText('User')).toBeInTheDocument()
     expect(screen.getByText('test@uniovi.es')).toBeInTheDocument()
+    expect(screen.getByText('profile.passwordHelp')).toBeInTheDocument()
   })
 
   it('allows editing and saving the profile', async () => {
