@@ -470,7 +470,7 @@ export const resources = {
         played: "Jugadas",
         wins: "Victorias",
         losses: "Derrotas",
-        winRate: "Porcentaje de victoria",
+        winRate: "% de victoria",
         loading: "Cargando partidas...",
         loadError: "No se pudo cargar el historial.",
         empty: "Todavia no has jugado ninguna partida",
