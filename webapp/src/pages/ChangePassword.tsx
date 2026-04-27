@@ -1,6 +1,7 @@
-import { Container, Typography, Box, Paper, TextField, Button } from "@mui/material";
+import { Container, Typography, Box, Paper } from "@mui/material";
 import { Navigate } from "react-router-dom";
 import { useSession } from "../SessionContext";
+import ChangePasswordForm from "../components/ChangePasswordForm";
 
 const ChangePassword = () => {
   const { isLoggedIn } = useSession();
@@ -23,43 +24,7 @@ const ChangePassword = () => {
           <Typography component="h1" variant="h5" align="center" gutterBottom>
             Change Password
           </Typography>
-          <Box component="form" noValidate sx={{ mt: 1 }}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="currentPassword"
-              label="Current Password"
-              type="password"
-              id="currentPassword"
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="newPassword"
-              label="New Password"
-              type="password"
-              id="newPassword"
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="repeatNewPassword"
-              label="Repeat New Password"
-              type="password"
-              id="repeatNewPassword"
-            />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-            >
-              Change Password
-            </Button>
-          </Box>
+          <ChangePasswordForm />
         </Paper>
       </Box>
     </Container>
