@@ -81,7 +81,7 @@ const DivColumn = styled("div")({
 });
 
 const GameButton = styled(Button)({
-  width: 220,
+  width: 260,
   padding: "14px 0",
   fontSize: "0.9rem",
   letterSpacing: "0.06em",
