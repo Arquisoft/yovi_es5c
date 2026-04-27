@@ -132,8 +132,11 @@ const handleSubmit = async (e: React.FormEvent) => {
         email: formData.email
       });
 
-      // create session and navigate to homepage
-      createSession(formData.username);
+      const loginResponse = await axios.post(`${apiEndpoint}/login`, { 
+        username: formData.username, 
+        password: formData.password 
+      });
+      createSession(formData.username, loginResponse.data.token);
       navigate('/homepage');
 
     } catch (err: any) {

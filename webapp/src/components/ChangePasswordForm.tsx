@@ -94,10 +94,17 @@ const ChangePasswordForm = () => {
 
     setLoading(true);
     try {
+      const token = localStorage.getItem('sessionId'); // Obtenemos el token
+
       await axios.post(`${apiEndpoint}/user/change-password`, {
         username,
         currentPassword: formData.currentPassword,
         newPassword: formData.newPassword,
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       alert(t("profile.changePasswordSuccess"));

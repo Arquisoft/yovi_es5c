@@ -23,8 +23,20 @@ vi.mock("../SessionContext", () => ({
 describe("ChangePassword Page & Form", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Mock de window.alert ya que se usa en el componente
     vi.spyOn(window, 'alert').mockImplementation(() => {});
+    
+    // MOCK DEFINITIVO DE LOCALSTORAGE
+    // Esto asegura que funcionará sin importar la configuración de JSDom
+    const mockLocalStorage = {
+      getItem: vi.fn().mockReturnValue('mock-token'),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+      clear: vi.fn(),
+    };
+    Object.defineProperty(window, 'localStorage', {
+      value: mockLocalStorage,
+      writable: true
+    });
   });
 
   afterEach(() => {
@@ -119,34 +131,36 @@ describe("ChangePassword Page & Form", () => {
     });
 
     await waitFor(() => {
-      // Verifica llamada a cambio de pass
       expect(mockedAxios.post).toHaveBeenCalledWith(
         expect.stringContaining("/user/change-password"),
         expect.objectContaining({
           username: "testuser",
           currentPassword: "OldPass1!",
           newPassword: "NewPass1!"
+        }),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: "Bearer mock-token"
+          })
         })
       );
       
-      // Verifica alerta
       expect(window.alert).toHaveBeenCalledWith("profile.changePasswordSuccess");
       
-      // Verifica llamada a logout
       expect(mockedAxios.post).toHaveBeenCalledWith(
         expect.stringContaining("/logout"),
         { username: "testuser" }
       );
 
-      // Verifica limpieza de sesión
       expect(mockDestroySession).toHaveBeenCalled();
     });
   });
 
-    it("shows backend error when current password is incorrect", async () => {
-    mockedAxios.post.mockRejectedValue({
-        response: { data: { error: "Incorrect current password" } },
-    });
+  it("shows backend error when current password is incorrect", async () => {
+    // Creamos un Error real para evitar que falle al intentar acceder a propiedades indefinidas
+    const mockAxiosError = new Error("Request failed with status code 400") as any;
+    mockAxiosError.response = { data: { error: "Incorrect current password" } };
+    mockedAxios.post.mockRejectedValue(mockAxiosError);
     
     renderComponent();
     const user = userEvent.setup();
@@ -161,7 +175,7 @@ describe("ChangePassword Page & Form", () => {
     await waitFor(() => {
         expect(screen.getByRole("alert")).toHaveTextContent(/errors\.incorrectCurrentPassword/i);
     });
-    });
+  });
 
   it("clears validation errors when user types again", async () => {
     renderComponent();
