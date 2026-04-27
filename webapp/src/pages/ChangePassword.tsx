@@ -1,7 +1,6 @@
 import { Container, Typography, Box, Paper, TextField, Button } from "@mui/material";
 import { Navigate } from "react-router-dom";
 import { useSession } from "../SessionContext";
-import LanguageSwitcher from "../components/LanguageSwitcher";
 
 const ChangePassword = () => {
   const { isLoggedIn } = useSession();
@@ -12,9 +11,6 @@ const ChangePassword = () => {
 
   return (
     <Container className="yovi-ui" maxWidth="sm">
-      <Box sx={{ position: 'absolute', top: 20, right: 20 }}>
-        <LanguageSwitcher />
-      </Box>
       <Box
         sx={{
           marginTop: 0,
