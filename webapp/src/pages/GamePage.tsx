@@ -47,6 +47,12 @@ function makeEmptyBoard(size: number): Board {
   return Array.from({ length: size }, (_, row) => Array.from({ length: row + 1 }, () => '.' as Cell))
 }
 
+const formatTime = (seconds: number) => {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+};
+
 function cloneBoard(board: Board): Board {
   return board.map((row) => [...row])
 }
@@ -100,6 +106,17 @@ function boardFromLayout(size: number, layout: string): Board {
   return board
 }
 
+function getBotLabel(botId: string): string {
+  const labels: Record<string, string> = {
+    random_bot: "Random Bot",
+    center_bot: "Center Bot",
+    edge_bot: "Edge Bot",
+    smart_bot: "Smart Bot",
+    mirror_bot: "Mirror Bot",
+    alpha_bot: "Alpha Bot",
+  };
+  return labels[botId] || botId;
+}
 
 function getDialogTitle(isPvP: boolean, winner: Winner, userWon: boolean, t: (key: string, options?: any) => string): string {
   if (isPvP) {
@@ -187,10 +204,26 @@ export default function GamePage() {
   const [winner, setWinner] = useState<Winner>(null)
   const [startTime, setStartTime] = useState<number | null>(null)
   const [isGameOver, setIsGameOver] = useState(false)
-  const state = location.state as { mode?: GameMode; bot_id?: string; difficulty?: Difficulty } | null
+  
+  const state = location.state as { 
+    mode?: GameMode; 
+    bot_id?: string; 
+    difficulty?: Difficulty;
+    initialSessionTime?: number;
+    incrementPerMove?: number;
+  } | null
+
   const mode = state?.mode ?? 'bot'
   const difficulty = state?.difficulty ?? 'Medium'
   const bot_id     = state?.bot_id     ?? 'random_bot'
+  const initialSessionTime = state?.initialSessionTime ?? 300 // fallback 5 min
+  const incrementPerMove = state?.incrementPerMove ?? 0
+
+  const [timerP1, setTimerP1] = useState(initialSessionTime)
+  const [timerP2, setTimerP2] = useState(initialSessionTime)
+  const [incrementMsgP1, setIncrementMsgP1] = useState<string | null>(null)
+  const [incrementMsgP2, setIncrementMsgP2] = useState<string | null>(null)
+
   const [currentPlayer, setCurrentPlayer] = useState<'B' | 'R'>('B')
   const [message, setMessage] = useState(mode === 'pvp' ? t('game.playerTurn', { player: '1' }) : t('game.yourTurn'))
   const [playerOneColor, setPlayerOneColor] = useState<'B' | 'R'>('B')
@@ -199,6 +232,28 @@ export default function GamePage() {
   const [error, setError] = useState('')
   const hasAbandoned = useRef(false);
   const { isLoggedIn } = useSession();
+
+  // ── Temporizador (Countdown logic) ─────────────────────────
+  useEffect(() => {
+    if (isGameOver || busy || winner) return;
+
+    const interval = setInterval(() => {
+      if (currentPlayer === playerOneColor) {
+        setTimerP1((prev) => {
+          if (prev <= 1) { clearInterval(interval); handleGameOver(playerTwoColor); return 0; }
+          return prev - 1;
+        });
+      } else if (currentPlayer === playerTwoColor && mode === 'pvp') {
+        setTimerP2((prev) => {
+          if (prev <= 1) { clearInterval(interval); handleGameOver(playerOneColor); return 0; }
+          return prev - 1;
+        });
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [currentPlayer, isGameOver, busy, winner, mode, playerOneColor, playerTwoColor]);
+  
 
   useEffect(() => {
     const handlePageHide = () => {
@@ -321,7 +376,7 @@ const handleNextTurn = (moveData: MoveTurnResponse) => {
   const playerOneActive = currentPlayer === playerOneColor
   const playerTwoActive = currentPlayer === playerTwoColor
   const playerOneLabel = mode === 'pvp' ? t('game.player1') : t('game.you')
-  const playerTwoLabel = mode === 'pvp' ? t('game.player2') : t('game.bot')
+  const playerTwoLabel = mode === 'pvp' ? t('game.player2') : getBotLabel(bot_id)
   const playerOneSides = getTouchedSides(board, playerOneColor)
   const playerTwoSides = getTouchedSides(board, playerTwoColor)
 
@@ -330,6 +385,9 @@ const handleNextTurn = (moveData: MoveTurnResponse) => {
     color: 'B' | 'R',
     isActive: boolean,
     touchedSides: { touchesA: boolean; touchesB: boolean; touchesC: boolean },
+    timerValue: number,
+    incrementMsg: string | null,
+    showTimer: boolean,
   ) => {
     const playerTestId = label.toLowerCase().replaceAll(/\s+/g, '-')
     const triangle = getTriangleVertices()
@@ -373,6 +431,28 @@ const handleNextTurn = (moveData: MoveTurnResponse) => {
             {isActive ? t('game.turn') : t('game.waiting')}
           </Box>
         </Stack>
+
+        {showTimer ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5, height: 32 }}>
+            <Typography 
+              variant="h5" 
+              sx={{ 
+                fontWeight: 800, 
+                fontFamily: 'monospace', 
+                color: timerValue < 10 ? '#d32f2f' : 'inherit' 
+              }}
+            >
+              {formatTime(timerValue)}
+            </Typography>
+            {incrementMsg && (
+              <Typography variant="body2" sx={{ color: '#2e7d32', fontWeight: 700 }}>
+                {incrementMsg}
+              </Typography>
+            )}
+          </Box>
+        ) : (
+          <Box sx={{ mb: 1.5, height: 32 }} />
+        )}
 
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <svg
@@ -463,6 +543,21 @@ const handleNextTurn = (moveData: MoveTurnResponse) => {
 
     setBusy(true)
 
+    // Mostrar animación y luego aplicar incremento
+    if (currentPlayer === playerOneColor) {
+      setIncrementMsgP1(`+${incrementPerMove.toFixed(0)}s`);
+      setTimeout(() => {
+        setIncrementMsgP1(null);
+        setTimerP1(prev => Math.min(prev + incrementPerMove, initialSessionTime));
+      }, 1000);
+    } else if (mode === 'pvp' && currentPlayer === playerTwoColor) {
+      setIncrementMsgP2(`+${incrementPerMove.toFixed(0)}s`);
+      setTimeout(() => {
+        setIncrementMsgP2(null);
+        setTimerP2(prev => Math.min(prev + incrementPerMove, initialSessionTime));
+      }, 1000);
+    }
+
     const previousBoard = cloneBoard(board)
     const optimisticBoard = cloneBoard(board)
     optimisticBoard[row][col] = mode === 'pvp' ? currentPlayer : 'B'
@@ -543,6 +638,24 @@ const handleNextTurn = (moveData: MoveTurnResponse) => {
         throw new Error(data.error || t('game.unablePieRule'))
       }
 
+      // El jugador que usa el Pie Rule (Player 2) recibe incremento
+      if (currentPlayer === playerOneColor) {
+        setIncrementMsgP1(`+${incrementPerMove.toFixed(0)}s`);
+        setTimeout(() => { setIncrementMsgP1(null); setTimerP1(p => Math.min(p + incrementPerMove, initialSessionTime)); }, 1000);
+      } else if (currentPlayer === playerTwoColor) {
+        setIncrementMsgP2(`+${incrementPerMove.toFixed(0)}s`);
+        setTimeout(() => { setIncrementMsgP2(null); setTimerP2(p => Math.min(p + incrementPerMove, initialSessionTime)); }, 1000);
+      }
+
+      // El jugador que usa el Pie Rule (Player 2) recibe incremento
+      if (currentPlayer === playerOneColor) {
+        setIncrementMsgP1(`+${incrementPerMove.toFixed(0)}s`);
+        setTimeout(() => { setIncrementMsgP1(null); setTimerP1(p => Math.min(p + incrementPerMove, initialSessionTime)); }, 1000);
+      } else if (currentPlayer === playerTwoColor) {
+        setIncrementMsgP2(`+${incrementPerMove.toFixed(0)}s`);
+        setTimeout(() => { setIncrementMsgP2(null); setTimerP2(p => Math.min(p + incrementPerMove, initialSessionTime)); }, 1000);
+      }
+
       const moveData = data as MoveTurnResponse
       const updated = boardFromLayout(moveData.state.size, moveData.state.layout)
       const nextPlayer = moveData.state.turn === 0 ? 'B' : 'R'
@@ -586,6 +699,8 @@ const handleNextTurn = (moveData: MoveTurnResponse) => {
     setWinner(null)
     setStartTime(null)
     setIsGameOver(false)
+    setTimerP1(initialSessionTime)
+    setTimerP2(initialSessionTime)
     setCurrentPlayer('B')
     setPlayerOneColor('B')
     setPlayerTwoColor('R')
@@ -639,9 +754,17 @@ const handleNextTurn = (moveData: MoveTurnResponse) => {
             gap: 2,
           }}
         >
-          <Box sx={{ width: { xs: '100%', lg: 210 }, flexShrink: 0 }}>
-            {renderPlayerTriangle(playerOneLabel, playerOneColor, playerOneActive, playerOneSides)}
-          </Box>
+        <Box sx={{ width: { xs: '100%', lg: 210 }, flexShrink: 0 }}>
+          {renderPlayerTriangle(
+            playerOneLabel, 
+            playerOneColor, 
+            playerOneActive, 
+            playerOneSides, 
+            timerP1, 
+            incrementMsgP1,
+            true
+          )}
+        </Box>
 
           <Box sx={{ width: '100%', maxWidth: 560, p: 2 }}>
             <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} width="100%" aria-label={t('game.boardAriaLabel')}>
@@ -690,7 +813,15 @@ const handleNextTurn = (moveData: MoveTurnResponse) => {
           </Box>
 
           <Box sx={{ width: { xs: '100%', lg: 210 }, flexShrink: 0 }}>
-            {renderPlayerTriangle(playerTwoLabel, playerTwoColor, playerTwoActive, playerTwoSides)}
+            {renderPlayerTriangle(
+              playerTwoLabel, 
+              playerTwoColor, 
+              playerTwoActive, 
+              playerTwoSides, 
+              timerP2, 
+              incrementMsgP2,
+              mode === 'pvp'
+            )}
             {canUsePieRule && (
               <Button
                 variant="contained"

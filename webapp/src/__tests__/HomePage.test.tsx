@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import HomePage from "../pages/HomePage";
@@ -38,7 +38,7 @@ describe("HomePage", () => {
 
     it("does not show the help modal on load", () => {
       render(<HomePage />);
-      expect(screen.queryByText(/home\.howToPlay/i)).not.toBeInTheDocument();
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });
 
@@ -59,16 +59,18 @@ describe("HomePage", () => {
       const user = userEvent.setup();
       render(<HomePage />);
       
-      const helpButton = screen.getByText("?");
+      const helpButton = screen.getByRole("button", { name: /^how to play$/i });
       await user.click(helpButton);
 
-      expect(screen.getByText(/home\.howToPlay/i)).toBeInTheDocument();
+      const dialog = screen.getByRole("dialog");
+      expect(dialog).toBeInTheDocument();
+      expect(within(dialog).getByText(/home\.howToPlay/i)).toBeInTheDocument();
     });
 
     it("shows the Rules tab content by default", async () => {
       const user = userEvent.setup();
       render(<HomePage />);
-      await user.click(screen.getByText("?"));
+      await user.click(screen.getByRole("button", { name: /^how to play$/i }));
 
       expect(screen.getByText(/home\.goalDescription/i)).toBeInTheDocument();
       expect(screen.getByText(/home\.cornerRule/i)).toBeInTheDocument();
@@ -78,7 +80,7 @@ describe("HomePage", () => {
     it("switches to the Opponents tab and shows bot descriptions", async () => {
       const user = userEvent.setup();
       render(<HomePage />);
-      await user.click(screen.getByText("?"));
+      await user.click(screen.getByRole("button", { name: /^how to play$/i }));
 
       const opponentsTab = screen.getByRole("tab", { name: /home\.opponents/i });
       await user.click(opponentsTab);
@@ -91,14 +93,14 @@ describe("HomePage", () => {
       const user = userEvent.setup();
       render(<HomePage />);
       
-      await user.click(screen.getByText("?"));
-      expect(screen.getByText(/home\.howToPlay/i)).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: /^how to play$/i }));
 
-      const closeButton = screen.getByTestId("CloseIcon").closest("button");
-      await user.click(closeButton!);
+      const dialog = screen.getByRole("dialog");
+      const closeButton = within(dialog).getByRole("button", { name: /close help modal/i });
+      await user.click(closeButton);
 
       await waitFor(() => {
-        expect(screen.queryByText(/home\.howToPlay/i)).not.toBeInTheDocument();
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
       });
     });
   });
