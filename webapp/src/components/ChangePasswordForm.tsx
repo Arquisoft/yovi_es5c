@@ -52,10 +52,10 @@ const ChangePasswordForm = () => {
       }
     }
     if (name === "repeatNewPassword") {
-      if (value !== formData.newPassword) {
-        setRepeatNewPasswordError(t("auth.passwordsDoNotMatch"));
-      } else {
+      if (value === formData.newPassword) {
         setRepeatNewPasswordError(null);
+      } else {
+        setRepeatNewPasswordError(t("auth.passwordsDoNotMatch"));        
       }
     }
   };
@@ -84,13 +84,13 @@ const ChangePasswordForm = () => {
       hasError = true;
     }
 
-    if (hasError) return;
-
-    
-    if (formData.currentPassword === formData.newPassword) {
+    if (formData.currentPassword && formData.newPassword && formData.currentPassword === formData.newPassword) {
         setNewPasswordError("The new password must be different from the current password.");
         hasError = true;
     }
+
+    if (hasError) return;
+
 
     setLoading(true);
     try {
