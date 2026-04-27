@@ -81,7 +81,7 @@ const DivRow = styled("div")(({ theme }) => ({
 const ModeButton = styled(Button)({
   width: "100%",
   maxWidth: 280,
-  padding: "14px 18px",
+  padding: "6px 8px",
   fontSize: "clamp(0.88rem, 2.5vw, 0.96rem)",
   letterSpacing: "0.06em",
   borderColor: "#c8a84b",
@@ -224,10 +224,36 @@ const LogoContainer = styled("div")({
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  gap: 60,
+  gap: 12,
   width: "100%",
   marginTop: 0,
+  marginBottom: 0,
+  flexWrap: "wrap",
 });
+
+const BoardSizePanel = styled("div")({
+  width: 220,
+  minHeight: 120,
+  border: "1px solid rgba(200, 168, 75, 0.4)",
+  borderRadius: 16,
+  backgroundColor: "rgba(17, 17, 17, 0.92)",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  alignItems: "center",
+  gap: 10,
+  padding: "18px 16px",
+  boxSizing: "border-box",
+});
+
+const BoardSizeLabel = styled(Typography)({
+  color: "#ddd8c8",
+  fontSize: "0.85rem",
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
+  textAlign: "center",
+});
+
 const SlotBox = styled("div")({
   width: 220,
   height: 120,
@@ -396,12 +422,6 @@ const GameSetup = () => {
       </DivColumn>
 
    <LogoContainer>
-      <img
-        src="/logo.png"
-        alt={t('setup.logoAlt')}
-        style={{ width: "20vw", height: "20vw" }}
-      />
-
         {(isRolling || rollingBot) && (
           <SlotBox>
             <SlotText>{isRolling ? t('setup.rolling') : t('setup.yourMatch')}</SlotText>
@@ -409,6 +429,33 @@ const GameSetup = () => {
             <SlotText>Difficulty: {rollingDifficulty}</SlotText>
           </SlotBox>
         )}
+
+      <img
+        src="/logo.png"
+        alt={t('setup.logoAlt')}
+        style={{ width: "20vw", height: "20vw" }}
+      />
+
+      <BoardSizePanel>
+        <BoardSizeLabel>{t('setup.boardSize')}</BoardSizeLabel>
+        <SpinnerContainer>
+          <SpinnerBtn
+            onClick={handleDecreaseSize}
+            disabled={boardSize <= minBoardSize || isDisabled}
+            aria-label={t('setup.decreaseBoardSize')}
+          >
+            −
+          </SpinnerBtn>
+          <SpinnerValue>{boardSize}</SpinnerValue>
+          <SpinnerBtn
+            onClick={handleIncreaseSize}
+            disabled={boardSize >= maxBoardSize || isDisabled}
+            aria-label={t('setup.increaseBoardSize')}
+          >
+            +
+          </SpinnerBtn>
+        </SpinnerContainer>
+      </BoardSizePanel>
     </LogoContainer>
 
     <DivRow>
@@ -420,7 +467,7 @@ const GameSetup = () => {
         </DivColumn>
       
         {/* ── Modo PvP ── */}
-        <DivColumn minHeight={188} gap={10}>
+        <DivColumn>
           <ModeButton data-testid="start-pvp-game" variant="outlined" onClick={handleStartPvp} disabled={isDisabled}>
             {t('setup.pvp')}
           </ModeButton>
@@ -428,7 +475,7 @@ const GameSetup = () => {
         </DivColumn>
 
         {/* ── Modo Bot ── */}
-        <DivColumn minHeight={188} gap={10}>
+        <DivColumn>
           <ModeButton variant="outlined" onClick={handleBotMenuOpen} disabled={isDisabled}>
             {t('setup.bot')}
           </ModeButton>
@@ -474,28 +521,6 @@ const GameSetup = () => {
               </DifficultyMenuItem>
             ))}
           </StyledMenu>
-        </DivColumn>
-
-        {/* ── Tamaño del tablero ── */}
-        <DivColumn minHeight={188} gap={10}>
-          <SpinnerContainer>
-            <SpinnerBtn
-              onClick={handleDecreaseSize}
-              disabled={boardSize <= minBoardSize || isDisabled}
-              aria-label={t('setup.decreaseBoardSize')}
-            >
-              −
-            </SpinnerBtn>
-            <SpinnerValue>{boardSize}</SpinnerValue>
-            <SpinnerBtn
-              onClick={handleIncreaseSize}
-              disabled={boardSize >= maxBoardSize || isDisabled}
-              aria-label={t('setup.increaseBoardSize')}
-            >
-              +
-            </SpinnerBtn>
-          </SpinnerContainer>
-          <ModeDescription>{t('setup.boardSize')}</ModeDescription>
         </DivColumn>
       </DivRow>
       </ContentShell>
