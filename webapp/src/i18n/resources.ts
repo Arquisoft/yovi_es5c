@@ -60,7 +60,7 @@ export const resources = {
       },
       home: {
         play: "Play",
-        howToPlay: "How to play",
+        howToPlay: "How to play?",
         rules: "Rules",
         opponents: "Opponents",
         goal: "Goal",
@@ -91,9 +91,17 @@ export const resources = {
             name: "Edge bot",
             desc: "Prioritizes corners and edges for quick side connections.",
           },
+          smart: {
+            name: "Smart bot",
+            desc: "Balances offense and defense with tactical blocking and winning moves.",
+          },
           mirror: {
             name: "Mirror bot",
             desc: "Copies your moves using rotational symmetry. Hard to read.",
+          },
+          alpha: {
+            name: "Alpha bot",
+            desc: "Uses minimax algorithm with alpha-beta pruning for deep analysis.",
           },
         },
       },
@@ -226,7 +234,7 @@ export const resources = {
           seconds: "a few seconds ago",
           minutes: "{{n}} min ago",
           hours: "{{n}} h ago",
-          days: "{{n}} day ago_plural:{{n}} days ago",
+          days: "{{n}} days ago",
         },
       },
     },
@@ -292,7 +300,7 @@ export const resources = {
       },
       home: {
         play: "Jugar",
-        howToPlay: "Cómo jugar",
+        howToPlay: "¿Cómo jugar?",
         rules: "Reglas",
         opponents: "Oponentes",
         goal: "Objetivo",
@@ -323,9 +331,17 @@ export const resources = {
             name: "Bot borde",
             desc: "Prioriza esquinas y bordes para conectar lados rapidamente.",
           },
+          smart: {
+            name: "Bot inteligente",
+            desc: "Equilibra ataque y defensa con bloqueos tácticos y jugadas ganadoras.",
+          },
           mirror: {
             name: "Bot espejo",
             desc: "Copia tus movimientos con simetria rotacional. Cuesta leerlo.",
+          },
+          alpha: {
+            name: "Bot alpha",
+            desc: "Utiliza el algoritmo minimax con poda alpha-beta para un análisis profundo.",
           },
         },
       },
@@ -458,7 +474,7 @@ export const resources = {
           seconds: "hace unos segundos",
           minutes: "hace {{n}} min",
           hours: "hace {{n}} h",
-          days: "hace {{n}} día_plural:hace {{n}} días",
+          days: "hace {{n}} días",
         },
       },
     },

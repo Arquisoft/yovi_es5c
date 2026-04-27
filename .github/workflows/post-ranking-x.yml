@@ -1,0 +1,49 @@
+name: Post Daily Ranking to X
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Generate the post without publishing it to X
+        required: false
+        default: true
+        type: boolean
+      ranking_limit:
+        description: Number of ranking entries to include
+        required: false
+        default: "3"
+        type: string
+  schedule:
+    - cron: "0 21 * * *"
+
+jobs:
+  post-ranking:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      RANKING_API_URL: http://4.233.210.164:8000
+      X_API_KEY: ${{ secrets.X_API_KEY }}
+      X_API_SECRET: ${{ secrets.X_API_SECRET }}
+      X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+      X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+      RANKING_SORT_BY: wins
+      RANKING_ORDER: desc
+      RANKING_LIMIT: ${{ github.event.inputs.ranking_limit || '3' }}
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run || 'false' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install automation dependencies
+        run: npm install
+        working-directory: automation/x-ranking
+
+      - name: Generate and publish ranking post
+        run: npm run post-ranking
+        working-directory: automation/x-ranking
