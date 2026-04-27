@@ -40,21 +40,24 @@ const PlayButton = styled('button')({
 });
 
 const HelpBtn = styled('button')({
-  width: 42,
-  height: 42,
-  borderRadius: '50%',
+  padding: '10px 20px',
+  borderRadius: '8px',
   border: '2px solid rgba(255,255,255,0.6)',
   background: 'rgba(255,255,255,0.08)',
   color: '#fff',
-  fontSize: '17px',
-  fontWeight: 700,
+  fontSize: '0.95rem',
+  fontWeight: 600,
   cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
+  gap: '6px',
   zIndex: 1,
-  transition: 'background 0.2s',
-  '&:hover': { background: 'rgba(255,255,255,0.22)' },
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    background: 'rgba(255,255,255,0.18)',
+    transform: 'scale(1.05)',
+  },
 });
 
 export default function HomePage() {
@@ -62,6 +65,7 @@ export default function HomePage() {
   const { t } = useTranslation();
   const [helpOpen, setHelpOpen] = useState(false);
   const [tab, setTab] = useState(0);
+  const helpTitleId = 'home-help-title';
 
   // Define bots array with translations
   const BOTS = [
@@ -78,8 +82,16 @@ export default function HomePage() {
       desc: t('home.bots.edge.desc')
     },
     { 
+      name: t('home.bots.smart.name'),  
+      desc: t('home.bots.smart.desc')
+    },
+    { 
       name: t('home.bots.mirror.name'),  
       desc: t('home.bots.mirror.desc')
+    },
+        { 
+      name: t('home.bots.alpha.name'),  
+      desc: t('home.bots.alpha.desc')
     },
   ];
 
@@ -96,18 +108,23 @@ export default function HomePage() {
         <PlayButton onClick={() => navigate('/set')}>
           <PlayArrowIcon fontSize="small" /> {t('home.play')}
         </PlayButton>
-        <HelpBtn onClick={() => { setHelpOpen(true); setTab(0); }}>
-          ?
+        <HelpBtn aria-label={"How to play"} onClick={() => { setHelpOpen(true); setTab(0); }}>
+          {t('home.howToPlay')}
         </HelpBtn>
       </Box>
 
       {helpOpen && (
-        <Box sx={{
-          position: 'absolute', inset: 0,
-          backgroundColor: 'rgba(0,0,0,0.65)',
-          zIndex: 10,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
+        <Box
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={helpTitleId}
+          sx={{
+            position: 'absolute', inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.65)',
+            zIndex: 10,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
           <Box sx={{
             bgcolor: '#1a2744',
             borderRadius: 3,
@@ -122,7 +139,12 @@ export default function HomePage() {
               <Typography fontWeight={600} fontSize={17} color="#fff">
                 {t('home.howToPlay')}
               </Typography>
-              <IconButton size="small" onClick={() => setHelpOpen(false)} sx={{ color: '#fff' }}>
+              <IconButton
+                aria-label="Close help modal"
+                size="small"
+                onClick={() => setHelpOpen(false)}
+                sx={{ color: '#fff' }}
+              >
                 <CloseIcon fontSize="small" />
               </IconButton>
             </Box>

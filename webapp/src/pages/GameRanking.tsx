@@ -21,8 +21,6 @@ type SortOrder = 'asc' | 'desc';
 
 
 
-
-
 // ─── Table ───────────────────────────────────────────────────
 const TableWrapper = styled("div")({
   width: "100%",
@@ -42,7 +40,7 @@ const TableHeader = styled("div")({
 
 const HeaderCell = styled("span")({
   fontSize: "0.8rem",
-  color: "#444",
+  color: "#ddd8c8",
   letterSpacing: "0.15em",
   textTransform: "uppercase",
 });
@@ -82,7 +80,7 @@ const RankCell = styled("span")<{ rank: number }>(({ rank }) => ({
 
 const NameCell = styled("span")<{ isMe: boolean }>(({ isMe }) => ({
   fontSize: "0.9rem",
-  color: isMe ? "#e8d89a" : "#aaa",
+  color: isMe ? "#e8d89a" : "#ddd8c8",
   fontFamily: isMe ? "Georgia, serif" : "inherit",
   letterSpacing: "0.03em",
   display: "flex",
@@ -147,7 +145,7 @@ const getSortIndicator = (field: SortField, sortBy: SortField, order: SortOrder)
 const SortableHeader = ({ field, label, sortBy, order, onSort }: SortableHeaderProps) => (
   <HeaderCell
     onClick={() => onSort(field)}
-    style={{ cursor: 'pointer', color: sortBy === field ? '#c8a84b' : '#444' }}
+    style={{ cursor: 'pointer', color: sortBy === field ? '#c8a84b' : '#ddd8c8' }}
   >
     {label} {getSortIndicator(field, sortBy, order)}
   </HeaderCell>
