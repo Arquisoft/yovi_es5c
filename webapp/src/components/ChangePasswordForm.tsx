@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { TextField, Button, Box, Grid, Alert } from "@mui/material";
 import { useTranslation } from "react-i18next";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useSession } from "../SessionContext";
+import { translateBackendError } from "../utils/translateBackendError";
+
+const apiEndpoint = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 interface FormData {
   currentPassword: string;
@@ -9,6 +15,8 @@ interface FormData {
 }
 
 const ChangePasswordForm = () => {
+  const navigate = useNavigate();
+  const { username } = useSession();
   const { t } = useTranslation();
 
   const [formData, setFormData] = useState<FormData>({
@@ -78,9 +86,27 @@ const ChangePasswordForm = () => {
 
     if (hasError) return;
 
+    
+    if (formData.currentPassword === formData.newPassword) {
+        setNewPasswordError("The new password must be different from the current password.");
+        hasError = true;
+    }
+
     setLoading(true);
-    // API logic will be implemented here
-    setLoading(false);
+    try {
+      await axios.post(`${apiEndpoint}/user/change-password`, {
+        username,
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword,
+      });
+
+      navigate("/profile");
+    } catch (err: any) {
+      const backendError = err.response?.data?.error;
+      setError(translateBackendError(backendError, t) || t("errors.genericChangePassword"));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
