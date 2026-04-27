@@ -29,19 +29,12 @@ const SessionProvider: React.FC<SessionProviderProps> = ({ children }) => {
     setIsLoggedIn(false);
   };
 
-  const isValidUsername = (value: unknown): value is string => {
-    return (
-      typeof value === 'string' &&
-      /^[a-zA-Z0-9_]+$/.test(value)
-    );
-  };
-
   useEffect(() => {
     const validateSession = async () => {
       const storedSessionId = localStorage.getItem('sessionId');
       const storedUsername = localStorage.getItem('username');
 
-      if (storedSessionId && isValidUsername(storedUsername)) {
+      if (storedSessionId && storedUsername) {
         try {
           // Validamos el token intentando obtener el perfil del usuario
           const response = await fetch(`http://localhost:8000/user/${storedUsername}`, {
