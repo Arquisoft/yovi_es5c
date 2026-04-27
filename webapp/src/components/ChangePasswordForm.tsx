@@ -85,7 +85,7 @@ const ChangePasswordForm = () => {
     }
 
     if (formData.currentPassword && formData.newPassword && formData.currentPassword === formData.newPassword) {
-        setNewPasswordError("The new password must be different from the current password.");
+        setNewPasswordError(t("profile.newPasswordMustDiffer"));
         hasError = true;
     }
 
@@ -100,7 +100,7 @@ const ChangePasswordForm = () => {
         newPassword: formData.newPassword,
       });
 
-      alert("Password changed successfully. After pressing OK, you will be logged out.");
+      alert(t("profile.changePasswordSuccess"));
 
       //Once accept is pressed, it'll log out
         if (username) {
@@ -128,7 +128,7 @@ const ChangePasswordForm = () => {
             required
             fullWidth
             name="currentPassword"
-            label="Current Password"
+            label={t("profile.currentPassword")}
             type="password"
             id="currentPassword"
             value={formData.currentPassword}
@@ -143,7 +143,7 @@ const ChangePasswordForm = () => {
             required
             fullWidth
             name="newPassword"
-            label="New Password"
+            label={t("profile.newPassword")}
             type="password"
             id="newPassword"
             value={formData.newPassword}
@@ -158,7 +158,7 @@ const ChangePasswordForm = () => {
             required
             fullWidth
             name="repeatNewPassword"
-            label="Repeat New Password"
+            label={t("profile.repeatNewPassword")}
             type="password"
             id="repeatNewPassword"
             value={formData.repeatNewPassword}
@@ -183,7 +183,7 @@ const ChangePasswordForm = () => {
         disabled={loading}
         sx={{ mt: 3, mb: 2 }}
       >
-        Change Password
+        {t("profile.changePassword")}
       </Button>
     </Box>
   );

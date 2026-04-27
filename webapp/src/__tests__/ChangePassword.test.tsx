@@ -41,10 +41,10 @@ describe("ChangePassword Page & Form", () => {
   it("renders all form fields and the submit button", () => {
     renderComponent();
 
-    expect(screen.getByLabelText(/current password/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/^new password/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/repeat new password/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /change password/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/profile\.currentPassword/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/profile\.newPassword/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/profile\.repeatNewPassword/i)).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /profile\.changePassword/i }).length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows error messages when submitting empty fields", async () => {
@@ -52,7 +52,7 @@ describe("ChangePassword Page & Form", () => {
     const user = userEvent.setup();
 
     await act(async () => {
-      await user.click(screen.getByRole("button", { name: /change password/i }));
+      await user.click(screen.getAllByRole("button", { name: /profile\.changePassword/i })[0]);
     });
 
     const errors = screen.getAllByText(/auth\.requiredField/i);
@@ -63,7 +63,7 @@ describe("ChangePassword Page & Form", () => {
   it("shows validation error for invalid password format", async () => {
     renderComponent();
     const user = userEvent.setup();
-    const newPassInput = screen.getByLabelText(/^new password/i);
+    const newPassInput = screen.getByLabelText(/profile\.newPassword/i);
 
     await act(async () => {
       await user.type(newPassInput, "123");
@@ -76,13 +76,13 @@ describe("ChangePassword Page & Form", () => {
     renderComponent();
     const user = userEvent.setup();
     
-    const newPassInput = screen.getByLabelText(/^new password/i);
-    const repeatPassInput = screen.getByLabelText(/repeat new password/i);
+    const newPassInput = screen.getByLabelText(/profile\.newPassword/i);
+    const repeatPassInput = screen.getByLabelText(/profile\.repeatNewPassword/i);
 
     await act(async () => {
       await user.type(newPassInput, "ValidPass1!");
       await user.type(repeatPassInput, "DifferentPass1!");
-      await user.click(screen.getByRole("button", { name: /change password/i }));
+      await user.click(screen.getAllByRole("button", { name: /profile\.changePassword/i })[0]);
     });
 
     expect(screen.getByText(/auth\.passwordsDoNotMatch/i)).toBeInTheDocument();
@@ -92,18 +92,18 @@ describe("ChangePassword Page & Form", () => {
     renderComponent();
     const user = userEvent.setup();
     
-    const currentPassInput = screen.getByLabelText(/current password/i);
-    const newPassInput = screen.getByLabelText(/^new password/i);
-    const repeatPassInput = screen.getByLabelText(/repeat new password/i);
+    const currentPassInput = screen.getByLabelText(/profile\.currentPassword/i);
+    const newPassInput = screen.getByLabelText(/profile\.newPassword/i);
+    const repeatPassInput = screen.getByLabelText(/profile\.repeatNewPassword/i);
 
     await act(async () => {
       await user.type(currentPassInput, "SamePass1!");
       await user.type(newPassInput, "SamePass1!");
       await user.type(repeatPassInput, "SamePass1!");
-      await user.click(screen.getByRole("button", { name: /change password/i }));
+      await user.click(screen.getAllByRole("button", { name: /profile\.changePassword/i })[0]);
     });
 
-    expect(screen.getByText(/The new password must be different from the current password/i)).toBeInTheDocument();
+    expect(screen.getByText(/profile\.newPasswordMustDiffer/i)).toBeInTheDocument();
   });
 
   it("handles successful password change and redirects", async () => {
@@ -112,10 +112,10 @@ describe("ChangePassword Page & Form", () => {
     const user = userEvent.setup();
 
     await act(async () => {
-      await user.type(screen.getByLabelText(/current password/i), "OldPass1!");
-      await user.type(screen.getByLabelText(/^new password/i), "NewPass1!");
-      await user.type(screen.getByLabelText(/repeat new password/i), "NewPass1!");
-      await user.click(screen.getByRole("button", { name: /change password/i }));
+      await user.type(screen.getByLabelText(/profile\.currentPassword/i), "OldPass1!");
+      await user.type(screen.getByLabelText(/profile\.newPassword/i), "NewPass1!");
+      await user.type(screen.getByLabelText(/profile\.repeatNewPassword/i), "NewPass1!");
+      await user.click(screen.getAllByRole("button", { name: /profile\.changePassword/i })[0]);
     });
 
     await waitFor(() => {
@@ -130,7 +130,7 @@ describe("ChangePassword Page & Form", () => {
       );
       
       // Verifica alerta
-      expect(window.alert).toHaveBeenCalledWith(expect.stringContaining("successfully"));
+      expect(window.alert).toHaveBeenCalledWith("profile.changePasswordSuccess");
       
       // Verifica llamada a logout
       expect(mockedAxios.post).toHaveBeenCalledWith(
@@ -152,14 +152,14 @@ describe("ChangePassword Page & Form", () => {
     const user = userEvent.setup();
 
     await act(async () => {
-        await user.type(screen.getByLabelText(/current password/i), "WrongPass1!");
-        await user.type(screen.getByLabelText(/^new password/i), "NewPass1!");
-        await user.type(screen.getByLabelText(/repeat new password/i), "NewPass1!");
-        await user.click(screen.getByRole("button", { name: /change password/i }));
+        await user.type(screen.getByLabelText(/profile\.currentPassword/i), "WrongPass1!");
+        await user.type(screen.getByLabelText(/profile\.newPassword/i), "NewPass1!");
+        await user.type(screen.getByLabelText(/profile\.repeatNewPassword/i), "NewPass1!");
+        await user.click(screen.getAllByRole("button", { name: /profile\.changePassword/i })[0]);
     });
 
     await waitFor(() => {
-        expect(screen.getByRole("alert")).toHaveTextContent(/errors\.fallback/i);
+        expect(screen.getByRole("alert")).toHaveTextContent(/errors\.incorrectCurrentPassword/i);
     });
     });
 
@@ -168,14 +168,14 @@ describe("ChangePassword Page & Form", () => {
     const user = userEvent.setup();
 
     await act(async () => {
-      await user.click(screen.getByRole("button", { name: /change password/i }));
+      await user.click(screen.getAllByRole("button", { name: /profile\.changePassword/i })[0]);
     });
     expect(screen.getAllByText(/auth\.requiredField/i)[0]).toBeInTheDocument();
 
     await act(async () => {
-      const currentPassInput = screen.getByLabelText(/current password/i);
+      const currentPassInput = screen.getByLabelText(/profile\.currentPassword/i);
       await user.type(currentPassInput, "a");
     });
-    expect(screen.getByLabelText(/current password/i)).not.toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByLabelText(/profile\.currentPassword/i)).not.toHaveAttribute('aria-invalid', 'true');
   });
 });
