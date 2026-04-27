@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
+import React, { createContext, useState, useEffect, useContext, useMemo, useCallback, type ReactNode } from 'react';
 
 interface SessionContextType {
   sessionId: string;
@@ -21,13 +21,14 @@ const SessionProvider: React.FC<SessionProviderProps> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [isReady, setIsReady] = useState<boolean>(false);
 
-  const destroySession = (): void => {
+  const destroySession = useCallback((): void => {
     localStorage.removeItem('sessionId');
     localStorage.removeItem('username');
     setSessionId('');
     setUsername('');
     setIsLoggedIn(false);
-  };
+  }, []);
+
 
   useEffect(() => {
     const validateSession = async () => {
@@ -72,9 +73,9 @@ const SessionProvider: React.FC<SessionProviderProps> = ({ children }) => {
     validateSession();
   }, []);
 
-  const createSession = (username: string, token: string): void => {
+  const createSession = useCallback((username: string, token: string): void => {
     const usernameRegex = /^[a-zA-Z0-9_-]+$/;
-    const tokenRegex = /^[a-zA-Z0-9-_\.]+$/;
+    const tokenRegex = /^[a-zA-Z0-9-_.]+$/;
 
     if (!usernameRegex.test(username) || !tokenRegex.test(token)) {
       console.error('Intento de guardar datos inválidos o potencialmente maliciosos en la sesión.');
@@ -87,10 +88,19 @@ const SessionProvider: React.FC<SessionProviderProps> = ({ children }) => {
 
     localStorage.setItem('sessionId', token);
     localStorage.setItem('username', username);
-  };
+  }, []);
+
+  const contextValue = useMemo(() => ({
+    sessionId,
+    username,
+    isLoggedIn,
+    isReady,
+    createSession,
+    destroySession,
+  }), [sessionId, username, isLoggedIn, isReady, createSession, destroySession]);
 
   return (
-    <SessionContext.Provider value={{ sessionId, username, isLoggedIn, isReady, createSession, destroySession }}>
+    <SessionContext.Provider value={contextValue}>
       {children}
     </SessionContext.Provider>
   );
