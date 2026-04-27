@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import HomePage from "../pages/HomePage";
@@ -62,7 +62,9 @@ describe("HomePage", () => {
       const helpButton = screen.getByRole("button", { name: /^how to play$/i });
       await user.click(helpButton);
 
-      expect(screen.getByText(/home\.howToPlay/i)).toBeInTheDocument();
+      const dialog = screen.getByRole("dialog");
+      expect(dialog).toBeInTheDocument();
+      expect(within(dialog).getByText(/home\.howToPlay/i)).toBeInTheDocument();
     });
 
     it("shows the Rules tab content by default", async () => {
@@ -91,13 +93,14 @@ describe("HomePage", () => {
       const user = userEvent.setup();
       render(<HomePage />);
       
-      await user.click(screen.getByText(/home\.howToPlay/i));
+      await user.click(screen.getByRole("button", { name: /^how to play$/i }));
 
-      const closeButton = screen.getByRole("button", { name: /close help modal/i });
+      const dialog = screen.getByRole("dialog");
+      const closeButton = within(dialog).getByRole("button", { name: /close help modal/i });
       await user.click(closeButton);
 
       await waitFor(() => {
-        expect(screen.queryByText(/home\.howToPlay/i)).not.toBeInTheDocument();
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
       });
     });
   });
