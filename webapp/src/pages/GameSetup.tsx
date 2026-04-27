@@ -138,8 +138,8 @@ const DifficultyLabel = styled(Typography)({
 });
 
 const ModeDescription = styled("p")({
-  fontSize: "0.82rem",
-  color: "#949494",
+  fontSize: "0.9rem",
+  color: "#ddd8c8",
   margin: "4px 0 0 0",
   letterSpacing: "0.03em",
   textAlign: "center",

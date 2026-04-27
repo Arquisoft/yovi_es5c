@@ -108,7 +108,7 @@ const StatValue = styled("span")({
 
 const StatLabel = styled("span")({
   fontSize: "0.7rem",
-  color: "#777",
+  color: "#ddd8c8",
   letterSpacing: "0.08em",
   textTransform: "uppercase",
 });
@@ -138,7 +138,7 @@ const TableHeader = styled("div")(({ theme }) => ({
 
 const HeaderCell = styled("span")({
   fontSize: "0.65rem",
-  color: "#444",
+  color: "#ddd8c8",
   letterSpacing: "0.1em",
   textTransform: "uppercase",
 });
@@ -168,7 +168,7 @@ const TableRow = styled("div")<{ result: Result }>(({ result, theme }) => ({
 
 const Cell = styled("span")(({ theme }) => ({
   fontSize: "0.82rem",
-  color: "#888",
+  color: "#ddd8c8",
   letterSpacing: "0.03em",
   [theme.breakpoints.down("sm")]: {
     display: "grid",
