@@ -16,7 +16,7 @@ interface FormData {
 
 const ChangePasswordForm = () => {
   const navigate = useNavigate();
-  const { username } = useSession();
+  const { username, destroySession } = useSession();
   const { t } = useTranslation();
 
   const [formData, setFormData] = useState<FormData>({
@@ -100,12 +100,23 @@ const ChangePasswordForm = () => {
         newPassword: formData.newPassword,
       });
 
-      navigate("/profile");
+      alert("Password changed successfully. After pressing OK, you will be logged out.");
+
+      //Once accept is pressed, it'll log out
+        if (username) {
+          try {
+            await axios.post(`${apiEndpoint}/logout`, { username });
+          } catch {
+            // Ignore logout network errors
+          }
+        }
+        destroySession();
+        navigate("/login");
+  
     } catch (err: any) {
+      setLoading(false);
       const backendError = err.response?.data?.error;
       setError(translateBackendError(backendError, t) || t("errors.genericChangePassword"));
-    } finally {
-      setLoading(false);
     }
   };
 

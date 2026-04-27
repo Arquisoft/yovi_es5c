@@ -87,11 +87,17 @@ app.post('/user/change-password', async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
+        
         const passwordMatch = await bcrypt.compare(currentPassword, user.password);
         if (!passwordMatch) {
             return res.status(401).json({ error: 'Incorrect current password' });
         }
-
+        
+        const isSamePassword = await bcrypt.compare(newPassword, user.password);
+        if (isSamePassword) {
+            return res.status(400).json({ error: 'The new password is the same as the current one.'});
+        }
+        
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         user.password = hashedPassword;
         await user.save();
