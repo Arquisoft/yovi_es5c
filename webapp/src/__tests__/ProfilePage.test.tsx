@@ -73,9 +73,9 @@ describe('ProfilePage', () => {
           ok: true,
           json: async () => ({
             username: 'testuser',
-            name: 'Mario',
-            surname: 'Garcia', // Datos nuevos
-            email: 'mario.garcia@uniovi.es',
+            name: 'Test',
+            surname: 'Updated',
+            email: 'test.updated@uniovi.es',
           }),
         }
       }

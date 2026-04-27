@@ -6,7 +6,11 @@ interface PrivateRouteProps {
 }
 
 const PrivateRoute = ({ children }: PrivateRouteProps) => {
-  const { isLoggedIn } = useSession();
+  const { isLoggedIn, isReady } = useSession();
+
+  if (!isReady) {
+    return null; 
+  }
 
   return isLoggedIn ? <>{children}</> : <Navigate to="/login" replace />;
 }

@@ -64,7 +64,7 @@ async function saveProfile(profile: ProfileData, t: (key: string) => string): Pr
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}` // Enviamos el token al Gateway
+      'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify({
       name: profile.name,

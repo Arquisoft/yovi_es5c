@@ -4,6 +4,7 @@ interface SessionContextType {
   sessionId: string;
   username: string;
   isLoggedIn: boolean;
+  isReady: boolean;
   createSession: (username: string, token: string) => void;
   destroySession: () => void;
 }
@@ -18,7 +19,7 @@ const SessionProvider: React.FC<SessionProviderProps> = ({ children }) => {
   const [sessionId, setSessionId] = useState<string>('');
   const [username, setUsername] = useState<string>('');
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [_, setIsReady] = useState<boolean>(false); // Nuevo estado para saber si ya validamos
+  const [isReady, setIsReady] = useState<boolean>(false);
 
   const destroySession = (): void => {
     localStorage.removeItem('sessionId');
@@ -71,7 +72,7 @@ const SessionProvider: React.FC<SessionProviderProps> = ({ children }) => {
   };
 
   return (
-    <SessionContext.Provider value={{ sessionId, username, isLoggedIn, createSession, destroySession }}>
+    <SessionContext.Provider value={{ sessionId, username, isLoggedIn, isReady, createSession, destroySession }}>
       {children}
     </SessionContext.Provider>
   );

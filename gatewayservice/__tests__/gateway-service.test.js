@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach, afterAll } from 'vitest'; 
 const request = require('supertest');
 const axios = require('axios');
-const { app, parseYenPosition, resolvePublicBotConfig } = require('../gateway-service');
+const { app, server, parseYenPosition, resolvePublicBotConfig } = require('../gateway-service');
 
 vi.mock('axios');
 
@@ -151,13 +151,16 @@ describe('Gateway Service - Login Routing', () => {
 
         const res = await request(app)
             .post('/game/finish')
+            .set('Authorization', 'Bearer fake-token-123')
             .send(gameData);
 
         expect(res.status).toBe(201);
         expect(res.body).toEqual({ success: true });
+
         expect(axios.post).toHaveBeenCalledWith(
             expect.stringContaining('/game/finish'),
-            gameData
+            gameData,
+            { headers: { Authorization: 'Bearer fake-token-123' } }
         );
     });
 });
