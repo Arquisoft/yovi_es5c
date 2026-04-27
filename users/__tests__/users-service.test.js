@@ -440,6 +440,110 @@ describe('Login endpoints', () => {
     });
   });
 
+  describe('POST /user/change-password', () => {
+    it('should change password successfully', async () => {
+      const hashedPassword = await bcrypt.hash('OldPass123', 10);
+      await new User({
+        username: 'changepassuser',
+        name: 'Test',
+        surname: 'User',
+        email: 'test@test.com',
+        password: hashedPassword,
+      }).save();
+
+      const response = await request(app)
+        .post('/user/change-password')
+        .send({
+          username: 'changepassuser',
+          currentPassword: 'OldPass123',
+          newPassword: 'NewPass123'
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe('Password changed successfully');
+
+      const userInDb = await User.findOne({ username: 'changepassuser' });
+      const isPasswordValid = await bcrypt.compare('NewPass123', userInDb.password);
+      expect(isPasswordValid).toBe(true);
+    });
+
+    it('should return 400 if fields are missing', async () => {
+      const response = await request(app)
+        .post('/user/change-password')
+        .send({ username: 'test' });
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Username, current password and new password are required.');
+    });
+
+    it('should return 404 if user not found', async () => {
+      const response = await request(app)
+        .post('/user/change-password')
+        .send({
+          username: 'nonexistent',
+          currentPassword: 'any',
+          newPassword: 'any'
+        });
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('User not found');
+    });
+
+    it('should return 401 if current password is incorrect', async () => {
+      const hashedPassword = await bcrypt.hash('CorrectPass', 10);
+      await new User({
+        username: 'wrongpassuser',
+        name: 'Test',
+        surname: 'User',
+        email: 'test@test.com',
+        password: hashedPassword,
+      }).save();
+
+      const response = await request(app)
+        .post('/user/change-password')
+        .send({
+          username: 'wrongpassuser',
+          currentPassword: 'WrongPass',
+          newPassword: 'NewPass'
+        });
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBe('Incorrect current password');
+    });
+
+    it('should return 400 if new password is same as current', async () => {
+      const hashedPassword = await bcrypt.hash('SamePass', 10);
+      await new User({
+        username: 'samepassuser',
+        name: 'Test',
+        surname: 'User',
+        email: 'test@test.com',
+        password: hashedPassword,
+      }).save();
+
+      const response = await request(app)
+        .post('/user/change-password')
+        .send({
+          username: 'samepassuser',
+          currentPassword: 'SamePass',
+          newPassword: 'SamePass'
+        });
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('The new password is the same as the current one.');
+    });
+
+    it('should return 500 on internal error', async () => {
+      const findOneSpy = vi.spyOn(User, 'findOne').mockRejectedValue(new Error('DB Error'));
+      
+      const response = await request(app)
+        .post('/user/change-password')
+        .send({
+          username: 'any',
+          currentPassword: 'any',
+          newPassword: 'any'
+        });
+      
+      expect(response.status).toBe(500);
+      expect(response.body.error).toBe('Internal server error.');
+      findOneSpy.mockRestore();
+    });
+  });
+
 })
-
-

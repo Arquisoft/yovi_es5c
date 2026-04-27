@@ -13,6 +13,7 @@ import GamePage from './pages/GamePage'
 import GameHistory from './pages/GameHistory'
 import GameRanking from './pages/GameRanking'
 import ProfilePage from './pages/ProfilePage'
+import ChangePassword from './pages/ChangePassword'
 import { useEffect } from "react";
 import { updateThemeColors } from "./utils/themeController";
 import "./ui.css";
@@ -73,6 +74,14 @@ function App() {
           element={
             <PrivateRoute>
               <ProfilePage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/change-password"
+          element={
+            <PrivateRoute>
+              <ChangePassword />
             </PrivateRoute>
           }
         />
