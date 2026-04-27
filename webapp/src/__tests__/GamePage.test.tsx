@@ -205,7 +205,13 @@ it('debe resetear el tablero al hacer clic en "New Game"', () => {
 
 it('debe navegar a /homepage al hacer clic en "Back to Home"', () => {
 	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
-		; (useLocation as Mock).mockReturnValue({ state: null })
+	; (useLocation as Mock).mockReturnValue({ state: null })
+
+	Object.defineProperty(navigator, 'sendBeacon', {
+		value: vi.fn().mockReturnValue(true),
+		configurable: true,
+		writable: true
+	})
 
 	render(<GamePage />)
 
@@ -761,4 +767,55 @@ it('no debe mostrar el temporizador para el bot en modo vs Bot', () => {
 	// Solo el temporizador de "You" (P1) debe estar (5:00)
 	const timers = screen.queryAllByText('5:00')
 	expect(timers.length).toBe(1)
+})
+
+it('debe enviar una petición de abandono al servidor (sendBeacon) al hacer clic en "Back to Home" en modo bot', async () => {
+	// Configuramos el estado inicial
+	;(useSession as Mock).mockReturnValue({ isLoggedIn: true })
+	;(useLocation as Mock).mockReturnValue({ 
+		state: { mode: 'bot', bot_id: 'random_bot', difficulty: 'Medium' } 
+	})
+
+	// Mockeamos navigator.sendBeacon
+	const sendBeaconMock = vi.fn().mockReturnValue(true)
+	Object.defineProperty(navigator, 'sendBeacon', {
+		value: sendBeaconMock,
+		configurable: true,
+		writable: true
+	})
+
+	render(<GamePage />)
+
+	// Encontramos el botón y simulamos el clic
+	const backButton = screen.getByRole('button', { name: /game\.backToHome/i })
+	fireEvent.click(backButton)
+
+	// 1. Verificamos que sendBeacon fue llamado
+	expect(sendBeaconMock).toHaveBeenCalledWith(
+		'http://localhost:8000/game/abandon',
+		expect.any(Blob)
+	)
+
+	// 2. Extraemos el Blob enviado
+	const blobArg = sendBeaconMock.mock.calls[0][1] as Blob
+	
+	const blobText = await new Promise<string>((resolve, reject) => {
+		const reader = new FileReader()
+		reader.onload = () => resolve(reader.result as string)
+		reader.onerror = reject
+		reader.readAsText(blobArg)
+	})
+
+	const payload = JSON.parse(blobText)
+
+	// Validamos que el JSON contenga la estructura esperada
+	expect(payload).toMatchObject({
+		userId: 'testuser',
+		rival: 'random_bot',
+		level: 'Medium',
+		duration: expect.any(Number)
+	})
+
+	// 3. Verificamos que redirige correctamente
+	expect(mockNavigate).toHaveBeenCalledWith('/homepage')
 })
