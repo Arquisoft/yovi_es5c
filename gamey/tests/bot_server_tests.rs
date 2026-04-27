@@ -4,7 +4,7 @@ use axum::{
 };
 use gamey::{
     ErrorResponse, MoveResponse, PlayResponse, RandomBot, YBotRegistry, YEN, create_default_state,
-    create_router, state::AppState,
+    create_router, game_server, state::AppState,
 };
 use http_body_util::BodyExt;
 use std::sync::Arc;
@@ -113,22 +113,13 @@ async fn test_choose_endpoint_with_partially_filled_board() {
 #[tokio::test]
 async fn test_play_endpoint_with_default_public_bot() {
     let app = test_app();
-    let request_body = serde_json::json!({
-        "position": {
-            "size": 3,
-            "turn": 0,
-            "players": ["B", "R"],
-            "layout": "./../..."
-        }
-    });
 
     let response = app
         .oneshot(
             Request::builder()
-                .method("POST")
-                .uri("/v1/ybot/play")
-                .header("content-type", "application/json")
-                .body(Body::from(request_body.to_string()))
+                .method("GET")
+                .uri("/v1/ybot/play?position=%7B%22size%22%3A3%2C%22turn%22%3A0%2C%22players%22%3A%5B%22B%22%2C%22R%22%5D%2C%22layout%22%3A%22.%2F..%2F...%22%7D")
+                .body(Body::empty())
                 .unwrap(),
         )
         .await
@@ -139,31 +130,37 @@ async fn test_play_endpoint_with_default_public_bot() {
     let body = response.into_body().collect().await.unwrap().to_bytes();
     let play_response: PlayResponse = serde_json::from_slice(&body).unwrap();
 
-    assert_eq!(play_response.size(), 3);
-    assert_eq!(play_response.turn(), 1);
+    assert!(play_response.coords.x() + play_response.coords.y() + play_response.coords.z() == 2);
 }
 
 #[tokio::test]
-async fn test_play_endpoint_with_explicit_public_bot_and_difficulty() {
-    let app = test_app();
-    let request_body = serde_json::json!({
-        "position": {
-            "size": 3,
-            "turn": 0,
-            "players": ["B", "R"],
-            "layout": "./../..."
-        },
-        "bot_id": "random_bot",
-        "difficulty": "Medium"
-    });
+async fn test_game_server_router_exposes_ybot_play_endpoint() {
+    let app = game_server::create_router(create_default_state());
 
     let response = app
         .oneshot(
             Request::builder()
-                .method("POST")
-                .uri("/v1/ybot/play")
-                .header("content-type", "application/json")
-                .body(Body::from(request_body.to_string()))
+                .method("GET")
+                .uri("/v1/ybot/play?position=%7B%22size%22%3A3%2C%22turn%22%3A0%2C%22players%22%3A%5B%22B%22%2C%22R%22%5D%2C%22layout%22%3A%22.%2F..%2F...%22%7D")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+}
+
+#[tokio::test]
+async fn test_play_endpoint_with_explicit_public_bot() {
+    let app = test_app();
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/v1/ybot/play?position=%7B%22size%22%3A3%2C%22turn%22%3A0%2C%22players%22%3A%5B%22B%22%2C%22R%22%5D%2C%22layout%22%3A%22.%2F..%2F...%22%7D&bot_id=smart_bot")
+                .body(Body::empty())
                 .unwrap(),
         )
         .await
@@ -174,67 +171,19 @@ async fn test_play_endpoint_with_explicit_public_bot_and_difficulty() {
     let body = response.into_body().collect().await.unwrap().to_bytes();
     let play_response: PlayResponse = serde_json::from_slice(&body).unwrap();
 
-    assert_eq!(play_response.size(), 3);
-    assert_eq!(play_response.turn(), 1);
+    assert!(play_response.coords.x() + play_response.coords.y() + play_response.coords.z() == 2);
 }
 
 #[tokio::test]
-async fn test_play_endpoint_with_finished_game_returns_same_position() {
+async fn test_play_endpoint_with_finished_game_returns_error_when_there_is_no_move() {
     let app = test_app();
-    let request_body = serde_json::json!({
-        "position": {
-            "size": 2,
-            "turn": 0,
-            "players": ["B", "R"],
-            "layout": "B/RB"
-        }
-    });
 
     let response = app
         .oneshot(
             Request::builder()
-                .method("POST")
-                .uri("/v1/ybot/play")
-                .header("content-type", "application/json")
-                .body(Body::from(request_body.to_string()))
-                .unwrap(),
-        )
-        .await
-        .unwrap();
-
-    assert_eq!(response.status(), StatusCode::OK);
-
-    let body = response.into_body().collect().await.unwrap().to_bytes();
-    let play_response: PlayResponse = serde_json::from_slice(&body).unwrap();
-
-    assert_eq!(play_response.layout(), "B/RB");
-    assert_eq!(play_response.turn(), 1);
-}
-
-// ============================================================================
-// Play endpoint tests - Error cases
-// ============================================================================
-
-#[tokio::test]
-async fn test_play_endpoint_rejects_unknown_difficulty() {
-    let app = test_app();
-    let request_body = serde_json::json!({
-        "position": {
-            "size": 3,
-            "turn": 0,
-            "players": ["B", "R"],
-            "layout": "./../..."
-        },
-        "difficulty": "Impossible"
-    });
-
-    let response = app
-        .oneshot(
-            Request::builder()
-                .method("POST")
-                .uri("/v1/ybot/play")
-                .header("content-type", "application/json")
-                .body(Body::from(request_body.to_string()))
+                .method("GET")
+                .uri("/v1/ybot/play?position=%7B%22size%22%3A2%2C%22turn%22%3A0%2C%22players%22%3A%5B%22B%22%2C%22R%22%5D%2C%22layout%22%3A%22B%2FRB%22%7D")
+                .body(Body::empty())
                 .unwrap(),
         )
         .await
@@ -244,7 +193,55 @@ async fn test_play_endpoint_rejects_unknown_difficulty() {
 
     let body = response.into_body().collect().await.unwrap().to_bytes();
     let error_response: ErrorResponse = serde_json::from_slice(&body).unwrap();
-    assert!(error_response.message.contains("Unknown difficulty"));
+    assert!(error_response.message.contains("No valid moves available"));
+}
+
+// ============================================================================
+// Play endpoint tests - Error cases
+// ============================================================================
+
+#[tokio::test]
+async fn test_play_endpoint_rejects_unknown_bot() {
+    let app = test_app();
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/v1/ybot/play?position=%7B%22size%22%3A3%2C%22turn%22%3A0%2C%22players%22%3A%5B%22B%22%2C%22R%22%5D%2C%22layout%22%3A%22.%2F..%2F...%22%7D&bot_id=random_bot")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+    let body = response.into_body().collect().await.unwrap().to_bytes();
+    let error_response: ErrorResponse = serde_json::from_slice(&body).unwrap();
+    assert!(error_response.message.contains("Unknown bot_id"));
+}
+
+#[tokio::test]
+async fn test_play_endpoint_rejects_invalid_position_json() {
+    let app = test_app();
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/v1/ybot/play?position=not-json")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+    let body = response.into_body().collect().await.unwrap().to_bytes();
+    let error_response: ErrorResponse = serde_json::from_slice(&body).unwrap();
+    assert!(error_response.message.contains("Invalid YEN format"));
 }
 
 // ============================================================================

@@ -1,16 +1,21 @@
 import { useEffect, useState } from 'react'
-import { Alert, Box, Button, Paper, Typography } from '@mui/material'
+import { useTranslation } from 'react-i18next'
+import { Alert, Box, Button, Paper, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Stack } from '@mui/material'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useSession } from "../SessionContext";
+import TrophyIcon from '@mui/icons-material/EmojiEvents';
+import ErrorIcon from '@mui/icons-material/SentimentVeryDissatisfied';
+import { getInitialBoardSize } from "./GameSetup";
 
 const apiEndpoint = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-const boardSize = 5
 const botDelayMs = 700
 
-const cellRadius = 22
+// Constantes de dimensiones
+const hexRadius = 38
 const horizontalGap = 68
 const verticalGap = 58
-const svgPadding = 40
+const svgPadding = 60
+
 
 type Cell = '.' | 'B' | 'R'
 type Board = Cell[][]
@@ -29,29 +34,49 @@ interface MoveTurnResponse {
   }
 }
 
+interface GameSnapshot {
+  board: Board
+  currentPlayer: 'B' | 'R'
+  playerOneColor: 'B' | 'R'
+  playerTwoColor: 'B' | 'R'
+  message: string
+}
 
-function makeEmptyBoard(): Board {
-  return Array.from({ length: boardSize }, (_, row) => Array.from({ length: row + 1 }, () => '.' as Cell))
+
+function makeEmptyBoard(size: number): Board {
+  return Array.from({ length: size }, (_, row) => Array.from({ length: row + 1 }, () => '.' as Cell))
 }
 
 function cloneBoard(board: Board): Board {
   return board.map((row) => [...row])
 }
 
-function toYen(board: Board) {
+function toYen(board: Board, currentPlayer: 'B' | 'R') {
   return {
     size: board.length,
-    turn: 0,
+    turn: currentPlayer === 'B' ? 0 : 1,
     players: ['B', 'R'],
     layout: board.map((row) => row.join('')).join('/'),
   }
 }
 
-function getPosition(row: number, col: number) {
+function getPosition(row: number, col: number, size: number) {
   const rowWidth = row * horizontalGap
-  const x = svgPadding + ((boardSize - 1) * horizontalGap) / 2 - rowWidth / 2 + col * horizontalGap
+  const x = svgPadding + ((size - 1) * horizontalGap) / 2 - rowWidth / 2 + col * horizontalGap
   const y = svgPadding + row * verticalGap
   return { x, y }
+}
+
+function getHexagonPoints(cx: number, cy: number, r: number) {
+  const w = r * (Math.sqrt(3) / 2)
+  return `
+    ${cx},${cy - r} 
+    ${cx + w},${cy - r / 2} 
+    ${cx + w},${cy + r / 2} 
+    ${cx},${cy + r} 
+    ${cx - w},${cy + r / 2} 
+    ${cx - w},${cy - r / 2}
+  `.trim()
 }
 
 function delay(ms: number) {
@@ -75,28 +100,104 @@ function boardFromLayout(size: number, layout: string): Board {
   return board
 }
 
+
+function getDialogTitle(isPvP: boolean, winner: Winner, userWon: boolean, t: (key: string, options?: any) => string): string {
+  if (isPvP) {
+    return t('game.dialog.pvpTitle', { player: winner === 'B' ? 'B' : 'R' })
+  }
+  if (userWon) return t('game.dialog.wonTitle')
+  return t('game.dialog.lostTitle')
+}
+
+function getAccentColor(isPvP: boolean, winner: Winner, userWon: boolean): string {
+  if (isPvP) {
+    return winner === 'B' ? 'var(--yovi-board-hex-playerB)' : 'var(--yovi-board-hex-playerR)'
+  }
+  return userWon ? '#2e7d32' : '#d32f2f'
+}
+
+function getDialogMessage(isPvP: boolean, winner: Winner, userWon: boolean, t: (key: string, options?: any) => string): string {
+  if (isPvP) {
+    return t('game.dialog.pvpBody', { color: winner === 'B' ? t('game.dialog.blue') : t('game.dialog.red') })
+  }
+  if (userWon) return t('game.dialog.wonBody')
+  return t('game.dialog.lostBody')
+}
+
+function countPieces(board: Board): number {
+  return board.reduce(
+    (total, row) => total + row.filter((cell) => cell !== '.').length,
+    0,
+  )
+}
+
+function getTouchedSides(board: Board, color: 'B' | 'R') {
+  const size = board.length
+  let touchesA = false
+  let touchesB = false
+  let touchesC = false
+
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col <= row; col++) {
+      if (board[row][col] !== color) {
+        continue
+      }
+
+      const x = size - 1 - row
+      const y = col
+      const z = row - col
+
+      if (x === 0) {
+        touchesA = true
+      }
+      if (y === 0) {
+        touchesB = true
+      }
+      if (z === 0) {
+        touchesC = true
+      }
+    }
+  }
+
+  return { touchesA, touchesB, touchesC }
+}
+
+function getTriangleVertices(size = 74) {
+  const height = size * 0.86
+  return {
+    top: { x: size / 2, y: 8 },
+    left: { x: 10, y: height },
+    right: { x: size - 10, y: height },
+    width: size,
+    height: height + 10,
+  }
+}
+
 export default function GamePage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { t } = useTranslation()
+  
+  // Usamos directamente la función por referencia para inicializar el estado
+  const [boardSize] = useState(getInitialBoardSize) // El setBoardSize se eliminado ya que no esta en uso por ahora.
+  
   const [isAvailable, setIsAvailable] = useState(true)
-  const [board, setBoard] = useState<Board>(makeEmptyBoard())
+  const [board, setBoard] = useState<Board>(makeEmptyBoard(boardSize))
   const [busy, setBusy] = useState(false)
   const [winner, setWinner] = useState<Winner>(null)
-
-  const locationState = location.state as { mode?: GameMode; bot_id?: string; difficulty?: Difficulty } | null
-  const mode       = locationState?.mode       ?? 'bot'
-  const bot_id     = locationState?.bot_id     ?? 'random_bot'
-  const difficulty = locationState?.difficulty ?? 'Medium'
-
+  const [startTime, setStartTime] = useState<number | null>(null)
+  const [isGameOver, setIsGameOver] = useState(false)
+  const state = location.state as { mode?: GameMode; bot_id?: string; difficulty?: Difficulty } | null
+  const mode = state?.mode ?? 'bot'
+  const difficulty = state?.difficulty ?? 'Medium'
+  const bot_id     = state?.bot_id     ?? 'random_bot'
   const [currentPlayer, setCurrentPlayer] = useState<'B' | 'R'>('B')
-  const [message, setMessage] = useState(mode === 'pvp' ? 'Player B turn.' : 'Your turn. Place a blue piece.')
+  const [message, setMessage] = useState(mode === 'pvp' ? t('game.playerTurn', { player: '1' }) : t('game.yourTurn'))
+  const [playerOneColor, setPlayerOneColor] = useState<'B' | 'R'>('B')
+  const [playerTwoColor, setPlayerTwoColor] = useState<'B' | 'R'>('R')
+  const [history, setHistory] = useState<GameSnapshot[]>([])
   const [error, setError] = useState('')
-
   const { isLoggedIn } = useSession();
-
-  if (!isLoggedIn) {
-    return <Navigate to="/login" replace />;
-  }
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -108,42 +209,232 @@ export default function GamePage() {
         const response = await fetch(`${apiEndpoint}/game/status`)
         const text = response.ok ? await response.text() : ''
         setIsAvailable(response.ok && text === 'OK')
-      } catch (e) {
-        setIsAvailable(false)
+      } catch (e:unknown) {
+          if (e instanceof Error) {
+            console.log(e.message)
+          }
+          setIsAvailable(false)
       }
     }
 
     checkStatus()
   }, [mode])
 
-  const play = async (row: number, col: number) => {
-    if (!isAvailable || busy || winner !== null || board[row][col] !== '.') {
-      if (!isAvailable) {
-        setError('Game service is unavailable.')
+  if (!isLoggedIn) {
+    return <Navigate to="/login" replace />;
+  }
+
+const validateMove = (row: number, col: number) => {
+  if (!isAvailable) {
+    setError(t('game.serviceUnavailable'))
+    return false
+  }
+
+  if (busy || winner !== null || board[row][col] !== '.') {
+    return false
+  }
+
+  return true
+}
+
+const buildPayload = (previousBoard: any, row: number, col: number) => {
+const payload: Record<string, unknown> = {
+  state: toYen(previousBoard,currentPlayer),
+  row,
+  col,
+  mode,
+}
+
+if (mode === 'bot') {
+  payload.bot_id = bot_id
+  payload.difficulty = difficulty
+}
+
+  return payload
+}
+const handleGameOver = (winner: Winner) => {
+      setWinner(winner);
+      setIsGameOver(true);
+
+      // Calcular duración y guardar partida
+      const duration = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+      const username = localStorage.getItem('username') || 'anonymous';
+
+      void fetch(`${apiEndpoint}/game/finish`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: username,
+          rival: mode === 'pvp' ? 'multiplayer' : bot_id,
+          level: difficulty,
+          duration: duration,
+          result: winner === 'B' ? 'won' : 'lost'
+        })
+      });
+      
+      if (winner === 'B') {
+        setMessage(mode === 'pvp' ? t('game.playerWins', { player: '1' }) : t('game.youWin'))
+      } else if (winner === 'R') {
+        setMessage(mode === 'pvp' ? t('game.playerWins', { player: '2' }) : t('game.botWins'))
+      } else {
+        setMessage(t('game.gameOver'))
       }
-      return
-    }
+
+}
+
+const handleNextTurn = (moveData: MoveTurnResponse) => {
+  setWinner(null)
+  setIsGameOver(false)
+
+  if (mode === 'pvp') {
+    const nextPlayer = moveData.state.turn === 0 ? 'B' : 'R'
+    setCurrentPlayer(nextPlayer)
+    setMessage(t('game.playerTurn', { player: nextPlayer === 'B' ? '1' : '2' }))
+  } else {
+    setCurrentPlayer('B')
+    setMessage(t('game.yourTurn'))
+  }
+}
+
+  const pieceCount = countPieces(board)
+  const canUsePieRule =
+    mode === 'pvp' &&
+    !busy &&
+    winner === null &&
+    pieceCount === 1 &&
+    currentPlayer === playerTwoColor &&
+    playerOneColor === 'B' &&
+    playerTwoColor === 'R'
+  const playerOneActive = currentPlayer === playerOneColor
+  const playerTwoActive = currentPlayer === playerTwoColor
+  const playerOneLabel = mode === 'pvp' ? t('game.player1') : t('game.you')
+  const playerTwoLabel = mode === 'pvp' ? t('game.player2') : t('game.bot')
+  const playerOneSides = getTouchedSides(board, playerOneColor)
+  const playerTwoSides = getTouchedSides(board, playerTwoColor)
+
+  const renderPlayerTriangle = (
+    label: string,
+    color: 'B' | 'R',
+    isActive: boolean,
+    touchedSides: { touchesA: boolean; touchesB: boolean; touchesC: boolean },
+  ) => {
+    const playerTestId = label.toLowerCase().replaceAll(/\s+/g, '-')
+    const triangle = getTriangleVertices()
+    const stroke = color === 'B' ? '#1565c0' : '#c62828'
+    const fill = color === 'B' ? 'rgba(21, 101, 192, 0.14)' : 'rgba(198, 40, 40, 0.14)'
+    const winningFill = color === 'B' ? 'rgba(21, 101, 192, 0.82)' : 'rgba(198, 40, 40, 0.82)'
+    const inactiveStroke = 'rgba(148, 163, 184, 0.45)'
+    const isWinner = winner === color
+
+    return (
+      <Paper
+        data-testid={`${playerTestId}-card`}
+        elevation={0}
+        sx={{
+          flex: 1,
+          minWidth: 180,
+          p: 1.5,
+          borderRadius: 3,
+          border: `2px solid ${isActive ? stroke : 'rgba(15, 23, 42, 0.14)'}`,
+          backgroundColor: '#fff',
+        }}
+      >
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.75 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+            {label}
+          </Typography>
+          <Box
+            data-testid={`${playerTestId}-status`}
+            sx={{
+              px: 1,
+              py: 0.35,
+              borderRadius: 999,
+              bgcolor: isActive ? stroke : 'rgba(15, 23, 42, 0.08)',
+              color: isActive ? '#fff' : 'text.secondary',
+              fontSize: '0.72rem',
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+            }}
+          >
+            {isActive ? t('game.turn') : t('game.waiting')}
+          </Box>
+        </Stack>
+
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <svg
+            width={triangle.width}
+            height={triangle.height}
+            viewBox={`0 0 ${triangle.width} ${triangle.height}`}
+            aria-label={`${label} triangle`}
+          >
+            <title>{`${label} triangle`}</title>
+            <polygon
+              points={`${triangle.top.x},${triangle.top.y} ${triangle.left.x},${triangle.left.y} ${triangle.right.x},${triangle.right.y}`}
+              fill={isWinner ? winningFill : fill}
+              stroke="transparent"
+            />
+            <line
+              x1={triangle.top.x}
+              y1={triangle.top.y}
+              x2={triangle.left.x}
+              y2={triangle.left.y}
+              stroke={touchedSides.touchesB ? stroke : inactiveStroke}
+              strokeWidth={6}
+              strokeLinecap="round"
+            />
+            <line
+              x1={triangle.left.x}
+              y1={triangle.left.y}
+              x2={triangle.right.x}
+              y2={triangle.right.y}
+              stroke={touchedSides.touchesA ? stroke : inactiveStroke}
+              strokeWidth={6}
+              strokeLinecap="round"
+            />
+            <line
+              x1={triangle.right.x}
+              y1={triangle.right.y}
+              x2={triangle.top.x}
+              y2={triangle.top.y}
+              stroke={touchedSides.touchesC ? stroke : inactiveStroke}
+              strokeWidth={6}
+              strokeLinecap="round"
+            />
+          </svg>
+        </Box>
+      </Paper>
+    )
+  }
+
+  const play = async (row: number, col: number) => {
+    if (!validateMove(row, col)) return;
 
     setError('')
+    // Iniciar cronómetro en el primer movimiento
+    if (!startTime) {
+      setStartTime(Date.now())
+    }
+
+    // Guardamos snapshot del tablero
+    setHistory(prev => [...prev, {
+      board: cloneBoard(board),
+      currentPlayer,
+      playerOneColor,
+      playerTwoColor,
+      message,
+    }])
+
     setBusy(true)
+
     const previousBoard = cloneBoard(board)
     const optimisticBoard = cloneBoard(board)
     optimisticBoard[row][col] = mode === 'pvp' ? currentPlayer : 'B'
     setBoard(optimisticBoard)
 
     try {
-      setMessage(mode === 'pvp' ? 'Processing move...' : 'Bot is thinking...')
-
-      const payload: Record<string, unknown> = {
-        state: toYen(previousBoard),
-        row,
-        col,
-        mode,
-      }
-      if (mode === 'bot') {
-        payload.bot_id = bot_id
-        payload.difficulty = difficulty
-      }
+      setMessage(mode === 'pvp' ? t('game.processingMove') : t('game.botThinking'))
+      const payload = buildPayload(previousBoard, row, col)
 
       const response = await fetch(`${apiEndpoint}/game/move`, {
         method: 'POST',
@@ -153,10 +444,11 @@ export default function GamePage() {
 
       const data = await response.json()
       if (!response.ok) {
-        throw new Error(data.error || 'Unable to process move')
+        throw new Error(data.error || t('game.unableMove'))
       }
 
       if (mode === 'bot') {
+        setCurrentPlayer('R')
         await delay(botDelayMs)
       }
 
@@ -164,74 +456,178 @@ export default function GamePage() {
       const updated = boardFromLayout(moveData.state.size, moveData.state.layout)
       setBoard(updated)
 
-      if (moveData.game_over && moveData.winner) {
-        setWinner(moveData.winner)
-        if (moveData.winner === 'B') {
-          setMessage(mode === 'pvp' ? 'Player B wins.' : 'You win.')
-        } else {
-          setMessage(mode === 'pvp' ? 'Player R wins.' : 'Bot wins.')
-        }
+      if (moveData.game_over) {
+        const finalWinner = moveData.winner;
+        handleGameOver(finalWinner);
       } else {
-        setWinner(null)
-        if (mode === 'pvp') {
-          const nextPlayer = moveData.state.turn === 0 ? 'B' : 'R'
-          setCurrentPlayer(nextPlayer)
-          setMessage(`Player ${nextPlayer} turn.`)
-        } else {
-          setMessage('Your turn. Place a blue piece.')
-        }
+        handleNextTurn(moveData);
       }
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Unknown error'
+      const msg = e instanceof Error ? e.message : t('game.unknownError')
       setBoard(previousBoard)
       setError(msg)
-      setMessage(mode === 'pvp' ? 'Your move could not be completed.' : 'Your move could not be completed against the bot.')
+      setMessage(t('game.moveFailed'))
     } finally {
       setBusy(false)
     }
   }
 
+  const swapSides = async () => {
+    if (!canUsePieRule) {
+      return
+    }
+
+    setBusy(true)
+
+    // Guardamos snapshot del estado actudal del tablero
+    setHistory(prev => [...prev, {
+      board: cloneBoard(board),
+      currentPlayer,
+      playerOneColor,
+      playerTwoColor,
+      message,
+    }])
+
+    setError('')
+    setMessage(t('game.applyingPie'))
+
+    try {
+      const response = await fetch(`${apiEndpoint}/game/move`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          state: toYen(board, currentPlayer),
+          action: 'swap',
+          mode,
+        }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || t('game.unablePieRule'))
+      }
+
+      const moveData = data as MoveTurnResponse
+      const updated = boardFromLayout(moveData.state.size, moveData.state.layout)
+      const nextPlayer = moveData.state.turn === 0 ? 'B' : 'R'
+      const nextPlayerOneColor: 'B' | 'R' = 'R'
+      const nextPlayerTwoColor: 'B' | 'R' = 'B'
+
+      setBoard(updated)
+      setPlayerOneColor(nextPlayerOneColor)
+      setPlayerTwoColor(nextPlayerTwoColor)
+      setCurrentPlayer(nextPlayer)
+      setMessage(t('game.playerTurn', { player: nextPlayer === 'B' ? '1' : '2' }))
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : t('game.unknownError')
+      setError(msg)
+      setMessage(t('game.pieRuleError'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const canUndo = history.length > 0 && !busy && winner === null;
+  const undoMove = () => {
+    if (history.length === 0) return
+    const previous = history.at(-1);
+    if (!previous) return;
+    setHistory(prev => prev.slice(0, -1))
+    setBoard(previous.board)
+    setCurrentPlayer(previous.currentPlayer)
+    setPlayerOneColor(previous.playerOneColor)
+    setPlayerTwoColor(previous.playerTwoColor)
+    setMessage(previous.message)
+    setWinner(null)
+    setIsGameOver(false)
+    setError('')
+  }
+
   const reset = () => {
-    setBoard(makeEmptyBoard())
+    setHistory([])
+    setBoard(makeEmptyBoard(boardSize))
     setBusy(false)
     setWinner(null)
+    setStartTime(null)
+    setIsGameOver(false)
     setCurrentPlayer('B')
+    setPlayerOneColor('B')
+    setPlayerTwoColor('R')
     setError('')
-    setMessage(mode === 'pvp' ? 'Player B turn.' : 'Your turn. Place a blue piece.')
+    setMessage(mode === 'pvp' ? t('game.playerTurn', { player: '1' }) : t('game.yourTurn'))
   }
 
   const svgWidth = svgPadding * 2 + (boardSize - 1) * horizontalGap
   const svgHeight = svgPadding * 2 + (boardSize - 1) * verticalGap
-  const top = getPosition(0, 0)
-  const left = getPosition(boardSize - 1, 0)
-  const right = getPosition(boardSize - 1, boardSize - 1)
+
+  // Lógica para el contenido del diálogo de fin de partida
+  const isPvP = mode === 'pvp';
+  const userWon = winner === 'B';
+  const dialogTitle = getDialogTitle(isPvP, winner, userWon, t);
+
+  
+  const accentColor = getAccentColor(isPvP, winner, userWon)
 
   return (
     <div className="main-content">
-      <Paper elevation={3} sx={{ p: 4, maxWidth: 900, width: '100%' }}>
+      <Paper
+        elevation={0}
+        sx={{
+          p: 4,
+          maxWidth: 1080,
+          width: '100%',
+          borderRadius: 4,
+          backgroundColor: '#0f172a',
+          color: '#f8fafc',
+          border: '1px solid rgba(148, 163, 184, 0.18)',
+        }}
+      >
         <Typography variant="h4" component="h2" gutterBottom>
-          Game Y - {mode === 'pvp' ? 'Player vs Player' : 'Player vs Bot'}
+          {mode === 'pvp' ? t('game.titlePvp') : t('game.titleBot')}
         </Typography>
 
-        <Alert severity={error ? 'warning' : 'info'} sx={{ mb: 3 }}>
-          {error || message}
-        </Alert>
+        {error && (
+          <Alert severity={error ? 'warning' : 'info'} sx={{ mb: 3 }}>
+            {error || message}
+          </Alert>
+        )}
 
-        <Box sx={{ mb: 4, width: '100%', display: 'flex', justifyContent: 'center' }}>
-          <Box sx={{ width: '100%', maxWidth: 560, background: '#fff', borderRadius: 3, border: '1px solid #d7d7d7', p: 2 }}>
-            <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} width="100%" role="img" aria-label="Y game board">
-              <line x1={top.x} y1={top.y - 20} x2={left.x - 22} y2={left.y + 12} stroke="#2e7d32" strokeWidth="6" strokeLinecap="round" />
-              <line x1={left.x - 22} y1={left.y + 12} x2={right.x + 22} y2={right.y + 12} stroke="#2e7d32" strokeWidth="6" strokeLinecap="round" />
-              <line x1={right.x + 22} y1={right.y + 12} x2={top.x} y2={top.y - 20} stroke="#2e7d32" strokeWidth="6" strokeLinecap="round" />
+        <Box
+          sx={{
+            mb: 4,
+            width: '100%',
+            display: 'flex',
+            flexDirection: { xs: 'column', lg: 'row' },
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 2,
+          }}
+        >
+          <Box sx={{ width: { xs: '100%', lg: 210 }, flexShrink: 0 }}>
+            {renderPlayerTriangle(playerOneLabel, playerOneColor, playerOneActive, playerOneSides)}
+          </Box>
+
+          <Box sx={{ width: '100%', maxWidth: 560, p: 2 }}>
+            <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} width="100%" aria-label={t('game.boardAriaLabel')}>
+              <title>{t('game.boardTitle')}</title>
 
               {board.map((row, rowIndex) =>
                 row.map((cell, cellIndex) => {
-                  const { x, y } = getPosition(rowIndex, cellIndex)
-                  const clickable = isAvailable && !busy && winner === null && cell === '.'
-                  const fill = cell === 'B' ? '#1565c0' : cell === 'R' ? '#c62828' : '#fffaf0'
-
+                  const { x, y } = getPosition(rowIndex, cellIndex, boardSize)
+                  const clickable = !busy && winner === null && cell === '.'
+                  
+                  let fill = 'var(--yovi-board-hex-default)';
+                  if (cell === 'B') {
+                    fill = 'var(--yovi-board-hex-playerB)';
+                  } else if (cell === 'R') {
+                    fill = 'var(--yovi-board-hex-playerR)';
+                  }
+                  const strokeColor = 'var(--yovi-board-border)'
+                  
                   return (
                     <g
+                      data-testid={`cell-${rowIndex}-${cellIndex}`}
+                      aria-label={`Cell ${rowIndex} ${cellIndex}`}
                       key={`${rowIndex}-${cellIndex}`}
                       onClick={() => {
                         if (clickable) {
@@ -240,13 +636,15 @@ export default function GamePage() {
                       }}
                       style={{ cursor: clickable ? 'pointer' : 'default' }}
                     >
-                      <circle
-                        cx={x}
-                        cy={y}
-                        r={cellRadius}
+                      <polygon
+                        points={getHexagonPoints(x, y, hexRadius)}
                         fill={fill}
-                        stroke={clickable ? '#2e7d32' : '#4e3d20'}
-                        strokeWidth={clickable ? 3 : 2}
+                        stroke={strokeColor}
+                        strokeWidth={6}
+                        style={{ 
+                          transition: 'fill 0.2s',
+                          filter: cell === '.' ? 'drop-shadow(inset 0px 3px 3px rgba(0,0,0,0.3))' : 'none' 
+                        }}
                       />
                     </g>
                   )
@@ -254,17 +652,87 @@ export default function GamePage() {
               )}
             </svg>
           </Box>
+
+          <Box sx={{ width: { xs: '100%', lg: 210 }, flexShrink: 0 }}>
+            {renderPlayerTriangle(playerTwoLabel, playerTwoColor, playerTwoActive, playerTwoSides)}
+            {canUsePieRule && (
+              <Button
+                variant="contained"
+                onClick={swapSides}
+                sx={{
+                  mt: 1.25,
+                  width: '100%',
+                  bgcolor: '#f8fafc',
+                  color: '#0f172a',
+                  '&:hover': { bgcolor: '#e2e8f0' },
+                }}
+              >
+                {t('game.swap')}
+              </Button>
+            )}
+          </Box>
         </Box>
 
         <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Button variant="outlined" onClick={reset}>
-            New Game
+          <Button variant="outlined" onClick={undoMove} disabled={!canUndo} sx={{ color: '#f8fafc', borderColor: '#f8fafc',
+            '&.Mui-disabled': {color: '#7f1d1d', borderColor: '#7f1d1d'},
+           }}>
+            {t('game.undo')}
           </Button>
-          <Button variant="outlined" onClick={() => navigate('/homepage')}>
-            Back to Home
+          <Button variant="outlined" onClick={reset} sx={{ color: '#f8fafc', borderColor: '#f8fafc' }}>
+            {t('game.newGame')}
+          </Button>
+          <Button variant="outlined" onClick={() => navigate('/homepage')} sx={{ color: '#f8fafc', borderColor: '#f8fafc' }}>
+            {t('game.backToHome')}
           </Button>
         </Box>
       </Paper>
+
+      {/* Diálogo de Fin de Partida */}
+      <Dialog 
+        open={isGameOver} 
+        onClose={reset}
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 4,
+              p: 2,
+              textAlign: 'center',
+              minWidth: 320,
+              border: `2px solid ${accentColor}`
+            }
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, fontSize: '1.5rem', color: accentColor }}>
+          {dialogTitle}
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} alignItems="center">
+            {/* Imagen/Icono dinámico según resultado en modo Bot */}
+            {!isPvP && (
+              <Box sx={{ mt: 2 }}>
+                {userWon ? (
+                  <TrophyIcon sx={{ fontSize: 80, color: '#fbc02d' }} />
+                ) : (
+                  <ErrorIcon sx={{ fontSize: 80, color: '#d32f2f' }} />
+                )}
+              </Box>
+            )}
+            <Typography variant="body1" color="text.secondary">
+              {getDialogMessage(isPvP, winner, userWon, t)}
+            </Typography>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 1 }}>
+          <Button variant="contained" onClick={reset} sx={{ bgcolor: accentColor, '&:hover': { bgcolor: accentColor, opacity: 0.9 } }}>
+            {t('game.tryAgain')}
+          </Button>
+          <Button variant="outlined" onClick={() => navigate('/homepage')} color="inherit">
+            {t('game.goHome')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   )
 }

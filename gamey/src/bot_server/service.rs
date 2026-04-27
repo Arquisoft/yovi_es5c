@@ -4,22 +4,18 @@ use crate::{Coordinates, GameStatus, GameY, Movement, YBot, YEN};
 
 use super::{error::ErrorResponse, state::AppState};
 
-pub const DEFAULT_PUBLIC_BOT_ID: &str = "center_bot";
-pub const DEFAULT_PUBLIC_DIFFICULTY: &str = "Hard";
+pub const DEFAULT_PUBLIC_BOT_ID: &str = "alpha_bot";
 
-const VALID_PUBLIC_BOTS: [&str; 3] = ["random_bot", "center_bot", "edge_bot"];
-const VALID_DIFFICULTIES: [&str; 3] = ["Easy", "Medium", "Hard"];
+const VALID_PUBLIC_BOTS: [&str; 2] = ["alpha_bot", "smart_bot"];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BotSelection {
     pub public_bot_id: String,
-    pub difficulty: String,
     pub registry_bot_id: String,
 }
 
 pub fn resolve_public_bot_selection(
     bot_id: Option<&str>,
-    difficulty: Option<&str>,
 ) -> Result<BotSelection, ErrorResponse> {
     let public_bot_id = bot_id.unwrap_or(DEFAULT_PUBLIC_BOT_ID).trim();
     if !VALID_PUBLIC_BOTS.contains(&public_bot_id) {
@@ -30,25 +26,9 @@ pub fn resolve_public_bot_selection(
         ));
     }
 
-    let difficulty = difficulty.unwrap_or(DEFAULT_PUBLIC_DIFFICULTY).trim();
-    if !VALID_DIFFICULTIES.contains(&difficulty) {
-        return Err(ErrorResponse::error(
-            &format!("Unknown difficulty: {}", difficulty),
-            None,
-            Some(public_bot_id.to_string()),
-        ));
-    }
-
-    let suffix = match difficulty {
-        "Easy" => "_1",
-        "Medium" => "_2",
-        _ => "",
-    };
-
     Ok(BotSelection {
         public_bot_id: public_bot_id.to_string(),
-        difficulty: difficulty.to_string(),
-        registry_bot_id: format!("{}{}", public_bot_id, suffix),
+        registry_bot_id: public_bot_id.to_string(),
     })
 }
 
@@ -139,7 +119,7 @@ pub fn winner_char(game: &GameY) -> Option<char> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{CenterBot, PlayerId, RandomBot, YBotRegistry};
+    use crate::{AlphaBot, PlayerId, RandomBot, YBotRegistry};
 
     struct NoMoveBot;
 
@@ -155,42 +135,34 @@ mod tests {
 
     #[test]
     fn test_resolve_public_bot_selection_uses_defaults() {
-        let selection = resolve_public_bot_selection(None, None).unwrap();
-        assert_eq!(selection.public_bot_id, "center_bot");
-        assert_eq!(selection.difficulty, "Hard");
-        assert_eq!(selection.registry_bot_id, "center_bot");
+        let selection = resolve_public_bot_selection(None).unwrap();
+        assert_eq!(selection.public_bot_id, "alpha_bot");
+        assert_eq!(selection.registry_bot_id, "alpha_bot");
     }
 
     #[test]
-    fn test_resolve_public_bot_selection_with_medium_suffix() {
-        let selection = resolve_public_bot_selection(Some("random_bot"), Some("Medium")).unwrap();
-        assert_eq!(selection.registry_bot_id, "random_bot_2");
-    }
-
-    #[test]
-    fn test_resolve_public_bot_selection_rejects_unknown_difficulty() {
-        let error = resolve_public_bot_selection(Some("center_bot"), Some("Impossible"))
-            .unwrap_err();
-        assert!(error.message.contains("Unknown difficulty"));
+    fn test_resolve_public_bot_selection_with_explicit_smart_bot() {
+        let selection = resolve_public_bot_selection(Some("smart_bot")).unwrap();
+        assert_eq!(selection.registry_bot_id, "smart_bot");
     }
 
     #[test]
     fn test_resolve_public_bot_selection_rejects_unknown_bot() {
-        let error = resolve_public_bot_selection(Some("unknown_bot"), Some("Hard")).unwrap_err();
+        let error = resolve_public_bot_selection(Some("unknown_bot")).unwrap_err();
         assert!(error.message.contains("Unknown bot_id"));
     }
 
     #[test]
     fn test_find_registered_bot_returns_registered_instance() {
-        let state = AppState::new(YBotRegistry::new().with_bot(Arc::new(CenterBot { level: 3 })));
-        let bot = find_registered_bot(&state, "v1", "center_bot").unwrap();
-        assert_eq!(bot.name(), "center_bot");
+        let state = AppState::new(YBotRegistry::new().with_bot(Arc::new(AlphaBot { level: 3 })));
+        let bot = find_registered_bot(&state, "v1", "alpha_bot").unwrap();
+        assert_eq!(bot.name(), "alpha_bot");
     }
 
     #[test]
     fn test_load_game_from_yen_rejects_invalid_layout() {
         let yen = YEN::new(3, 0, vec!['B', 'R'], "invalid".to_string());
-        let error = load_game_from_yen(yen, "v1", Some("center_bot")).unwrap_err();
+        let error = load_game_from_yen(yen, "v1", Some("smart_bot")).unwrap_err();
         assert!(error.message.contains("Invalid YEN format"));
         assert_eq!(error.api_version, Some("v1".to_string()));
     }

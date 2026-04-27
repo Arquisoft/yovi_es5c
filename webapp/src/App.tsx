@@ -11,6 +11,7 @@ import GameSetup from './pages/GameSetup'
 import Login from "./pages/Login"
 import GamePage from './pages/GamePage'
 import GameHistory from './pages/GameHistory'
+import GameRanking from './pages/GameRanking'
 import ProfilePage from './pages/ProfilePage'
 import { useEffect } from "react";
 import { updateThemeColors } from "./utils/themeController";
@@ -23,15 +24,15 @@ function App() {
 
   useEffect(() => {
     updateThemeColors({
-      accentColor: "#1976d2",
-      buttonColor: "#1976d2",
-      buttonText: "#ffffff",
-      inputBg: "rgba(255, 255, 255, 0.5)",
-      inputOutline: "rgba(0, 0, 0, 0.23)",
-      textPrimary: "rgba(0, 0, 0, 0.87)",
-      textSecondary: "rgba(0, 0, 0, 0.6)",
-      cardBg: "rgba(255, 255, 255, 0.65)",
-    });
+        accentColor: "#1976d2",
+        buttonColor: "#1976d2",
+        buttonText: "#ffffff",
+        inputBg: "rgba(255, 255, 255, 0.5)",
+        inputOutline: "rgba(0, 0, 0, 0.23)",
+        textPrimary: "rgba(0, 0, 0, 0.87)",
+        textSecondary: "rgba(0, 0, 0, 0.6)",
+        cardBg: "rgba(255, 255, 255, 0.65)",
+      });
   }, []);
 
   return (
@@ -81,6 +82,12 @@ function App() {
             <PrivateRoute>
               <GameHistory />
             </PrivateRoute>
+          }
+        />
+        <Route
+          path="/game/ranking"
+          element={
+            <PrivateRoute><GameRanking /></PrivateRoute>
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -3,6 +3,7 @@ import HistoryRoundedIcon from "@mui/icons-material/HistoryRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import SecurityRoundedIcon from "@mui/icons-material/SecurityRounded";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Avatar, Button, Stack, TextField, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useSession } from "../SessionContext";
@@ -30,7 +31,14 @@ const emptyProfile: ProfileData = { username: "", name: "", surname: "", email: 
 
 // ─── API ─────────────────────────────────────────────────────
 
-async function loadProfile(username: string): Promise<ProfileData> {
+async function loadProfile(username: string, t: (key: string) => string): Promise<ProfileData> {
+  // Solo permitimos letras, números, puntos, guiones y guiones bajos
+  const isValidUsername = /^[a-zA-Z0-9._-]+$/.test(username);
+  
+  if (!isValidUsername) {
+    throw new Error(t("profile.invalidUsername") || "Invalid username format");
+  }
+
   const token = localStorage.getItem('sessionId'); // Obtenemos el token
   const response = await fetch(`${apiEndpoint}/user/${encodeURIComponent(username)}`, {
     headers: {
@@ -40,19 +48,23 @@ async function loadProfile(username: string): Promise<ProfileData> {
   const data = await response.json()
 
   if (!response.ok) {
-    throw new Error(data.error || 'Could not load profile information.')
+    throw new Error(data.error || t("profile.loadError"))
   }
 
   return data
 }
 
-async function saveProfile(profile: ProfileData): Promise<ProfileData> {
-  const token = localStorage.getItem('sessionId'); // Obtenemos el token
+async function saveProfile(profile: ProfileData, t: (key: string) => string): Promise<ProfileData> {
+  if (!/^[a-zA-Z0-9._-]+$/.test(profile.username)) {
+    throw new Error(t("profile.invalidUsername"));
+  }
+  
+  const token = localStorage.getItem('sessionId');
   const response = await fetch(`${apiEndpoint}/user/${encodeURIComponent(profile.username)}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}` // Lo enviamos al Gateway
+      'Authorization': `Bearer ${token}` // Enviamos el token al Gateway
     },
     body: JSON.stringify({
       name: profile.name,
@@ -60,8 +72,9 @@ async function saveProfile(profile: ProfileData): Promise<ProfileData> {
       email: profile.email,
     }),
   });
+  
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || "Could not update profile information.");
+  if (!response.ok) throw new Error(data.error || t("profile.saveError"));
   return data;
 }
 
@@ -240,6 +253,7 @@ const CardIcon = styled(PersonRoundedIcon)({
 export default function ProfilePage() {
   const { username } = useSession();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [formData, setFormData] = useState<ProfileData>(emptyProfile);
   const [isEditing, setIsEditing] = useState(false);
@@ -252,18 +266,18 @@ export default function ProfilePage() {
       if (!username) { setProfile(null); setFormData(emptyProfile); return; }
       try {
         setMessage(null);
-        const data = await loadProfile(username);
+        const data = await loadProfile(username, t);
         if (!ignore) { setProfile(data); setFormData(data); }
       } catch (fetchError) {
         if (!ignore) setMessage({
           severity: "error",
-          text: fetchError instanceof Error ? fetchError.message : "Could not load profile information.",
+          text: fetchError instanceof Error ? fetchError.message : t("profile.loadError"),
         });
       }
     };
     fetchProfile();
     return () => { ignore = true; };
-  }, [username]);
+  }, [username, t]);
 
   const displayUsername = profile?.username || username;
 
@@ -285,13 +299,13 @@ export default function ProfilePage() {
     if (!displayUsername) return;
     try {
       setIsSaving(true); setMessage(null);
-      const data = await saveProfile({ ...formData, username: displayUsername });
+      const data = await saveProfile({ ...formData, username: displayUsername }, t);
       setProfile(data); setFormData(data); setIsEditing(false);
-      setMessage({ severity: "success", text: "Profile updated successfully." });
+      setMessage({ severity: "success", text: t("profile.saveSuccess") });
     } catch (saveError) {
       setMessage({
         severity: "error",
-        text: saveError instanceof Error ? saveError.message : "Could not update profile information.",
+        text: saveError instanceof Error ? saveError.message : t("profile.saveError"),
       });
     } finally {
       setIsSaving(false);
@@ -307,18 +321,18 @@ export default function ProfilePage() {
           {displayUsername?.slice(0, 1).toUpperCase()}
         </ProfileAvatar>
         <ProfileInfo>
-          <SubTitle>Player profile</SubTitle>
+          <SubTitle>{t("profile.playerProfile")}</SubTitle>
           <Title>{displayUsername}</Title>
         </ProfileInfo>
         <ProfileActions direction="row" spacing={1.5}>
           {isEditing ? (
             <>
-              <GoldButton variant="outlined" onClick={handleCancel} disabled={isSaving}>Cancel</GoldButton>
-              <GoldButton variant="outlined" onClick={handleSave} disabled={isSaving}>Save</GoldButton>
+              <GoldButton variant="outlined" onClick={handleCancel} disabled={isSaving}>{t("profile.cancel")}</GoldButton>
+              <GoldButton variant="outlined" onClick={handleSave} disabled={isSaving}>{t("profile.save")}</GoldButton>
             </>
           ) : (
             <GoldButton variant="outlined" startIcon={<EditRoundedIcon />} onClick={handleEditStart} disabled={!profile}>
-              Edit
+              {t("profile.edit")}
             </GoldButton>
           )}
         </ProfileActions>
@@ -328,12 +342,12 @@ export default function ProfilePage() {
       <Card>
         <CardTitle>
           <CardIcon />
-          Account details
+          {t("profile.accountDetails")}
         </CardTitle>
         <Stack spacing={2}>
           <TwoGrid>
             <div>
-              <FieldLabel>Username</FieldLabel>
+              <FieldLabel>{t("profile.username")}</FieldLabel>
               <FieldValue>{displayUsername}</FieldValue>
             </div>
           </TwoGrid>
@@ -341,21 +355,21 @@ export default function ProfilePage() {
           {isEditing ? (
             <>
               <TwoGrid>
-                <GoldTextField label="Name" name="name" value={formData.name} onChange={handleFieldChange} disabled={isSaving} size="small" />
-                <GoldTextField label="Surname" name="surname" value={formData.surname} onChange={handleFieldChange} disabled={isSaving} size="small" />
+                <GoldTextField label={t("profile.name")} name="name" value={formData.name} onChange={handleFieldChange} disabled={isSaving} size="small" />
+                <GoldTextField label={t("profile.surname")} name="surname" value={formData.surname} onChange={handleFieldChange} disabled={isSaving} size="small" />
               </TwoGrid>
               <TwoGrid>
-                <GoldTextField label="Email" name="email" type="email" value={formData.email} onChange={handleFieldChange} disabled={isSaving} size="small" />
+                <GoldTextField label={t("profile.email")} name="email" type="email" value={formData.email} onChange={handleFieldChange} disabled={isSaving} size="small" />
               </TwoGrid>
             </>
           ) : (
             <>
               <TwoGrid>
-                <div><FieldLabel>Name</FieldLabel><FieldValue>{profile?.name || "—"}</FieldValue></div>
-                <div><FieldLabel>Surname</FieldLabel><FieldValue>{profile?.surname || "—"}</FieldValue></div>
+                <div><FieldLabel>{t("profile.name")}</FieldLabel><FieldValue>{profile?.name || t("profile.emptyValue")}</FieldValue></div>
+                <div><FieldLabel>{t("profile.surname")}</FieldLabel><FieldValue>{profile?.surname || t("profile.emptyValue")}</FieldValue></div>
               </TwoGrid>
               <TwoGrid>
-                <div><FieldLabel>Email</FieldLabel><FieldValue>{profile?.email || "—"}</FieldValue></div>
+                <div><FieldLabel>{t("profile.email")}</FieldLabel><FieldValue>{profile?.email || t("profile.emptyValue")}</FieldValue></div>
               </TwoGrid>
             </>
           )}
@@ -369,19 +383,19 @@ export default function ProfilePage() {
         <BottomCard>
           <CardTitle>
             <SecurityRoundedIcon sx={{ fontSize: "1rem", color: "#c8a84b" }} />
-            Change password
+            {t("profile.changePassword")}
           </CardTitle>
-          <SubTitle>You will be able to change your password here.</SubTitle>
-          <GoldButton variant="outlined" disabled>Change password</GoldButton>
+          <SubTitle>{t("profile.passwordHelp")}</SubTitle>
+          <GoldButton variant="outlined" disabled>{t("profile.changePassword")}</GoldButton>
         </BottomCard>
 
         <BottomCard>
           <CardTitle>
             <HistoryRoundedIcon sx={{ fontSize: "1rem", color: "#c8a84b" }} />
-            Match history
+            {t("profile.matchHistory")}
           </CardTitle>
-          <SubTitle>Review your recent matches and results.</SubTitle>
-          <GoldButton variant="outlined" onClick={() => navigate("/history")}>View history</GoldButton>
+          <SubTitle>{t("profile.historyHelp")}</SubTitle>
+          <GoldButton variant="outlined" onClick={() => navigate("/history")}>{t("profile.viewHistory")}</GoldButton>
         </BottomCard>
       </BottomRow>
 

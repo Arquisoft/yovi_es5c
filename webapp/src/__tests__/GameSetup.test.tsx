@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
-import GameSetup from "../pages/GameSetup";
+import GameSetup, { getInitialBoardSize, minBoardSize, maxBoardSize } from "../pages/GameSetup";
 import "@testing-library/jest-dom";
 import { act } from "react";
 
@@ -9,10 +9,9 @@ import { act } from "react";
 
 const mockNavigate = vi.fn();
 
-/* Mock react-router-dom */
 vi.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
-  Navigate: ({ to }: any) => <div>{to}</div>,
+  Navigate: ({ to }: any) => <div data-testid="navigate">{to}</div>,
 }));
 
 const mockSession = {
@@ -25,14 +24,42 @@ vi.mock("../SessionContext", () => ({
 
 beforeEach(() => {
   mockSession.isLoggedIn = true;
-});
-
-/* Reset mocks after each test */
-afterEach(() => {
+  sessionStorage.clear();
   vi.clearAllMocks();
 });
 
+afterEach(() => {
+  vi.clearAllMocks();
+  sessionStorage.clear();
+});
+
 /* ---------------- TESTS ---------------- */
+
+describe("getInitialBoardSize Helper", () => {
+  it("debería devolver 5 si no hay nada en sessionStorage", () => {
+    expect(getInitialBoardSize()).toBe(5);
+  });
+
+  it("debería devolver 5 si el valor guardado no es un número", () => {
+    sessionStorage.setItem("boardSize", "invalid");
+    expect(getInitialBoardSize()).toBe(5);
+  });
+
+  it("debería devolver el valor parseado si está dentro de los límites", () => {
+    sessionStorage.setItem("boardSize", "7");
+    expect(getInitialBoardSize()).toBe(7);
+  });
+
+  it("debería acotar al valor mínimo si es menor", () => {
+    sessionStorage.setItem("boardSize", (minBoardSize - 2).toString());
+    expect(getInitialBoardSize()).toBe(minBoardSize);
+  });
+
+  it("debería acotar al valor máximo si es mayor", () => {
+    sessionStorage.setItem("boardSize", (maxBoardSize + 5).toString());
+    expect(getInitialBoardSize()).toBe(maxBoardSize);
+  });
+});
 
 describe("GameSetup page", () => {
   it("redirects to login when user is not logged", () => {
@@ -40,13 +67,13 @@ describe("GameSetup page", () => {
 
     render(<GameSetup />);
 
-    expect(screen.getByText("/login")).toBeInTheDocument();
+    expect(screen.getByTestId("navigate")).toHaveTextContent("/login");
   });
 
   it("renders new game title", () => {
     render(<GameSetup />);
 
-    expect(screen.getByText(/new game/i)).toBeInTheDocument();
+    expect(screen.getByText(/setup\.title/i)).toBeInTheDocument();
   });
 
   it("navigates when Player vs Player button is clicked", async () => {
@@ -59,100 +86,88 @@ describe("GameSetup page", () => {
     await act(async () => {
       await user.click(
         screen.getByRole("button", {
-          name: /player vs player/i,
+          name: /setup\.pvp/i,
         })
       );
     });
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/game", {
-        state: { mode: "pvp" },
-      });
+      expect(mockNavigate).toHaveBeenCalledWith("/game", { state: { mode: "pvp" } });
     });
   });
 
-  it("opens bot menu when Player vs Bot is clicked", async () => {
-    await act(async () => {
-      render(<GameSetup />);
-    });
+  // --- SPINNER SIZE ---
+
+  it("debería permitir incrementar el tamaño del tablero y guardarlo en sessionStorage", async () => {
     const user = userEvent.setup();
+    render(<GameSetup />);
 
-    await act(async () => {
-      await user.click(screen.getByRole("button", { name: /player vs bot/i }));
-    });
+    expect(screen.getByText("5")).toBeInTheDocument();
 
-    expect(screen.getByText(/random bot/i)).toBeInTheDocument();
-    expect(screen.getByText(/center bot/i)).toBeInTheDocument();
-    expect(screen.getByText(/edge bot/i)).toBeInTheDocument();
-    expect(screen.getByText(/smart bot/i)).toBeInTheDocument();
-    expect(screen.getByText(/makes random moves/i)).toBeInTheDocument();
-    expect(screen.getByText(/controls the center/i)).toBeInTheDocument();
+    const increaseBtn = screen.getByRole("button", { name: /setup\.increaseBoardSize/i });
+
+    await user.click(increaseBtn);
+
+    expect(screen.getByText("6")).toBeInTheDocument();
+    expect(sessionStorage.getItem("boardSize")).toBe("6");
   });
 
-  it("closes bot menu when pressing Escape", async () => {
-    await act(async () => {
-      render(<GameSetup />);
-    });
+  it("debería permitir reducir el tamaño del tablero y guardarlo en sessionStorage", async () => {
     const user = userEvent.setup();
+    render(<GameSetup />);
 
-    await act(async () => {
-      await user.click(screen.getByRole("button", { name: /player vs bot/i }));
-    });
+    const decreaseBtn = screen.getByRole("button", { name: /setup\.decreaseBoardSize/i });
 
-    expect(screen.getByText(/random bot/i)).toBeInTheDocument();
+    await user.click(decreaseBtn);
 
-    await act(async () => {
-      await user.keyboard("{Escape}");
-    });
-
-    await waitFor(() => {
-      expect(screen.queryByText(/random bot/i)).not.toBeInTheDocument();
-    });
+    expect(screen.getByText("4")).toBeInTheDocument();
+    expect(sessionStorage.getItem("boardSize")).toBe("4");
   });
 
-  it("opens difficulty menu when a bot is selected", async () => {
-    await act(async () => {
-      render(<GameSetup />);
-    });
-    const user = userEvent.setup();
+  it("debería deshabilitar el botón de reducir si se alcanza el mínimo", async () => {
+    sessionStorage.setItem("boardSize", minBoardSize.toString());
+    render(<GameSetup />);
 
-    await act(async () => {
-      await user.click(screen.getByRole("button", { name: /player vs bot/i }));
-    });
-
-    await act(async () => {
-      await user.click(screen.getByText(/random bot/i));
-    });
-
-    expect(screen.getByText(/easy/i)).toBeInTheDocument();
-    expect(screen.getByText(/medium/i)).toBeInTheDocument();
-    expect(screen.getByText(/hard/i)).toBeInTheDocument();
+    const decreaseBtn = screen.getByRole("button", { name: /setup\.decreaseBoardSize/i });
+    expect(decreaseBtn).toBeDisabled();
   });
 
+  it("debería deshabilitar el botón de aumentar si se alcanza el máximo", async () => {
+    sessionStorage.setItem("boardSize", maxBoardSize.toString());
+    render(<GameSetup />);
 
-  it("navigates to /game with correct state", async () => {
-    await act(async () => {
-      render(<GameSetup />);
-    });
+    const increaseBtn = screen.getByRole("button", { name: /setup\.increaseBoardSize/i });
+    expect(increaseBtn).toBeDisabled();
+  });
+
+  // --- BOTS ---
+
+  it("debería navegar correctamente tras seleccionar un bot y una dificultad", async () => {
     const user = userEvent.setup();
+    render(<GameSetup />);
 
-    await act(async () => {
-      await user.click(screen.getByRole("button", { name: /player vs bot/i }));
+    const botMenuBtn = screen.getByRole("button", { name: /setup\.bot/i });
+    await user.click(botMenuBtn);
+
+    const randomBotOption = (await screen.findAllByRole("menuitem"))[0]
+    expect(randomBotOption).toBeInTheDocument();
+
+    await user.click(randomBotOption);
+
+    const hardDifficultyOption = await screen.findByRole("menuitem", {
+      name: /home\.difficulties\.hard/i,
     });
 
-    await act(async () => {
-      await user.click(screen.getByText(/random bot/i));
-    });
-
-    await act(async () => {
-      await user.click(screen.getByText(/easy/i));
-    });
+    await user.click(hardDifficultyOption);
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith("/game", {
-        state: { mode: "bot", bot_id: "random_bot", difficulty: "Easy" },
+        state: {
+          mode: "bot",
+          bot_id: "random_bot",
+          difficulty: "Hard",
+      },
       });
     });
   });
-
 });

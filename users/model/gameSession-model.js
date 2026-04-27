@@ -2,35 +2,36 @@ const mongoose = require('mongoose');
 
 const gameSessionSchema = new mongoose.Schema({
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    type: String,
     required: true
   },
 
   rival: {
     type: String,
-    enum: ['bot', 'user']
+    enum: ['random_bot', 'center_bot', 'edge_bot','smart_bot', 'mirror_bot','alpha_bot', 'multiplayer'], 
+    required: true
   },
 
   level: {
-    type: Number,
-    default: 1
+    type: String,
+    enum: ['Easy', 'Medium', 'Hard'], 
+    default: 'Easy'
   },
 
   duration: {
-    type: Number 
+    type: Number
   },
 
   result: {
     type: String,
-    enum: ['win', 'lose']
+    enum: ['won', 'lost'], 
+    required: true
   },
 
   createdAt: {
     type: Date,
     default: Date.now
   }
-
 });
 
 const GameSession = mongoose.model('GameSession', gameSessionSchema);

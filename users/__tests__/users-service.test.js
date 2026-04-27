@@ -15,8 +15,7 @@ beforeAll(async () => {
 
   const mongoUri = mongoServer.getUri()
   process.env.MONGODB_URI = mongoUri
-  
-  process.env.JWT_SECRET = 'mi-secreto-seguro-para-tests' 
+  process.env.JWT_SECRET = 'test-secret'
 
   app = require('../users-service') 
 })
