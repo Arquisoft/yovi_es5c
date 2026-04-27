@@ -213,4 +213,24 @@ describe('ProfilePage', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('/history')
   })
+
+  it('navigates to change password page when clicking change password button', async () => {
+    ;(global.fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        username: 'testuser',
+        name: 'Test',
+        surname: 'User',
+        email: 'test@uniovi.es',
+      }),
+    })
+
+    render(<MemoryRouter><ProfilePage /></MemoryRouter>)
+    const user = userEvent.setup()
+
+    await waitFor(() => expect(screen.getByText('Test')).toBeInTheDocument())
+
+    await user.click(screen.getByRole('button', { name: /profile\.changePassword/i }))
+    expect(mockNavigate).toHaveBeenCalledWith('/change-password')
+  })
 })
