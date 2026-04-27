@@ -37,6 +37,33 @@ export function getInitialBoardSize(): number {
   return Math.max(minBoardSize, Math.min(maxBoardSize, parsedSize));
 }
 
+export function calculatePlayerTimer(boardSize: number, difficulty: Difficulty) {
+  // 1. Determinar el Factor de Escala del Tablero (boardScaleFactor)
+  let boardScaleFactor = 0;
+  if (boardSize >= 3 && boardSize <= 6) {
+    boardScaleFactor = 1;
+  } else if (boardSize >= 7 && boardSize <= 10) {
+    boardScaleFactor = 1.5;
+  } else if (boardSize >= 11 && boardSize <= 15) {
+    boardScaleFactor = 1.75;
+  }
+
+// 2. Determinar el Multiplicador de Dificultad (difficultyMultiplier)
+let difficultyMultiplier = 1; // default (Medium)
+switch (difficulty) {
+  case "Easy":   difficultyMultiplier = 1.5; break;
+  case "Hard":   difficultyMultiplier = 0.5; break;
+}
+
+  const baseSeconds = 30;
+  const baseIncrement = 2;
+
+  return {
+    initialSessionTime: Math.floor((baseSeconds * boardScaleFactor) * difficultyMultiplier),
+    incrementPerMove: Math.floor((baseIncrement * boardScaleFactor) * difficultyMultiplier),
+  };
+}
+
 // ─── Styled components ───────────────────────────────────────
 const DivRow = styled("div")(({ theme }) => ({
   width: "100%",
@@ -252,13 +279,28 @@ const GameSetup = () => {
     setBotAnchorEl(null);
     setDiffAnchorEl(null);
     setSelectedBot(null);
+    
+    const timerValues = calculatePlayerTimer(boardSize, difficulty);
+
     navigate("/game", {
-      state: { mode: "bot" as GameMode, bot_id: selectedBot.bot_id, difficulty },
+      state: {
+        mode: "bot" as GameMode,
+        bot_id: selectedBot.bot_id,
+        difficulty,
+        ...timerValues,
+      },
     });
   };
 
   const handleStartPvp = () => {
-    navigate("/game", { state: { mode: "pvp" as GameMode } });
+    const timerValues = calculatePlayerTimer(boardSize, "Medium");
+    
+    navigate("/game", { 
+      state: { 
+        mode: "pvp" as GameMode,
+        ...timerValues,
+      } 
+    });
   };
 
   return (
