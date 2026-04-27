@@ -164,6 +164,90 @@ paths:
         '201':
           description: Resultados de la partida guardados exitosamente
 
+  /game/ranking:
+    get:
+      summary: Obtiene el ranking global actual
+      description: Enruta la petición al Users Service y devuelve el ranking global ordenado, con límite opcional para automatizaciones.
+      tags:
+        - User Service
+      parameters:
+        - in: query
+          name: sortBy
+          required: false
+          schema:
+            type: string
+            enum:
+              - wins
+              - winRate
+              - played
+              - losses
+            default: wins
+          description: Campo por el que ordenar el ranking
+        - in: query
+          name: order
+          required: false
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: desc
+          description: Dirección de ordenación
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            example: 5
+          description: Número máximo de entradas devueltas
+      responses:
+        '200':
+          description: Ranking recuperado correctamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    username:
+                      type: string
+                      example: alice
+                    played:
+                      type: integer
+                      example: 10
+                    wins:
+                      type: integer
+                      example: 8
+                    losses:
+                      type: integer
+                      example: 2
+                    winRate:
+                      type: integer
+                      example: 80
+              examples:
+                topThree:
+                  summary: Top 3 players by wins
+                  value:
+                    - username: alice
+                      played: 10
+                      wins: 8
+                      losses: 2
+                      winRate: 80
+                    - username: bob
+                      played: 9
+                      wins: 7
+                      losses: 2
+                      winRate: 78
+                    - username: carol
+                      played: 12
+                      wins: 7
+                      losses: 5
+                      winRate: 58
+        '500':
+          description: Error interno del servidor
+
   /game/status:
     get:
       summary: Obtiene el estado del servicio Gamey
