@@ -1,4 +1,8 @@
+import { useTranslation } from 'react-i18next'
+
 export default function PageFooter() {
+  const { t } = useTranslation()
+
   return (
     <footer
       style={{
@@ -13,7 +17,7 @@ export default function PageFooter() {
         color: '#ffffff',
       }}
     >
-      <small>ASW 2025-2026 · Game Y</small>
+      <small>{t('footer.copyright')}</small>
     </footer>
   )
 }

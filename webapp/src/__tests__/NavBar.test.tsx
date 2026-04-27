@@ -50,8 +50,8 @@ describe('NavBar', () => {
 
     const user = userEvent.setup()
 
-    await user.click(screen.getByRole('button', { name: /profile/i }))
-    await user.click(screen.getByRole('menuitem', { name: /history/i }))
+    await user.click(screen.getByRole('button', { name: /nav\.profile/i }))
+    await user.click(screen.getByRole('menuitem', { name: /nav\.history/i }))
 
     expect(mockNavigate).toHaveBeenCalledWith('/history')
   })
@@ -65,8 +65,8 @@ describe('NavBar', () => {
 
     const user = userEvent.setup()
 
-    await user.click(screen.getByRole('button', { name: /profile/i }))
-    await user.click(screen.getByRole('menuitem', { name: /my profile/i }))
+    await user.click(screen.getByRole('button', { name: /nav\.profile/i }))
+    await user.click(screen.getByRole('menuitem', { name: /nav\.myProfile/i }))
 
     expect(mockNavigate).toHaveBeenCalledWith('/profile')
   })
@@ -80,11 +80,12 @@ describe('NavBar', () => {
 
     const user = userEvent.setup()
 
-    await user.click(screen.getByRole('button', { name: /profile/i }))
-    await user.click(screen.getByRole('menuitem', { name: /logout/i }))
+    await user.click(screen.getByRole('button', { name: /nav\.profile/i }))
+    await user.click(screen.getByRole('menuitem', { name: /nav\.logout/i }))
 
     expect(mockDestroySession).toHaveBeenCalled()
     expect(mockNavigate).toHaveBeenCalledWith('/')
+
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
         'http://localhost:8000/logout',
@@ -106,7 +107,9 @@ describe('NavBar', () => {
       </MemoryRouter>
     )
 
-    expect(screen.queryByRole('button', { name: /profile/i })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /nav\.profile/i })
+    ).not.toBeInTheDocument()
   })
 
   it('navigates to the landing page when clicking the title', async () => {
@@ -118,8 +121,16 @@ describe('NavBar', () => {
 
     const user = userEvent.setup()
 
-    await user.click(screen.getByRole('button', { name: /game y/i }))
+    // Soporta tanto si usas i18n como si no
+    const titleButton =
+      screen.queryByRole('button', { name: /game\.titlePvp|game\.titleBot/i }) ||
+      screen.queryByRole('button', { name: /game y/i })
+
+    if (!titleButton) throw new Error('Title button not found')
+
+    await user.click(titleButton)
 
     expect(mockNavigate).toHaveBeenCalledWith('/')
   })
 })
+
