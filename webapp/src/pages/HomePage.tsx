@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { Typography, Box, IconButton, Tabs, Tab, Divider, Chip } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import CloseIcon from '@mui/icons-material/Close';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import '../components/HomePage.css';
