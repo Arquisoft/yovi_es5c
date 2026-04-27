@@ -320,7 +320,7 @@ const GameSetup = () => {
       </DivColumn>
 
       <img
-        src="/logo.svg"
+        src="/logo.png"
         alt={t('setup.logoAlt')}
         style={{ width: "20vw", height: "20vw" }}
       />
