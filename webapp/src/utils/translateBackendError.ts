@@ -10,6 +10,7 @@ const errorMap: Record<string, string> = {
   "The name cannot be empty or contain only spaces": "errors.nameRequired",
   "The surname cannot be empty or contain only spaces": "errors.surnameRequired",
   "The email cannot be empty or contain only spaces": "errors.emailRequired",
+  "Incorrect current password": "errors.incorrectCurrentPassword",
   "Incorrect username or password": "errors.incorrectCredentials",
   "Username and password are required.": "errors.missingCredentials",
 };

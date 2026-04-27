@@ -107,6 +107,16 @@ app.put('/user/:username', async (req, res) => {
   }
 });
 
+app.post('/user/change-password', async (req, res) => {
+  try {
+    const changePasswordUrl = new URL(`/user/change-password`, userServiceUrl);
+    const response = await axios.post(changePasswordUrl.href, req.body);
+    res.json(response.data);
+  } catch (error) {
+    handleErrors(res, error);
+  }
+});
+
 app.post('/logout', async (req, res) => {
   try {
     const { username } = req.body;
@@ -355,4 +365,3 @@ if (require.main === module) {
 }
 
 module.exports = { app, server, parseYenPosition, resolveGameMoveBotConfig, resolvePublicBotConfig }
-

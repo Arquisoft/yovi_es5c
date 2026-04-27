@@ -36,7 +36,7 @@ async function loadProfile(username: string, t: (key: string) => string): Promis
   const isValidUsername = /^[a-zA-Z0-9._-]+$/.test(username);
   
   if (!isValidUsername) {
-    throw new Error(t("profile.invalidUsername") || "Invalid username format");
+    throw new Error(t("profile.invalidUsername"));
   }
 
   const token = localStorage.getItem('sessionId'); // Obtenemos el token
@@ -386,7 +386,7 @@ export default function ProfilePage() {
             {t("profile.changePassword")}
           </CardTitle>
           <SubTitle>{t("profile.passwordHelp")}</SubTitle>
-          <GoldButton variant="outlined" disabled>{t("profile.changePassword")}</GoldButton>
+          <GoldButton variant="outlined" onClick={() => navigate("/change-password")}>{t("profile.changePassword")}</GoldButton>
         </BottomCard>
 
         <BottomCard>
