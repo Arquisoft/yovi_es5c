@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Typography, Box, IconButton, Tabs, Tab, Divider, Chip } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import CloseIcon from '@mui/icons-material/Close';
@@ -71,9 +72,30 @@ const BOTS = [
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [helpOpen, setHelpOpen] = useState(false);
   const [tab, setTab] = useState(0);
   const helpTitleId = 'home-help-title';
+
+  // Define bots array with translations
+  const BOTS = [
+    { 
+      name: t('home.bots.random.name'),  
+      desc: t('home.bots.random.desc')
+    },
+    { 
+      name: t('home.bots.center.name'),  
+      desc: t('home.bots.center.desc')
+    },
+    { 
+      name: t('home.bots.edge.name'),    
+      desc: t('home.bots.edge.desc')
+    },
+    { 
+      name: t('home.bots.mirror.name'),  
+      desc: t('home.bots.mirror.desc')
+    },
+  ];
 
   return (
     <div className="home-container">
@@ -84,9 +106,9 @@ export default function HomePage() {
 
       <GameTitle variant="h1">GAME Y</GameTitle>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, zIndex: 1 }}>
-        <PlayButton aria-label="Play" onClick={() => navigate('/set')}>
-          <PlayArrowIcon fontSize="small" /> Play
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, zIndex: 1 }}>
+        <PlayButton onClick={() => navigate('/set')}>
+          <PlayArrowIcon fontSize="small" /> {t('home.play')}
         </PlayButton>
         <HelpBtn aria-label="How to play" onClick={() => { setHelpOpen(true); setTab(0); }}>
           <HelpOutlineIcon sx={{ fontSize: '18px' }} /> How to play
@@ -116,8 +138,8 @@ export default function HomePage() {
           }}>
             {/* Header */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-              <Typography id={helpTitleId} fontWeight={600} fontSize={17} color="#fff">
-                How to play
+              <Typography fontWeight={600} fontSize={17} color="#fff">
+                {t('home.howToPlay')}
               </Typography>
               <IconButton
                 aria-label="Close help modal"
@@ -139,30 +161,29 @@ export default function HomePage() {
                 '& .MuiTabs-indicator': { backgroundColor: '#fff' },
               }}
             >
-              <Tab label="Rules" />
-              <Tab label="Opponents" />
+              <Tab label={t('home.rules')} />
+              <Tab label={t('home.opponents')} />
             </Tabs>
 
             {/* ── Rules ── */}
             {tab === 0 && (
               <Box>
                 <Typography variant="overline" sx={{ color: 'rgba(255,255,255,0.5)' }}>
-                  Goal
+                  {t('home.goal')}
                 </Typography>
                 <Typography variant="body2" sx={{ mt: 0.5, mb: 2, color: '#fff' }}>
-                  Connect the <strong>three sides</strong> of the triangular hexagonal board with an
-                  unbroken chain of your pieces. The first player to do so wins.
+                  {t('home.goalDescription')}
                 </Typography>
 
 
                 <Typography variant="overline" sx={{ color: 'rgba(255,255,255,0.5)' }}>
-                  Key rules
+                  {t('home.keyRules')}
                 </Typography>
                 <Typography variant="body2" sx={{ mt: 0.5, mb: 1, color: '#fff' }}>
-                  <strong>Corner</strong> cells belong to both sides they touch.
+                  <strong>{t('home.cornerRule')}</strong>
                 </Typography>
                 <Typography variant="body2" sx={{ mb: 2, color: '#fff' }}>
-                  The game <strong>cannot end in a draw</strong> — a full board always has exactly one winner.
+                  {t('home.noDrawRule')}
                 </Typography>
 
                 <Box sx={{
@@ -172,8 +193,7 @@ export default function HomePage() {
                   p: 1.5,
                 }}>
                   <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
-                    <strong style={{ color: '#fff' }}>Tip:</strong> controlling the center is powerful,
-                    but it makes your strategy predictable. Balance expansion with defense.
+                    <strong style={{ color: '#fff' }}>{t('home.tipLabel')}</strong> {t('home.tipDescription')}
                   </Typography>
                 </Box>
               </Box>
@@ -183,7 +203,7 @@ export default function HomePage() {
             {tab === 1 && (
               <Box>
                 <Typography variant="overline" sx={{ color: 'rgba(255,255,255,0.5)' }}>
-                  Choose your opponent
+                  {t('home.chooseOpponent')}
                 </Typography>
                 <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
                   {BOTS.map(bot => (
@@ -205,10 +225,10 @@ export default function HomePage() {
                 <Divider sx={{ my: 2, borderColor: 'rgba(255,255,255,0.15)' }} />
 
                 <Typography variant="overline" sx={{ color: 'rgba(255,255,255,0.5)' }}>
-                  Difficulty
+                  {t('home.difficulties.easy')}
                 </Typography>
                 <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
-                  {['Easy', 'Medium', 'Hard'].map(d => (
+                  {[t('home.difficulties.easy'), t('home.difficulties.medium'), t('home.difficulties.hard')].map(d => (
                     <Chip
                       key={d}
                       label={d}
