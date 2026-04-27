@@ -35,9 +35,19 @@ const SessionProvider: React.FC<SessionProviderProps> = ({ children }) => {
       const storedUsername = localStorage.getItem('username');
 
       if (storedSessionId && storedUsername) {
+        const usernameRegex = /^[a-zA-Z0-9_-]+$/; 
+        
+        if (!usernameRegex.test(storedUsername)) {
+          console.error('Formato de usuario inválido en localStorage.');
+          destroySession();
+          setIsReady(true);
+          return;
+        }
+
         try {
-          // Validamos el token intentando obtener el perfil del usuario
-          const response = await fetch(`http://localhost:8000/user/${storedUsername}`, {
+          const safeUsername = encodeURIComponent(storedUsername);
+          
+          const response = await fetch(`http://localhost:8000/user/${safeUsername}`, {
             headers: {
               'Authorization': `Bearer ${storedSessionId}`
             }
@@ -63,6 +73,14 @@ const SessionProvider: React.FC<SessionProviderProps> = ({ children }) => {
   }, []);
 
   const createSession = (username: string, token: string): void => {
+    const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+    const tokenRegex = /^[a-zA-Z0-9-_\.]+$/;
+
+    if (!usernameRegex.test(username) || !tokenRegex.test(token)) {
+      console.error('Intento de guardar datos inválidos o potencialmente maliciosos en la sesión.');
+      return; 
+    }
+
     setSessionId(token);
     setUsername(username);
     setIsLoggedIn(true);
