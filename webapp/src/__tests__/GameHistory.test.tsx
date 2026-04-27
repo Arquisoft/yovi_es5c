@@ -31,11 +31,6 @@ vi.mock('react-router-dom', async () => {
   }
 })
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}))
 
 describe('GameHistory', () => {
   beforeEach(() => {

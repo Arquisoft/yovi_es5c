@@ -26,12 +26,6 @@ vi.mock('../pages/GameSetup', () => ({
 	getInitialBoardSize: vi.fn(() => 3),
 }))
 
-// Mock de react-i18next
-vi.mock('react-i18next', () => ({
-	useTranslation: () => ({
-		t: (key: string) => key,
-	}),
-}))
 
 // Mock de la API global fetch
 global.fetch = vi.fn()
