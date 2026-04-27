@@ -27,14 +27,23 @@ describe('ProfilePage', () => {
   beforeEach(() => {
     global.fetch = vi.fn()
     mockNavigate.mockReset()
+    
+    // Simulamos el localStorage usando las herramientas de Vitest
+    vi.stubGlobal('localStorage', {
+      getItem: vi.fn(() => 'fake-token-123'),
+      setItem: vi.fn(),
+      clear: vi.fn(),
+      removeItem: vi.fn()
+    })
   })
 
   afterEach(() => {
     vi.clearAllMocks()
+    vi.unstubAllGlobals() // Limpiamos los stubs globales
   })
 
   it('loads and displays the account details', async () => {
-    ;(global.fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+    global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
         username: 'testuser',
@@ -58,8 +67,21 @@ describe('ProfilePage', () => {
   })
 
   it('allows editing and saving the profile', async () => {
-    ;(global.fetch as unknown as ReturnType<typeof vi.fn>)
-      .mockResolvedValueOnce({
+    // Usamos mockImplementation para diferenciar el GET inicial del PUT al guardar
+    global.fetch = vi.fn().mockImplementation(async (_, options) => {
+      if (options?.method === 'PUT') {
+        return {
+          ok: true,
+          json: async () => ({
+            username: 'testuser',
+            name: 'Test',
+            surname: 'Updated',
+            email: 'test.updated@uniovi.es',
+          }),
+        }
+      }
+      // Respuesta por defecto para el GET inicial
+      return {
         ok: true,
         json: async () => ({
           username: 'testuser',
@@ -67,16 +89,8 @@ describe('ProfilePage', () => {
           surname: 'User',
           email: 'test@uniovi.es',
         }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          username: 'testuser',
-          name: 'Test',
-          surname: 'Updated',
-          email: 'test.updated@uniovi.es',
-        }),
-      })
+      }
+    })
 
     render(<MemoryRouter><ProfilePage /></MemoryRouter>)
 
@@ -96,9 +110,9 @@ describe('ProfilePage', () => {
     await user.click(screen.getByRole('button', { name: /profile\.save/i}))
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenNthCalledWith(
-        2,
-        'http://localhost:8000/user/testuser',
+      // Verificamos que se haya hecho la petición PUT con los datos correctos
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/user/testuser'),
         expect.objectContaining({
           method: 'PUT',
           body: JSON.stringify({
@@ -117,7 +131,7 @@ describe('ProfilePage', () => {
   })
 
   it('shows an error message when loading the profile fails', async () => {
-    ;(global.fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+    global.fetch = vi.fn().mockResolvedValue({
       ok: false,
       json: async () => ({
         error: 'Could not load profile information.',
@@ -130,7 +144,7 @@ describe('ProfilePage', () => {
   })
 
   it('cancels profile editing and restores the saved values', async () => {
-    ;(global.fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+    global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
         username: 'testuser',
@@ -160,8 +174,17 @@ describe('ProfilePage', () => {
   })
 
   it('shows an error message when saving the profile fails', async () => {
-    ;(global.fetch as unknown as ReturnType<typeof vi.fn>)
-      .mockResolvedValueOnce({
+    // Igual que antes, separamos el PUT del GET
+    global.fetch = vi.fn().mockImplementation(async (_, options) => {
+      if (options?.method === 'PUT') {
+        return {
+          ok: false,
+          json: async () => ({
+            error: 'Could not update profile information.',
+          }),
+        }
+      }
+      return {
         ok: true,
         json: async () => ({
           username: 'testuser',
@@ -169,13 +192,8 @@ describe('ProfilePage', () => {
           surname: 'User',
           email: 'test@uniovi.es',
         }),
-      })
-      .mockResolvedValueOnce({
-        ok: false,
-        json: async () => ({
-          error: 'Could not update profile information.',
-        }),
-      })
+      }
+    })
 
     render(<MemoryRouter><ProfilePage /></MemoryRouter>)
 
@@ -192,7 +210,7 @@ describe('ProfilePage', () => {
   })
 
   it('navigates to history when clicking view history', async () => {
-    ;(global.fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+    global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
         username: 'testuser',

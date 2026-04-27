@@ -39,25 +39,37 @@ async function loadProfile(username: string, t: (key: string) => string): Promis
     throw new Error(t("profile.invalidUsername"));
   }
 
-  const response = await fetch(`${apiEndpoint}/user/${encodeURIComponent(username)}`);
-  const data = await response.json();
-  
-  if (!response.ok) throw new Error(data.error || t("profile.loadError"));
-  return data;
+  const token = localStorage.getItem('sessionId'); // Obtenemos el token
+  const response = await fetch(`${apiEndpoint}/user/${encodeURIComponent(username)}`, {
+    headers: {
+      'Authorization': `Bearer ${token}` // Lo enviamos al Gateway
+    }
+  })
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(data.error || t("profile.loadError"))
+  }
+
+  return data
 }
 
 async function saveProfile(profile: ProfileData, t: (key: string) => string): Promise<ProfileData> {
   if (!/^[a-zA-Z0-9._-]+$/.test(profile.username)) {
     throw new Error(t("profile.invalidUsername"));
   }
-
+  
+  const token = localStorage.getItem('sessionId');
   const response = await fetch(`${apiEndpoint}/user/${encodeURIComponent(profile.username)}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ 
-      name: profile.name, 
-      surname: profile.surname, 
-      email: profile.email 
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      name: profile.name,
+      surname: profile.surname,
+      email: profile.email,
     }),
   });
   
