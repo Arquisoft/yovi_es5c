@@ -3,6 +3,7 @@ import { styled } from "@mui/material/styles";
 import { useNavigate,Navigate } from "react-router-dom";
 import { useSession } from "../SessionContext";
 import axios from "axios";
+import { useTranslation } from 'react-i18next'
 import { PageWrapper, DivColumn, Title, SubTitle, EmptyState, EmptyIcon, EmptyText, BackButton, LoadingText } from "../components/CommonComponents";
 
 const apiEndpoint = import.meta.env.VITE_API_URL || "http://localhost:8000";
@@ -60,7 +61,7 @@ const TableRow = styled("div")<{ isMe: boolean }>(({ isMe }) => ({
 }));
 
 const Cell = styled("span")({
-  fontSize: "0.9 rem",
+  fontSize: "0.9rem",
   color: "#888",
   letterSpacing: "0.03em",
 });
@@ -80,7 +81,7 @@ const RankCell = styled("span")<{ rank: number }>(({ rank }) => ({
 }));
 
 const NameCell = styled("span")<{ isMe: boolean }>(({ isMe }) => ({
-  fontSize: "0.9 rem",
+  fontSize: "0.9rem",
   color: isMe ? "#e8d89a" : "#aaa",
   fontFamily: isMe ? "Georgia, serif" : "inherit",
   letterSpacing: "0.03em",
@@ -161,14 +162,8 @@ const Ranking = () => {
   const { isLoggedIn, username } = useSession();
   const [sortBy, setSortBy] = useState<SortField>('wins');
   const [order, setOrder]   = useState<SortOrder>('desc');
-  const sortLabels: Record<SortField, string> = {
-    wins:    'wins',
-    winRate: 'win rate',
-    played:  'games played',
-    losses:  'losses',
-  };
-  
-  const orderLabel = order === 'desc' ? 'descending' : 'ascending';
+  const { t } = useTranslation()
+
 
   
 
@@ -205,22 +200,25 @@ const Ranking = () => {
   return (
     <PageWrapper>
       <DivColumn>
-        <Title>Ranking</Title>
+        <Title>{t('ranking.title')}</Title>
         <SubTitle>
-          Global leaderboard · sorted by {sortLabels[sortBy]} {orderLabel}
+          {t('ranking.subtitle', {
+          sort: t(`ranking.sort.${sortBy}`),
+          order: t(`ranking.order.${order}`)
+           })}
         </SubTitle>
       </DivColumn>
 
-      {loading && <LoadingText>Loading ranking...</LoadingText>}
+      {loading && <LoadingText>{t('ranking.loading')}</LoadingText>}
 
       {error && (
-        <SubTitle style={{ color: "#7c4a4a" }}>Could not load ranking.</SubTitle>
+        <SubTitle style={{ color: "#7c4a4a" }}>{t('ranking.error')}</SubTitle>
       )}
 
       {!loading && !error && ranking.length === 0 && (
         <EmptyState>
           <EmptyIcon>♟</EmptyIcon>
-          <EmptyText>No games played yet</EmptyText>
+          <EmptyText>{t('ranking.empty')}</EmptyText>
         </EmptyState>
       )}
 
@@ -230,11 +228,11 @@ const Ranking = () => {
         <TableWrapper>
           <TableHeader>
             <HeaderCell>#</HeaderCell>
-            <HeaderCell>Player</HeaderCell>
-            <SortableHeader field="played"  label="Played"    sortBy={sortBy} order={order} onSort={handleSort} />
-            <SortableHeader field="wins"    label="Wins"       sortBy={sortBy} order={order} onSort={handleSort} />
-            <SortableHeader field="losses"  label="Losses"     sortBy={sortBy} order={order} onSort={handleSort} />
-            <SortableHeader field="winRate" label="Win rate"   sortBy={sortBy} order={order} onSort={handleSort} />
+            <HeaderCell>{t('ranking.player')}</HeaderCell>
+            <SortableHeader field="played"  label={t('ranking.played')}    sortBy={sortBy} order={order} onSort={handleSort} />
+            <SortableHeader field="wins"    label={t('ranking.wins')}       sortBy={sortBy} order={order} onSort={handleSort} />
+            <SortableHeader field="losses"  label={t('ranking.losses')}     sortBy={sortBy} order={order} onSort={handleSort} />
+            <SortableHeader field="winRate" label={t('ranking.winRate')}   sortBy={sortBy} order={order} onSort={handleSort} />
           </TableHeader>
 
           {ranking.map((entry, idx) => {
@@ -247,7 +245,7 @@ const Ranking = () => {
 
                 <NameCell isMe={isMe}>
                   {entry.username}
-                  {isMe && <YouBadge>you</YouBadge>}
+                  {isMe && <YouBadge>{t('ranking.you')}</YouBadge>}
                 </NameCell>
 
                 <Cell>{entry.played}</Cell>
@@ -266,7 +264,7 @@ const Ranking = () => {
         </TableWrapper>
       )}
 
-      <BackButton onClick={() => navigate("/set")}>← Back to select Mode</BackButton>
+      <BackButton onClick={() => navigate("/set")}>{t('ranking.back')}</BackButton>
     </PageWrapper>
   );
 };

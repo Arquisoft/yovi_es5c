@@ -63,7 +63,7 @@ describe("Ranking page - loading states", () => {
 
     render(<Ranking />);
 
-    expect(screen.getByText(/loading ranking/i)).toBeInTheDocument();
+    expect(screen.getByText(/ranking\.loading/i)).toBeInTheDocument();
   });
 
   it("shows empty state if there are no games", async () => {
@@ -72,7 +72,7 @@ describe("Ranking page - loading states", () => {
     render(<Ranking />);
 
     await waitFor(() => {
-      expect(screen.getByText(/no games played yet/i)).toBeInTheDocument();
+      expect(screen.getByText(/ranking\.empty/i)).toBeInTheDocument();
     });
   });
 
@@ -82,7 +82,7 @@ describe("Ranking page - loading states", () => {
     render(<Ranking />);
 
     await waitFor(() => {
-      expect(screen.getByText(/could not load ranking/i)).toBeInTheDocument();
+      expect(screen.getByText(/ranking\.error/i)).toBeInTheDocument();
     });
   });
 });
@@ -93,10 +93,10 @@ describe("Ranking page - data rendering", () => {
 
     render(<Ranking />);
 
-    expect(screen.getByText("Ranking")).toBeInTheDocument();
+    expect(screen.getByText(/ranking\.title/i)).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByText(/global leaderboard/i)).toBeInTheDocument();
+      expect(screen.getByText(/ranking\.subtitle/i)).toBeInTheDocument();
     });
   });
 
@@ -157,9 +157,9 @@ describe("Ranking page - sorting", () => {
 
     render(<Ranking />);
 
-    await waitFor(() => screen.getByText("Wins ↓"));
+    await waitFor(() => screen.getByText(/ranking\.wins/i));
 
-    await user.click(screen.getByText("Wins ↓"));
+    await user.click(screen.getByText( /ranking\.wins/i));
 
     await waitFor(() => {
       expect(mockedAxios.get).toHaveBeenCalledWith(
@@ -175,9 +175,9 @@ describe("Ranking page - sorting", () => {
 
     render(<Ranking />);
 
-    await waitFor(() => screen.getByText("Win rate"));
+    await waitFor(() => screen.getByText(/ranking\.winRate/i));
 
-    await user.click(screen.getByText("Win rate"));
+    await user.click(screen.getByText(/ranking\.winRate/i));
 
     await waitFor(() => {
       expect(mockedAxios.get).toHaveBeenCalledWith(
@@ -187,21 +187,27 @@ describe("Ranking page - sorting", () => {
     });
   });
 
-  it("subtitle reflects the current sort field and order", async () => {
+  it("updates sort params when changing column", async () => {
     const user = userEvent.setup();
     mockedAxios.get.mockResolvedValue({ data: mockRanking });
 
     render(<Ranking />);
 
     await waitFor(() => {
-      expect(screen.getByText(/sorted by wins descending/i)).toBeInTheDocument();
+      expect(mockedAxios.get).toHaveBeenLastCalledWith(
+        expect.any(String),
+        { params: { sortBy: "wins", order: "desc" } }
+      );
     });
 
-    await user.click(screen.getByText("Win rate"));
+    await user.click(screen.getByText(/ranking\.winRate/i));
 
     await waitFor(() => {
-      expect(screen.getByText(/sorted by win rate descending/i)).toBeInTheDocument();
-    });
+    expect(mockedAxios.get).toHaveBeenLastCalledWith(
+      expect.any(String),
+      { params: { sortBy: "winRate", order: "desc" } }
+    );
+  });
   });
 });
 
@@ -212,7 +218,7 @@ describe("Ranking page - navigation", () => {
 
     render(<Ranking />);
 
-    await user.click(screen.getByRole("button", { name: /back to select mode/i }));
+    await user.click(screen.getByRole("button", { name: /ranking\.back/i }));
 
     expect(mockNavigate).toHaveBeenCalledWith("/set");
   });

@@ -409,7 +409,7 @@ const GameSetup = () => {
 
         {(isRolling || rollingBot) && (
           <SlotBox>
-            <SlotText>{isRolling ? "🎰 Rolling..." : "🎯 Your match"}</SlotText>
+            <SlotText>{isRolling ? t('setup.rolling') : t('setup.yourMatch')}</SlotText>
             <SlotText>Bot: {rollingBot?.label}</SlotText>
             <SlotText>Difficulty: {rollingDifficulty}</SlotText>
           </SlotBox>
@@ -419,9 +419,9 @@ const GameSetup = () => {
     <ControlsSection>
         <DivColumn>
           <GameButton variant="outlined" onClick={handleRandomGame} disabled={isDisabled}>
-          🎲 Random Game
+          {t('setup.random')}
           </GameButton>
-          <ModeDescription>We select for you!!</ModeDescription>
+          <ModeDescription>{t('setup.randomDescription')}</ModeDescription>
         </DivColumn>
       
         {/* ── Modo PvP ── */}

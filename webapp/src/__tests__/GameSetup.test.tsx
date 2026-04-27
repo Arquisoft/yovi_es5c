@@ -176,7 +176,7 @@ describe("GameSetup page", () => {
 	  render(<GameSetup />);
 
 	  const randomButton = screen.getByRole("button", {
-		  name: /random game/i,
+		  name: /setup\.random/i
 	  });
 
 	  await user.click(randomButton);
