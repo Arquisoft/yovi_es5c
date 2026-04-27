@@ -64,7 +64,6 @@ switch (difficulty) {
   };
 }
 
-// ─── Styled components ───────────────────────────────────────
 const DivRow = styled("div")(({ theme }) => ({
   width: "100%",
   display: "grid",
@@ -82,7 +81,7 @@ const DivRow = styled("div")(({ theme }) => ({
 const ModeButton = styled(Button)({
   width: "100%",
   maxWidth: 280,
-  padding: "14px 18px",
+  padding: "6px 8px",
   fontSize: "clamp(0.88rem, 2.5vw, 0.96rem)",
   letterSpacing: "0.06em",
   borderColor: "#c8a84b",
@@ -95,6 +94,12 @@ const ModeButton = styled(Button)({
     borderColor: "#e8d89a",
     color: "#e8d89a",
   },
+  "&.Mui-disabled": {
+    color: "#c8a84b",
+    borderColor: "#c8a84b",
+    opacity: 1,
+    cursor: "not-allowed",
+  }
 });
 
 const StyledMenu = styled(Menu)({
@@ -215,6 +220,59 @@ const SpinnerValue = styled(Typography)({
   userSelect: "none",
 });
 
+const LogoContainer = styled("div")({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 12,
+  width: "100%",
+  marginTop: 0,
+  marginBottom: 0,
+  flexWrap: "wrap",
+});
+
+const BoardSizePanel = styled("div")({
+  width: 220,
+  minHeight: 120,
+  border: "1px solid rgba(200, 168, 75, 0.4)",
+  borderRadius: 16,
+  backgroundColor: "rgba(17, 17, 17, 0.92)",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  alignItems: "center",
+  gap: 10,
+  padding: "18px 16px",
+  boxSizing: "border-box",
+});
+
+const BoardSizeLabel = styled(Typography)({
+  color: "#ddd8c8",
+  fontSize: "0.85rem",
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
+  textAlign: "center",
+});
+
+const SlotBox = styled("div")({
+  width: 220,
+  height: 120,
+  border: "1px solid #c8a84b",
+  borderRadius: 8,
+  backgroundColor: "#1a1a1a",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  alignItems: "center",
+  gap: 8,
+});
+const SlotText = styled(Typography)({
+  color: "#c8a84b",
+  fontSize: "0.9rem",
+  letterSpacing: "0.04em",
+});
+
+
 // ─── Component ───────────────────────────────────────────────
 const GameSetup = () => {
   const { t } = useTranslation();
@@ -222,7 +280,12 @@ const GameSetup = () => {
   const [botAnchorEl, setBotAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedBot, setSelectedBot] = useState<BotOption | null>(null);
   const [diffAnchorEl, setDiffAnchorEl] = useState<null | HTMLElement>(null);
+  const [isRolling, setIsRolling] = useState(false);
+  const [rollingBot, setRollingBot] = useState<BotOption | null>(null);
+  const [rollingDifficulty, setRollingDifficulty] = useState<Difficulty | null>(null);
 
+
+  const isDisabled = isRolling || rollingBot!= null;
   const navigate = useNavigate();
   const { isLoggedIn } = useSession();
 
@@ -237,6 +300,53 @@ const GameSetup = () => {
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
   }
+
+
+  //Ruleta
+
+  const getRandomElement = <T,>(arr: T[]): T =>
+    arr[Math.floor(Math.random() * arr.length)]; // NOSONAR
+
+  const handleRandomGame = () => {
+    if (isRolling) return;
+
+    setIsRolling(true);
+
+    const spinTimes = 10;
+    let i = 0;
+
+  const spin = () => {
+    setRollingBot(getRandomElement(BOT_OPTIONS));
+    setRollingDifficulty(getRandomElement(DIFFICULTIES));
+
+    i++;
+
+    if (i < spinTimes) {
+      setTimeout(spin, 140);
+    } else {
+      const finalBot = getRandomElement(BOT_OPTIONS);
+      const finalDiff = getRandomElement(DIFFICULTIES);
+
+      setRollingBot(finalBot);
+      setRollingDifficulty(finalDiff);
+
+    setIsRolling(false);
+
+    setTimeout(() => {
+      navigate("/game", {
+        state: {
+        mode: "bot",
+        bot_id: finalBot.bot_id,
+        difficulty: finalDiff,
+        },
+      });
+    }, 1200); 
+    }
+  };
+    spin();
+  };
+
+  // ── Tamaño de tablero ───────────────────────────
 
   const handleDecreaseSize = () => {
     if (boardSize > minBoardSize) {
@@ -311,24 +421,62 @@ const GameSetup = () => {
         <SubTitle>{t('setup.subtitle')}</SubTitle>
       </DivColumn>
 
+   <LogoContainer>
+        {(isRolling || rollingBot) && (
+          <SlotBox>
+            <SlotText>{isRolling ? t('setup.rolling') : t('setup.yourMatch')}</SlotText>
+            <SlotText>Bot: {rollingBot?.label}</SlotText>
+            <SlotText>Difficulty: {rollingDifficulty}</SlotText>
+          </SlotBox>
+        )}
+
       <img
         src="/logo.png"
         alt={t('setup.logoAlt')}
         style={{ width: "20vw", height: "20vw" }}
       />
 
-      <DivRow>
+      <BoardSizePanel>
+        <BoardSizeLabel>{t('setup.boardSize')}</BoardSizeLabel>
+        <SpinnerContainer>
+          <SpinnerBtn
+            onClick={handleDecreaseSize}
+            disabled={boardSize <= minBoardSize || isDisabled}
+            aria-label={t('setup.decreaseBoardSize')}
+          >
+            −
+          </SpinnerBtn>
+          <SpinnerValue>{boardSize}</SpinnerValue>
+          <SpinnerBtn
+            onClick={handleIncreaseSize}
+            disabled={boardSize >= maxBoardSize || isDisabled}
+            aria-label={t('setup.increaseBoardSize')}
+          >
+            +
+          </SpinnerBtn>
+        </SpinnerContainer>
+      </BoardSizePanel>
+    </LogoContainer>
+
+    <DivRow>
+        <DivColumn>
+          <ModeButton variant="outlined" onClick={handleRandomGame} disabled={isDisabled}>
+          {t('setup.random')}
+          </ModeButton>
+          <ModeDescription>{t('setup.randomDescription')}</ModeDescription>
+        </DivColumn>
+      
         {/* ── Modo PvP ── */}
-        <DivColumn minHeight={188} gap={10}>
-          <ModeButton data-testid="start-pvp-game" variant="outlined" onClick={handleStartPvp}>
+        <DivColumn>
+          <ModeButton data-testid="start-pvp-game" variant="outlined" onClick={handleStartPvp} disabled={isDisabled}>
             {t('setup.pvp')}
           </ModeButton>
           <ModeDescription>{t('setup.pvpDescription')}</ModeDescription>
         </DivColumn>
 
         {/* ── Modo Bot ── */}
-        <DivColumn minHeight={188} gap={10}>
-          <ModeButton variant="outlined" onClick={handleBotMenuOpen}>
+        <DivColumn>
+          <ModeButton variant="outlined" onClick={handleBotMenuOpen} disabled={isDisabled}>
             {t('setup.bot')}
           </ModeButton>
           <ModeDescription>{t('setup.botDescription')}</ModeDescription>
@@ -373,28 +521,6 @@ const GameSetup = () => {
               </DifficultyMenuItem>
             ))}
           </StyledMenu>
-        </DivColumn>
-
-        {/* ── Tamaño del tablero ── */}
-        <DivColumn minHeight={188} gap={10}>
-          <SpinnerContainer>
-            <SpinnerBtn
-              onClick={handleDecreaseSize}
-              disabled={boardSize <= minBoardSize}
-              aria-label={t('setup.decreaseBoardSize')}
-            >
-              −
-            </SpinnerBtn>
-            <SpinnerValue>{boardSize}</SpinnerValue>
-            <SpinnerBtn
-              onClick={handleIncreaseSize}
-              disabled={boardSize >= maxBoardSize}
-              aria-label={t('setup.increaseBoardSize')}
-            >
-              +
-            </SpinnerBtn>
-          </SpinnerContainer>
-          <ModeDescription>{t('setup.boardSize')}</ModeDescription>
         </DivColumn>
       </DivRow>
       </ContentShell>

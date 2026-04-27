@@ -111,6 +111,10 @@ export const resources = {
         title: "New Game",
         subtitle: "Select a game mode to start playing",
         logoAlt: "game logo",
+        random:"🎲 Random Game",
+        randomDescription:"We select for you!!",
+        rolling: "🎰 Rolling...",
+        yourMatch:"🎯 Your match",
         pvp: "▲ Player vs Player ▲",
         pvpDescription: "Play locally against a friend",
         bot: "▲ Player vs Bot 🤖 ▼",
@@ -243,7 +247,30 @@ export const resources = {
           hours: "{{n}} h ago",
           days: "{{n}} days ago",
         },
-      },
+      },ranking: {
+        title: "Ranking",
+        subtitle: "Global leaderboard · sorted by {{sort}} ({{order}})",
+        loading: "Loading ranking...",
+        error: "Could not load ranking.",
+        empty: "No games played yet",
+        player: "Player",
+        played: "Played",
+        wins: "Wins",
+        losses: "Losses",
+        winRate: "Win rate",
+        back: "← Back to mode selection",
+        you: "you",
+        sort: {
+          wins: "wins",
+          winRate: "win rate",
+          played: "games played",
+          losses: "losses"
+        },
+        order: {
+          asc: "ascending",
+          desc: "descending"
+        }
+      }
     },
   },
   es: {
@@ -357,6 +384,10 @@ export const resources = {
       setup: {
         title: "Nueva partida",
         subtitle: "Selecciona un modo de juego para empezar",
+        random:"🎲 Modo random",
+        randomDescription:"¡Elegimos por ti!",
+        rolling: "🎰 Girando...",
+        yourMatch:"🎯 Tu partida",
         logoAlt: "logo del juego",
         pvp: "▲ Jugador vs Jugador ▲",
         pvpDescription: "Juega en local contra un amigo",
@@ -469,7 +500,7 @@ export const resources = {
         played: "Jugadas",
         wins: "Victorias",
         losses: "Derrotas",
-        winRate: "Porcentaje de victoria",
+        winRate: "% de victoria",
         loading: "Cargando partidas...",
         loadError: "No se pudo cargar el historial.",
         empty: "Todavia no has jugado ninguna partida",
@@ -490,7 +521,30 @@ export const resources = {
           hours: "hace {{n}} h",
           days: "hace {{n}} días",
         },
-      },
+      }, ranking: {
+        title: "Ranking",
+        subtitle: "Clasificación global · ordenado por {{sort}} ({{order}})",
+        loading: "Cargando ranking...",
+        error: "No se pudo cargar el ranking.",
+        empty: "No hay partidas jugadas todavía",
+        player: "Jugador",
+        played: "Jugadas",
+        wins: "Victorias",
+        losses: "Derrotas",
+        winRate: "Porcentaje de victorias",
+        back: "← Volver a selección de modo",
+        you: "tú",
+        sort: {
+          wins: "victorias",
+          winRate: "porcentaje de victorias",
+          played: "partidas jugadas",
+          losses: "derrotas"
+        },
+        order: {
+          asc: "ascendente",
+          desc: "descendente"
+        }
+      }
     },
   },
 } as const;

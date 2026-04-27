@@ -1,19 +1,15 @@
 import { styled } from "@mui/material/styles";
 
 export const PageWrapper = styled("div")({
-  width: "100%",
-  minHeight: "100dvh",
   flex: 1,
   overflowY: "auto",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "flex-start",
-  boxSizing: "border-box",
   padding: "clamp(16px, 4vw, 32px)",
   gap: "clamp(24px, 5vw, 40px)",
-  background:
-    "radial-gradient(circle at top, rgba(200, 168, 75, 0.12), transparent 32%), #0d0d0d",
+  backgroundColor: "#0d0d0d",
 });
 
 export const DivColumn = styled("div")<{ minHeight?: number; gap?: number }>(
@@ -25,7 +21,7 @@ export const DivColumn = styled("div")<{ minHeight?: number; gap?: number }>(
     width: "100%",
     gap,
     minHeight,
-    padding: "20px 18px",
+    padding: "4px 4px",
     boxSizing: "border-box",
     borderRadius: 20,
     border: "1px solid rgba(200, 168, 75, 0.18)",
@@ -105,8 +101,8 @@ export const ContentShell = styled("div")<{ maxWidth?: number }>(
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "clamp(24px, 5vw, 40px)",
-    padding: "clamp(20px, 4vw, 40px)",
+    gap: "clamp(10px, 2vw, 20px)",
+    padding: "clamp(10px, 2vw, 20px)",
     boxSizing: "border-box",
     borderRadius: 28,
     border: "1px solid rgba(232, 216, 154, 0.14)",
