@@ -9,7 +9,6 @@ import { act } from "react";
 
 const mockNavigate = vi.fn();
 
-/* Mock react-router-dom */
 vi.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
   Navigate: ({ to }: any) => <div data-testid="navigate">{to}</div>,
@@ -25,11 +24,10 @@ vi.mock("../SessionContext", () => ({
 
 beforeEach(() => {
   mockSession.isLoggedIn = true;
-  sessionStorage.clear(); // Limpiamos la sesión antes de cada test para no contaminar
+  sessionStorage.clear();
   vi.clearAllMocks();
 });
 
-/* Reset mocks after each test */
 afterEach(() => {
   vi.clearAllMocks();
   sessionStorage.clear();
@@ -75,7 +73,7 @@ describe("GameSetup page", () => {
   it("renders new game title", () => {
     render(<GameSetup />);
 
-    expect(screen.getByText(/new game/i)).toBeInTheDocument();
+    expect(screen.getByText(/setup\.title/i)).toBeInTheDocument();
   });
 
   it("navigates when Player vs Player button is clicked", async () => {
@@ -88,27 +86,78 @@ describe("GameSetup page", () => {
     await act(async () => {
       await user.click(
         screen.getByRole("button", {
-          name: /player vs player/i,
+          name: /setup\.pvp/i,
         })
       );
     });
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/game", { state: { mode: "pvp" } });
+      expect(mockNavigate).toHaveBeenCalledWith("/game", { 
+        state: { 
+          mode: "pvp",
+          initialSessionTime: 30, // Calculado para size 5 y dificultad Medium (default PvP)
+          incrementPerMove: 2     // Calculado para size 5 y dificultad Medium
+        } 
+      });
     });
   });
 
-  // --- TESTS DEL SPINNER DE TAMAÑO ---
+  it("navigates with correct timer values for board size 8 (scale 1.5)", async () => {
+    sessionStorage.setItem("boardSize", "8");
+    render(<GameSetup />);
+
+    const user = userEvent.setup();
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /setup\.pvp/i,
+      })
+    );
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith("/game", { 
+        state: { 
+          mode: "pvp",
+          initialSessionTime: 45, // 30 * 1.5 * 1.0 = 45
+          incrementPerMove: 3     // 2 * 1.5 * 1.0 = 3
+        } 
+      });
+    });
+  });
+
+  it("navigates with correct timer values for board size 12 (scale 1.75)", async () => {
+    sessionStorage.setItem("boardSize", "12");
+    render(<GameSetup />);
+
+    const user = userEvent.setup();
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /setup\.pvp/i,
+      })
+    );
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith("/game", { 
+        state: { 
+          mode: "pvp",
+          initialSessionTime: 52, // floor(30 * 1.75 * 1.0) = floor(52.5) = 52
+          incrementPerMove: 3     // floor(2 * 1.75 * 1.0) = floor(3.5) = 3
+        } 
+      });
+    });
+  });
+
+  // --- SPINNER SIZE ---
 
   it("debería permitir incrementar el tamaño del tablero y guardarlo en sessionStorage", async () => {
     const user = userEvent.setup();
     render(<GameSetup />);
 
-    // El estado inicial debe ser 5
     expect(screen.getByText("5")).toBeInTheDocument();
 
-    const increaseBtn = screen.getByRole("button", { name: /increase board size/i });
-    
+    const increaseBtn = screen.getByRole("button", { name: /setup\.increaseBoardSize/i });
+
     await user.click(increaseBtn);
 
     expect(screen.getByText("6")).toBeInTheDocument();
@@ -119,8 +168,8 @@ describe("GameSetup page", () => {
     const user = userEvent.setup();
     render(<GameSetup />);
 
-    const decreaseBtn = screen.getByRole("button", { name: /decrease board size/i });
-    
+    const decreaseBtn = screen.getByRole("button", { name: /setup\.decreaseBoardSize/i });
+
     await user.click(decreaseBtn);
 
     expect(screen.getByText("4")).toBeInTheDocument();
@@ -131,7 +180,7 @@ describe("GameSetup page", () => {
     sessionStorage.setItem("boardSize", minBoardSize.toString());
     render(<GameSetup />);
 
-    const decreaseBtn = screen.getByRole("button", { name: /decrease board size/i });
+    const decreaseBtn = screen.getByRole("button", { name: /setup\.decreaseBoardSize/i });
     expect(decreaseBtn).toBeDisabled();
   });
 
@@ -139,42 +188,63 @@ describe("GameSetup page", () => {
     sessionStorage.setItem("boardSize", maxBoardSize.toString());
     render(<GameSetup />);
 
-    const increaseBtn = screen.getByRole("button", { name: /increase board size/i });
+    const increaseBtn = screen.getByRole("button", { name: /setup\.increaseBoardSize/i });
     expect(increaseBtn).toBeDisabled();
   });
 
-  // --- TESTS DEL MENÚ DE BOTS ---
+  // --- BOTS ---
 
   it("debería navegar correctamente tras seleccionar un bot y una dificultad", async () => {
     const user = userEvent.setup();
     render(<GameSetup />);
 
-    // Abrimos el menú principal de bots
-    const botMenuBtn = screen.getByRole("button", { name: /player vs bot/i });
+    const botMenuBtn = screen.getByRole("button", { name: /setup\.bot/i });
     await user.click(botMenuBtn);
 
-    // Verificamos que se renderizan los bots (ej. Random Bot)
-    const randomBotOption = screen.getByText(/Random Bot/i);
+    const randomBotOption = (await screen.findAllByRole("menuitem"))[0]
     expect(randomBotOption).toBeInTheDocument();
 
-    // Clicamos en un bot para abrir el menú de dificultad
     await user.click(randomBotOption);
 
-    // Verificamos que se renderiza el submenú de dificultad y clicamos en "Hard"
-    const hardDifficultyOption = await screen.findByText("Hard");
-    expect(hardDifficultyOption).toBeInTheDocument();
+    const hardDifficultyOption = await screen.findByRole("menuitem", {
+      name: /home\.difficulties\.hard/i,
+    });
 
     await user.click(hardDifficultyOption);
 
-    // Verificamos que navegó con el estado correcto
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith("/game", {
         state: {
           mode: "bot",
           bot_id: "random_bot",
           difficulty: "Hard",
+          initialSessionTime: 15, // Calculado para size 5 y dificultad Hard (30 * 0.5)
+          incrementPerMove: 1     // Calculado para size 5 y dificultad Hard (2 * 0.5)
         },
       });
     });
   });
+
+  it("debería lanzar una partida aleatoria (ruleta) y navegar a /game con bot y dificultad", async () => {
+	  const user = userEvent.setup();
+	  render(<GameSetup />);
+
+	  const randomButton = screen.getByRole("button", {
+		  name: /setup\.random/i
+	  });
+
+	  await user.click(randomButton);
+
+	  await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith("/game", {
+        state: {
+          mode: "bot",
+          bot_id: expect.any(String),
+          difficulty: expect.stringMatching(/Easy|Medium|Hard/),
+        },
+      });
+      },
+    { timeout: 3000 });
+  });
 });
+

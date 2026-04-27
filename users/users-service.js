@@ -14,7 +14,7 @@ const GameSession = require('./model/gameSession-model');
 const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/userdb';
 mongoose.connect(mongoUri);
 
-const metricsMiddleware = promBundle({includeMethod: true});
+const metricsMiddleware = promBundle({includeMethod: true, includePath: true});
 app.use(metricsMiddleware);
 
 try {
@@ -23,6 +23,22 @@ try {
 } catch (e) {
   console.log(e);
 }
+
+const authMiddleware = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Token no proporcionado o inválido' });
+  }
+  
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: 'Token expirado o inválido' });
+  }
+};
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -72,6 +88,42 @@ app.post('/user', async (req, res) => {
         }
 }});
 
+app.post('/user/change-password', authMiddleware, async (req, res) => {
+    try {
+        const { username, currentPassword, newPassword } = req.body;
+
+        if (!username || !currentPassword || !newPassword || typeof newPassword !== 'string') {
+            return res.status(400).json({ error: 'Username, current password and new password are required.' });
+        }
+
+        const query = { username: String(username) }; // Forzado de tipo explícito
+        const user = await User.findOne(query);
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        
+        const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!passwordMatch) {
+            return res.status(401).json({ error: 'Incorrect current password' });
+        }
+        
+        const isSamePassword = await bcrypt.compare(newPassword, user.password);
+        if (isSamePassword) {
+            return res.status(400).json({ error: 'The new password is the same as the current one.'});
+        }
+        
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        await user.save();
+
+        res.status(200).json({ message: 'Password changed successfully' });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal server error.' });
+    }
+});
+
 app.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -106,11 +158,14 @@ app.post('/login', async (req, res) => {
 
 
     } catch (error) {
+        if (error instanceof Error) {
+            console.error('Error:', error.message);
+        }
         res.status(500).json({ error: 'Internal server error.' });
     }
 });
 
-app.get('/user/:username', async (req, res) => {
+app.get('/user/:username', authMiddleware, async (req, res) => {
     try {
         const requestedUsername = req.params.username?.trim();
 
@@ -127,11 +182,14 @@ app.get('/user/:username', async (req, res) => {
 
         res.status(200).json(user);
     } catch (error) {
+        if (error instanceof Error) {
+            console.error('Error:', error.message);
+        }
         res.status(500).json({ error: 'Internal server error.' });
     }
 });
 
-app.put('/user/:username', async (req, res) => {
+app.put('/user/:username', authMiddleware, async (req, res) => {
     try {
         const requestedUsername = req.params.username?.trim();
         const { name, surname, email } = req.body;
@@ -167,24 +225,26 @@ app.put('/user/:username', async (req, res) => {
 });
 
 
-app.post('/logout', async (req, res) => {
+app.post('/logout', authMiddleware, async (req, res) => {
   try {
     const { username } = req.body;
-    if (!username || !username.trim()) {
-      return res.status(400).json({ error: 'username is required' });
+
+    //Username and password must be filled
+    if(!username || typeof username !== 'string') {
+        return res.status(400).json({ error: 'username is required' });
     }
 
-    const sanitizedUsername = username.trim().toLowerCase();
-    const user = await User.findOne({ username: sanitizedUsername });
+    const query = { username: String(username) }; // Forzado de tipo explícito
+    const user = await User.findOne(query);
 
     if (!user) {
-      return res.status(404).json({ error: `User ${sanitizedUsername} not found` });
+      return res.status(404).json({ error: `User ${username} not found` });
     }
 
     user.lastLogoutAt = new Date();
     await user.save();
 
-    res.json({ message: `User ${sanitizedUsername} logged out`, user });
+    res.json({ message: `User ${username} logged out`, user });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -215,20 +275,20 @@ function registerValidators(user, username, password, name, surname, email){
 }
 
 function validateProfileFields(name, surname, email) {
-    if (!name || !name.trim()) {
+    if (!name?.trim()) {
         throw new Error('The name cannot be empty or contain only spaces');
     }
 
-    if (!surname || !surname.trim()) {
+    if (!surname?.trim()) {
         throw new Error('The surname cannot be empty or contain only spaces');
     }
 
-    if (!email || !email.trim()) {
+    if (!email?.trim()) {
         throw new Error('The email cannot be empty or contain only spaces');
     }
 }
 
-app.get('/user/:username/history', async (req, res) => {
+app.get('/user/:username/history', authMiddleware, async (req, res) => {
   try {
     const { username } = req.params;
 
@@ -239,11 +299,14 @@ app.get('/user/:username/history', async (req, res) => {
     res.status(200).json(history);
 
   } catch (error) {
+    if (error instanceof Error) {
+            console.error('Error:', error.message);
+    }
     res.status(500).json({ error: "Error obtaining history." });
   }
 });
 
-app.post('/game/finish', async (req, res) => {
+app.post('/game/finish', authMiddleware, async (req, res) => {
   try {
 
     const { userId, rival, level, duration, result } = req.body;
@@ -261,4 +324,36 @@ app.post('/game/finish', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+
+app.get('/game/ranking', async (req, res) => {
+
+    const { sortBy = 'wins', order = 'desc', limit } = req.query;
+    const ALLOWED_FIELDS = ['wins', 'winRate', 'played', 'losses'];
+    const field = ALLOWED_FIELDS.includes(sortBy) ? sortBy : 'wins';
+    const direction = order === 'asc' ? 1 : -1;
+    const parsedLimit = Number.parseInt(limit, 10);
+    const hasValidLimit = Number.isInteger(parsedLimit) && parsedLimit > 0;
+
+    const pipeline = [
+        { $group: {
+            _id: "$userId",
+            played:  { $sum: 1 },
+            wins:    { $sum: { $cond: [{ $eq: ["$result", "won"] }, 1, 0] } },
+            losses:  { $sum: { $cond: [{ $eq: ["$result", "lost"] }, 1, 0] } },
+        }},
+        { $addFields: {
+            winRate: { $round: [{ $multiply: [{ $divide: ["$wins", "$played"] }, 100] }, 0] }
+        }},
+        { $sort: { [field]: direction, winRate: -1, played: -1 } },
+        { $project: { _id: 0, username: "$_id", played: 1, wins: 1, losses: 1, winRate: 1 } }
+    ]
+
+    if (hasValidLimit) {
+        pipeline.push({ $limit: parsedLimit });
+    }
+
+    const data = await GameSession.aggregate(pipeline);
+    res.json(data);
 });

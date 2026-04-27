@@ -1,5 +1,6 @@
-import '@testing-library/jest-dom'
+﻿import '@testing-library/jest-dom'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { act } from 'react';
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
 import GamePage from '../pages/GamePage'
 import { useSession } from '../SessionContext'
@@ -22,11 +23,10 @@ vi.mock('react-router-dom', () => ({
 }))
 
 // Mock de la función externa importada de GameSetup
-vi.mock('../utils/gameUtils', () => ({
+vi.mock('../pages/GameSetup', () => ({
 	getInitialBoardSize: vi.fn(() => 3),
-	minBoardSize: 3,
-	maxBoardSize: 15,
 }))
+
 
 // Mock de la API global fetch
 global.fetch = vi.fn()
@@ -66,16 +66,16 @@ it('debe redirigir a /login si el usuario no está logueado', () => {
 })
 
 it('debe renderizar el tablero en modo bot por defecto si está logueado', async () => {
-	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
-		; (useLocation as Mock).mockReturnValue({ state: null })
+	;(useSession as Mock).mockReturnValue({ isLoggedIn: true })
+	;(useLocation as Mock).mockReturnValue({ state: null })
 
 	render(<GamePage />)
 
 	// Verifica que el título corresponda al modo bot
-	expect(screen.getByText('Game Y - Player vs Bot')).toBeInTheDocument()
+	expect(screen.getByText('game.titleBot')).toBeInTheDocument()
 
-	// Verifica que el SVG del tablero se haya renderizado
-	expect(screen.getByRole('img', { name: /Y game board/i })).toBeInTheDocument()
+	expect(screen.getByText('game.you')).toBeInTheDocument()
+	expect(screen.getByText('Random Bot')).toBeInTheDocument()
 })
 
 it('debe renderizar en modo pvp si se pasa por el estado de navegación', () => {
@@ -84,7 +84,10 @@ it('debe renderizar en modo pvp si se pasa por el estado de navegación', () => 
 
 	render(<GamePage />)
 
-	expect(screen.getByText('Game Y - Player vs Player')).toBeInTheDocument()
+	expect(screen.getByText('game.titlePvp')).toBeInTheDocument()
+	expect(screen.getByText('game.player1')).toBeInTheDocument()
+	expect(screen.getByText('game.player2')).toBeInTheDocument()
+	expect(screen.queryByRole('button', { name: /game\.swap/i })).not.toBeInTheDocument()
 })
 
 it('debe llamar a la API de movimiento al hacer clic en una celda vacía', async () => {
@@ -118,26 +121,101 @@ it('debe llamar a la API de movimiento al hacer clic en una celda vacía', async
 	})
 })
 
+it('debe mostrar la regla del pastel tras la primera jugada en PvP', async () => {
+	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+		; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
+
+		; (global.fetch as Mock).mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				game_over: false,
+				winner: null,
+				state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+			}),
+		})
+
+	const { container } = render(<GamePage />)
+	const firstCell = container.querySelector('g')
+	fireEvent.click(firstCell!)
+
+	await waitFor(() => {
+		expect(screen.getByRole('button', { name: /game\.swap/i })).toBeInTheDocument()
+	})
+})
+
+it('debe enviar la accion swap al aplicar la regla del pastel', async () => {
+	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+		; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
+
+		; (global.fetch as Mock)
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({
+					game_over: false,
+					winner: null,
+					state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+				}),
+			})
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({
+					game_over: false,
+					winner: null,
+					state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+				}),
+			})
+
+	const { container } = render(<GamePage />)
+	const firstCell = container.querySelector('g')
+	fireEvent.click(firstCell!)
+
+	const pieRuleButton = await screen.findByRole('button', { name: /game\.swap/i })
+	fireEvent.click(pieRuleButton)
+
+	await waitFor(() => {
+		expect(global.fetch).toHaveBeenNthCalledWith(
+			2,
+			expect.stringContaining('/game/move'),
+			expect.objectContaining({
+				method: 'POST',
+				body: expect.stringContaining('"action":"swap"'),
+			}),
+		)
+	})
+
+	await waitFor(() => {
+		expect(screen.getByText('game.player1')).toBeInTheDocument()
+		expect(screen.getByText('game.player2')).toBeInTheDocument()
+	})
+})
+
 it('debe resetear el tablero al hacer clic en "New Game"', () => {
 	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
 		; (useLocation as Mock).mockReturnValue({ state: { mode: 'bot' } })
 
 	render(<GamePage />)
 
-	const newGameButton = screen.getByRole('button', { name: /New Game/i })
+	const newGameButton = screen.getByRole('button', { name: /game\.newGame/i })
 	fireEvent.click(newGameButton)
 
-	// Si se resetea, el mensaje vuelve al turno inicial
-	expect(screen.getByText('Your turn. Place a piece.')).toBeInTheDocument()
+	expect(screen.getByText('game.you')).toBeInTheDocument()
+	expect(screen.getByText('Random Bot')).toBeInTheDocument()
+	expect(screen.queryByRole('button', { name: /game\.swap/i })).not.toBeInTheDocument()
 })
 
 it('debe navegar a /homepage al hacer clic en "Back to Home"', () => {
 	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
-		; (useLocation as Mock).mockReturnValue({ state: null })
+	; (useLocation as Mock).mockReturnValue({ state: null })
+
+	Object.defineProperty(navigator, 'sendBeacon', {
+		value: vi.fn().mockReturnValue(true),
+		configurable: true,
+		writable: true
+	})
 
 	render(<GamePage />)
 
-	const backButton = screen.getByRole('button', { name: /Back to Home/i })
+	const backButton = screen.getByRole('button', { name: /game\.backToHome/i })
 	fireEvent.click(backButton)
 
 	expect(mockNavigate).toHaveBeenCalledWith('/homepage')
@@ -165,7 +243,7 @@ it('debe mostrar error si el servicio de juego no está disponible al hacer clic
 
 	// Debería mostrar el error por servicio no disponible
 	await waitFor(() => {
-		expect(screen.getByText('Game service is unavailable.')).toBeInTheDocument()
+		expect(screen.getByText('game.serviceUnavailable')).toBeInTheDocument()
 	})
 })
 
@@ -192,6 +270,36 @@ it('debe manejar errores si la API falla al intentar hacer un movimiento', async
 	})
 })
 
+it('debe mostrar error si falla el swap', async () => {
+	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+		; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
+
+		; (global.fetch as Mock)
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({
+					game_over: false,
+					winner: null,
+					state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+				}),
+			})
+			.mockResolvedValueOnce({
+				ok: false,
+				json: async () => ({ error: 'Swap inválido' }),
+			})
+
+	const { container } = render(<GamePage />)
+	const firstCell = container.querySelector('g')
+	fireEvent.click(firstCell!)
+
+	const swapButton = await screen.findByRole('button', { name: /game\.swap/i })
+	fireEvent.click(swapButton)
+
+	await waitFor(() => {
+		expect(screen.getByText('Swap inválido')).toBeInTheDocument()
+	})
+})
+
 it('debe mostrar el ganador correcto cuando finaliza el juego (Gana Player 1)', async () => {
 	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
 		; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
@@ -215,8 +323,8 @@ it('debe mostrar el ganador correcto cuando finaliza el juego (Gana Player 1)', 
 	fireEvent.click(firstCell!)
 
 	await waitFor(() => {
-		expect(screen.getByText('Player 1 wins.')).toBeInTheDocument()
-	})
+        expect(screen.getByText('game.dialog.pvpTitle')).toBeInTheDocument()
+    })
 })
 
 it('debe mostrar el ganador correcto cuando el Bot gana (Gana R en modo bot)', async () => {
@@ -248,8 +356,8 @@ it('debe mostrar el ganador correcto cuando el Bot gana (Gana R en modo bot)', a
 
 	// Aumentamos el timeout del waitFor porque el modo bot tiene un delay artificial (botDelayMs = 700)
 	await waitFor(() => {
-		expect(screen.getByText('Bot wins.')).toBeInTheDocument()
-	}, { timeout: 1500 })
+        expect(screen.getByText('game.dialog.lostTitle')).toBeInTheDocument()
+    }, { timeout: 2000 })
 })
 
 it('no debe hacer la petición si se hace clic en una celda ya ocupada', async () => {
@@ -287,4 +395,427 @@ it('no debe hacer la petición si se hace clic en una celda ya ocupada', async (
 	// El contador de llamadas a fetch debe seguir en 1 (el click fue bloqueado)
 	expect(global.fetch).toHaveBeenCalledTimes(1)
 	})
+
+	// ─── Undo ────────────────────────────────────────────────────────────────────
+
+it('no debe mostrar el botón Undo al inicio de la partida (historial vacío)', () => {
+	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+	; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
+
+	render(<GamePage />)
+
+	expect(screen.getByRole('button', { name: /game\.undo/i })).toBeDisabled()
+})
+
+it('debe mostrar el botón Undo tras realizar un movimiento en PvP', async () => {
+	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+	; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
+	; (global.fetch as Mock).mockResolvedValueOnce({
+		ok: true,
+		json: async () => ({
+			game_over: false,
+			winner: null,
+			state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+		}),
+	})
+
+	const { container } = render(<GamePage />)
+	fireEvent.click(container.querySelector('g')!)
+
+	await waitFor(() => {
+		expect(screen.getByRole('button', { name: /game\.undo/i })).toBeInTheDocument()
+	})
+})
+
+it('debe mostrar el botón Undo deshabilitado mientras el bot está pensando', async () => {
+	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+	; (useLocation as Mock).mockReturnValue({ state: { mode: 'bot' } })
+	; (global.fetch as Mock).mockImplementation(async (url) => {
+		if (String(url).includes('/status')) return { ok: true, text: async () => 'OK' }
+		if (String(url).includes('/move')) {
+			await new Promise((r) => setTimeout(r, 200))
+			return {
+				ok: true,
+				json: async () => ({
+					game_over: false,
+					winner: null,
+					state: { size: 3, turn: 0, players: ['B', 'R'], layout: 'B/../R.' },
+				}),
+			}
+		}
+		return { ok: true, text: async () => 'OK', json: async () => ({}) }
+	})
+
+	const { container } = render(<GamePage />)
+	await waitFor(() =>
+		expect(screen.queryByText('game.serviceUnavailable')).not.toBeInTheDocument(),
+	)
+
+	fireEvent.click(container.querySelector('g')!)
+
+	await waitFor(() => {
+		const undoBtn = screen.getByRole('button', { name: /game\.undo/i })
+		expect(undoBtn).toBeDisabled()
+	})
+})
+
+it('debe ocultar el botón Undo después de deshacer el único movimiento', async () => {
+	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+	; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
+	; (global.fetch as Mock).mockResolvedValueOnce({
+		ok: true,
+		json: async () => ({
+			game_over: false,
+			winner: null,
+			state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+		}),
+	})
+
+	const { container } = render(<GamePage />)
+	fireEvent.click(container.querySelector('g')!)
+
+	await waitFor(() =>
+		expect(screen.getByRole('button', { name: /game\.undo/i })).not.toBeDisabled(),
+	)
+
+	fireEvent.click(screen.getByRole('button', { name: /game\.undo/i }))
+
+	await waitFor(() => {
+		expect(screen.getByRole('button', { name: /game\.undo/i })).toBeDisabled()
+	})
+})
+
+it('debe permitir deshacer varios movimientos en PvP hasta vaciar el historial', async () => {
+	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+	; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
+	; (global.fetch as Mock)
+		.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				game_over: false,
+				winner: null,
+				state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+			}),
+		})
+		.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				game_over: false,
+				winner: null,
+				state: { size: 3, turn: 0, players: ['B', 'R'], layout: 'B/BR/...' },
+			}),
+		})
+
+	const { container } = render(<GamePage />)
+	const cells = container.querySelectorAll('g')
+
+	fireEvent.click(cells[0])
+	await waitFor(() => {
+		const player2Label = screen.getByText('game.player2')
+		expect(player2Label.parentElement).toHaveTextContent('game.turn')
+	})
+
+	fireEvent.click(cells[1])
+	await waitFor(() => {
+		const player1Label = screen.getByText('game.player1')
+		expect(player1Label.parentElement).toHaveTextContent('game.turn')
+	})
+
+	fireEvent.click(screen.getByRole('button', { name: /game\.undo/i }))
+	await waitFor(() => {
+		const player2Label = screen.getByText('game.player2')
+		expect(player2Label.parentElement).toHaveTextContent('game.turn')
+	})
+
+	fireEvent.click(screen.getByRole('button', { name: /game\.undo/i }))
+	await waitFor(() => {
+		const player1Label = screen.getByText('game.player1')
+		expect(player1Label.parentElement).toHaveTextContent('game.turn')
+		expect(screen.getByRole('button', { name: /game\.undo/i })).toBeDisabled()
+	})
+})
+
+it('debe deshacer el movimiento del usuario y la respuesta del bot juntos en modo bot', async () => {
+	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+	; (useLocation as Mock).mockReturnValue({ state: { mode: 'bot' } })
+	; (global.fetch as Mock).mockImplementation(async (url) => {
+		if (String(url).includes('/status')) return { ok: true, text: async () => 'OK' }
+		if (String(url).includes('/move')) {
+			return {
+				ok: true,
+				json: async () => ({
+					game_over: false,
+					winner: null,
+					state: { size: 3, turn: 0, players: ['B', 'R'], layout: 'B/RR/...' },
+				}),
+			}
+		}
+		return { ok: true, text: async () => 'OK', json: async () => ({}) }
+	})
+
+	const { container } = render(<GamePage />)
+	await waitFor(() =>
+		expect(screen.queryByText('game.serviceUnavailable')).not.toBeInTheDocument(),
+	)
+
+	fireEvent.click(container.querySelector('g')!)
+	fireEvent.click(screen.getByRole('button', { name: /game\.undo/i }))
+
+	await waitFor(() => {
+		expect(screen.getByRole('button', { name: /game\.undo/i })).toBeDisabled()
+	})
+})
+
+it('debe poder deshacer después de aplicar la pie rule en PvP', async () => {
+	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+	; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
+	; (global.fetch as Mock)
+		.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				game_over: false,
+				winner: null,
+				state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+			}),
+		})
+		.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				game_over: false,
+				winner: null,
+				state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'R/../...' },
+			}),
+		})
+
+	const { container } = render(<GamePage />)
+	fireEvent.click(container.querySelector('g')!)
+
+	const swapBtn = await screen.findByRole('button', { name: /Swap/i })
+	fireEvent.click(swapBtn)
+
+	await waitFor(() =>
+		expect(screen.getByRole('button', { name: /game\.undo/i })).toBeInTheDocument(),
+	)
+
+	fireEvent.click(screen.getByRole('button', { name: /game\.undo/i }))
+
+	// Tras deshacer el swap se restaura el turno previo (Player 2 antes del swap)
+	await waitFor(() => {
+		// Solución: Verificamos en la UI que la tarjeta de 'Player 2' tiene la etiqueta 'Turn'
+		const player2Label = screen.getByText('game.player2')
+		expect(player2Label.parentElement).toHaveTextContent('game.turn')
+	})
+})
+
+it('debe limpiar el historial de undo al hacer "New Game"', async () => {
+	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+	; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
+	; (global.fetch as Mock).mockResolvedValueOnce({
+		ok: true,
+		json: async () => ({
+			game_over: false,
+			winner: null,
+			state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+		}),
+	})
+
+	const { container } = render(<GamePage />)
+	fireEvent.click(container.querySelector('g')!)
+
+	// Comprobamos que el botón Undo se ha HABILITADO tras el movimiento
+	await waitFor(() =>
+		expect(screen.getByRole('button', { name: /game\.undo/i })).not.toBeDisabled(),
+	)
+
+	fireEvent.click(screen.getByRole('button', { name: /game\.newGame/i }))
+
+	// Al hacer "New Game", el botón Undo debe quedar deshabilitado
+	await waitFor(() => {
+		expect(screen.getByRole('button', { name: /game\.undo/i })).toBeDisabled()
+	})
+})
+
+it('no debe mostrar el botón Undo cuando hay ganador', async () => {
+	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+	; (useLocation as Mock).mockReturnValue({ state: { mode: 'pvp' } })
+	; (global.fetch as Mock).mockImplementation(async (url) => {
+		if (String(url).includes('/move')) {
+			return {
+				ok: true,
+				json: async () => ({
+					game_over: true,
+					winner: 'B',
+					state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/BB/...' },
+				}),
+			}
+		}
+		return { ok: true, text: async () => 'OK', json: async () => ({}) }
+	})
+
+	const { container } = render(<GamePage />)
+	fireEvent.click(container.querySelector('g')!)
+
+	await waitFor(() => {
+		expect(screen.getByText('game.dialog.pvpTitle')).toBeInTheDocument()
+	})
+
+	expect(screen.queryByRole('button', { name: /game\.undo/i })).not.toBeInTheDocument()
+})
+})
+
+it('debe inicializar los temporizadores con los valores recibidos por el estado', () => {
+	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+	; (useLocation as Mock).mockReturnValue({ 
+		state: { 
+			mode: 'pvp', 
+			initialSessionTime: 120, 
+			incrementPerMove: 5 
+		} 
+	})
+
+	render(<GamePage />)
+
+	// 120 segundos es 2:00
+	const timers = screen.getAllByText('2:00')
+	expect(timers.length).toBe(2)
+})
+
+it('el temporizador debe decrementar con el paso del tiempo', async () => {
+	vi.useFakeTimers()
+	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+	; (useLocation as Mock).mockReturnValue({ 
+		state: { mode: 'pvp', initialSessionTime: 60 } 
+	})
+
+	render(<GamePage />)
+
+	// Avanzamos 3 segundos
+	await act(async () => {
+		vi.advanceTimersByTime(3000)
+	})
+
+	// 60 - 3 = 57 -> 0:57
+	expect(screen.getByText('0:57')).toBeInTheDocument()
+	vi.useRealTimers()
+})
+
+it('debe aplicar incremento de tiempo tras realizar un movimiento y mostrar el mensaje', async () => {
+	vi.useFakeTimers()
+	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+	; (useLocation as Mock).mockReturnValue({ 
+		state: { mode: 'pvp', initialSessionTime: 100, incrementPerMove: 10 } 
+	})
+
+	; (global.fetch as Mock).mockResolvedValue({
+		ok: true,
+		json: async () => ({
+			game_over: false,
+			winner: null,
+			state: { size: 3, turn: 1, players: ['B', 'R'], layout: 'B/../...' },
+		}),
+	})
+
+	const { container } = render(<GamePage />)
+	
+	// Pasamos 20 segundos para que baje a 1:20 (80s)
+	await act(async () => { vi.advanceTimersByTime(20000) })
+	expect(screen.getByText('1:20')).toBeInTheDocument()
+
+	const firstCell = container.querySelector('g')
+	await act(async () => {
+		fireEvent.click(firstCell!)
+	})
+
+	// Debe aparecer el mensaje de incremento
+	expect(screen.getByText('+10s')).toBeInTheDocument()
+
+	// El incremento se aplica tras el timeout de 1s
+	await act(async () => { vi.advanceTimersByTime(1000) })
+
+	// 80 + 10 = 90 -> 1:30
+	expect(screen.getByText('1:30')).toBeInTheDocument()
+	
+	vi.useRealTimers()
+})
+
+it('debe terminar la partida por tiempo si el cronómetro llega a cero', async () => {
+	vi.useFakeTimers()
+	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+	; (useLocation as Mock).mockReturnValue({ 
+		state: { mode: 'pvp', initialSessionTime: 2 } 
+	})
+
+	render(<GamePage />)
+
+	// Avanzamos 2 segundos
+	await act(async () => {
+		vi.advanceTimersByTime(2000)
+	})
+
+	// Al avanzar el tiempo exacto, el componente debe haber re-renderizado el fin de partida
+	expect(screen.getByText('game.dialog.pvpTitle')).toBeInTheDocument()
+	
+	vi.useRealTimers()
+})
+
+it('no debe mostrar el temporizador para el bot en modo vs Bot', () => {
+	; (useSession as Mock).mockReturnValue({ isLoggedIn: true })
+	; (useLocation as Mock).mockReturnValue({ state: { mode: 'bot', initialSessionTime: 300 } })
+
+	render(<GamePage />)
+
+	// Solo el temporizador de "You" (P1) debe estar (5:00)
+	const timers = screen.queryAllByText('5:00')
+	expect(timers.length).toBe(1)
+})
+
+it('debe enviar una petición de abandono al servidor (sendBeacon) al hacer clic en "Back to Home" en modo bot', async () => {
+	// Configuramos el estado inicial
+	;(useSession as Mock).mockReturnValue({ isLoggedIn: true })
+	;(useLocation as Mock).mockReturnValue({ 
+		state: { mode: 'bot', bot_id: 'random_bot', difficulty: 'Medium' } 
+	})
+
+	// Mockeamos navigator.sendBeacon
+	const sendBeaconMock = vi.fn().mockReturnValue(true)
+	Object.defineProperty(navigator, 'sendBeacon', {
+		value: sendBeaconMock,
+		configurable: true,
+		writable: true
+	})
+
+	render(<GamePage />)
+
+	// Encontramos el botón y simulamos el clic
+	const backButton = screen.getByRole('button', { name: /game\.backToHome/i })
+	fireEvent.click(backButton)
+
+	// 1. Verificamos que sendBeacon fue llamado
+	expect(sendBeaconMock).toHaveBeenCalledWith(
+		'http://localhost:8000/game/abandon',
+		expect.any(Blob)
+	)
+
+	// 2. Extraemos el Blob enviado
+	const blobArg = sendBeaconMock.mock.calls[0][1] as Blob
+	
+	const blobText = await new Promise<string>((resolve, reject) => {
+		const reader = new FileReader()
+		reader.onload = () => resolve(reader.result as string)
+		reader.onerror = reject
+		reader.readAsText(blobArg)
+	})
+
+	const payload = JSON.parse(blobText)
+
+	// Validamos que el JSON contenga la estructura esperada
+	expect(payload).toMatchObject({
+		userId: 'testuser',
+		rival: 'random_bot',
+		level: 'Medium',
+		duration: expect.any(Number)
+	})
+
+	// 3. Verificamos que redirige correctamente
+	expect(mockNavigate).toHaveBeenCalledWith('/homepage')
 })

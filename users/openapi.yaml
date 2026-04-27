@@ -181,6 +181,61 @@ paths:
         '404':
           description: User not found
 
+  /game/ranking:
+    get:
+      summary: Get global ranking
+      description: Returns all users aggregated stats sorted by the specified field, optionally limited to the top N entries.
+      parameters:
+        - in: query
+          name: sortBy
+          required: false
+          schema:
+            type: string
+            enum: [wins, winRate, played, losses]
+            default: wins
+          description: Field to sort by
+        - in: query
+          name: order
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort direction
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            example: 5
+          description: Maximum number of ranking entries to return
+      responses:
+        '200':
+          description: Ranking retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RankingEntry'
+              examples:
+                topFive:
+                  summary: Top five players by wins
+                  value:
+                    - username: "alice"
+                      played: 10
+                      wins: 8
+                      losses: 2
+                      winRate: 80
+                    - username: "bob"
+                      played: 8
+                      wins: 6
+                      losses: 2
+                      winRate: 75
+        '500':
+          description: Internal server error
+
 components:
   schemas:
     User:
@@ -263,3 +318,22 @@ components:
         email:
           type: string
           example: "mario@uniovi.es"
+    RankingEntry:
+      type: object
+      properties:
+        username:
+          type: string
+          example: "miguel"
+        played:
+          type: integer
+          example: 10
+        wins:
+          type: integer
+          example: 8
+        losses:
+          type: integer
+          example: 2
+        winRate:
+          type: integer
+          description: Win percentage rounded to nearest integer
+          example: 80

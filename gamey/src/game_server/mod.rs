@@ -24,7 +24,7 @@ pub fn create_router(state: AppState) -> axum::Router {
         )
         .route(
             "/{api_version}/ybot/play",
-            axum::routing::post(bot_play::play),
+            axum::routing::get(bot_play::play),
         )
         .route(
             "/{api_version}/game/move",

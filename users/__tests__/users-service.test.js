@@ -2,9 +2,11 @@ import { describe, it, expect, beforeAll, afterAll, afterEach, beforeEach, vi } 
 import request from 'supertest'
 import mongoose from 'mongoose'
 import { MongoMemoryServer } from 'mongodb-memory-server'
+const jwt = require('jsonwebtoken');
 
 import User from '../model/user-model.js'
 const bcrypt = require('bcrypt');
+const GameSession = require('../model/gameSession-model');
 
 let mongoServer
 let app
@@ -14,6 +16,7 @@ beforeAll(async () => {
 
   const mongoUri = mongoServer.getUri()
   process.env.MONGODB_URI = mongoUri
+  process.env.JWT_SECRET = 'test-secret'
 
   app = require('../users-service') 
 })
@@ -27,6 +30,7 @@ afterEach(async () => {
   vi.restoreAllMocks()
   const User = require('../model/user-model')
   await User.deleteMany({})
+  await GameSession.deleteMany({})
 })
 
 
@@ -57,6 +61,61 @@ describe('User Service', () => {
     // Assert that the password is encrypted
     const isPasswordValid = await bcrypt.compare('Admin123##', userInDb.password);
     expect(isPasswordValid).toBe(true);
+  });
+
+  it('should return the full ranking when limit is not provided', async () => {
+    await GameSession.insertMany([
+      { userId: 'zoe', rival: 'smart_bot', level: 'Medium', duration: 100, result: 'won' },
+      { userId: 'zoe', rival: 'smart_bot', level: 'Medium', duration: 10, result: 'won' },
+      { userId: 'alice', rival: 'smart_bot', level: 'Medium', duration: 95, result: 'won' },
+      { userId: 'alice', rival: 'smart_bot', level: 'Medium', duration: 80, result: 'lost' },
+      { userId: 'alice', rival: 'smart_bot', level: 'Medium', duration: 10, result: 'lost' },
+      { userId: 'alice', rival: 'smart_bot', level: 'Medium', duration: 90, result: 'lost' },
+      { userId: 'bob', rival: 'smart_bot', level: 'Medium', duration: 85, result: 'won' }
+    ]);
+
+    const response = await request(app).get('/game/ranking');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([
+      { username: 'zoe', played: 2, wins: 2, losses: 0, winRate: 100 },
+      { username: 'bob', played: 1, wins: 1, losses: 0, winRate: 100 },
+      { username: 'alice', played: 4, wins: 1, losses: 3, winRate: 25 },
+    ]);
+  });
+
+  it('should limit ranking results when limit is valid', async () => {
+    await GameSession.insertMany([
+      { userId: 'alice', rival: 'smart_bot', level: 'Medium', duration: 100, result: 'won' },
+      { userId: 'alice', rival: 'smart_bot', level: 'Medium', duration: 95, result: 'won' },
+      { userId: 'bob', rival: 'smart_bot', level: 'Medium', duration: 90, result: 'won' },
+      { userId: 'carol', rival: 'smart_bot', level: 'Medium', duration: 85, result: 'lost' }
+    ]);
+
+    const response = await request(app).get('/game/ranking?limit=2');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(2);
+    expect(response.body).toEqual([
+      { username: 'alice', played: 2, wins: 2, losses: 0, winRate: 100 },
+      { username: 'bob', played: 1, wins: 1, losses: 0, winRate: 100 }
+    ]);
+  });
+
+  it('should ignore invalid limit values without breaking the ranking response', async () => {
+    await GameSession.insertMany([
+      { userId: 'alice', rival: 'smart_bot', level: 'Medium', duration: 100, result: 'won' },
+      { userId: 'bob', rival: 'smart_bot', level: 'Medium', duration: 90, result: 'lost' }
+    ]);
+
+    const response = await request(app).get('/game/ranking?limit=invalid');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(2);
+    expect(response.body).toEqual([
+      { username: 'alice', played: 1, wins: 1, losses: 0, winRate: 100 },
+      { username: 'bob', played: 1, wins: 0, losses: 1, winRate: 0 }
+    ]);
   });
 
   it('should not add a user if username already exists', async () => {
@@ -219,18 +278,19 @@ describe('User Service', () => {
   });
 
   it('should logout a user on POST /logout', async () => {
-    const user = new User({
+    const user = await new User({
       username: 'testuser',
       name: 'test',
       surname: 'user',
       email: 'test@uniovi.es',
       password: 'hashedpassword',
-    });
+    }).save();
 
-    await user.save();
+    const token = jwt.sign({ userId: user._id, user: 'testuser' }, process.env.JWT_SECRET);
 
     const response = await request(app)
       .post('/logout')
+      .set('Authorization', `Bearer ${token}`) // <-- AÑADIDO
       .send({ username: 'testuser' });
 
     expect(response.status).toBe(200);
@@ -243,11 +303,11 @@ describe('User Service', () => {
 
     expect(userInDb).not.toBeNull();
     expect(userInDb.lastLogoutAt).not.toBeNull();
-});
+  });
 
   it('should return the user profile on GET /user/:username', async () => {
     const hashedPassword = await bcrypt.hash('Admin123##', 10);
-    await new User({
+    const user = await new User({
       username: 'profileuser',
       name: 'Mario',
       surname: 'Trelles',
@@ -255,7 +315,11 @@ describe('User Service', () => {
       password: hashedPassword,
     }).save();
 
-    const response = await request(app).get('/user/profileuser');
+    const token = jwt.sign({ userId: user._id, user: 'profileuser' }, process.env.JWT_SECRET);
+
+    const response = await request(app)
+      .get('/user/profileuser')
+      .set('Authorization', `Bearer ${token}`);
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
@@ -269,7 +333,11 @@ describe('User Service', () => {
   });
 
   it('should return 404 when requesting a profile that does not exist', async () => {
-    const response = await request(app).get('/user/missinguser');
+    const token = jwt.sign({ userId: 'dummyId', user: 'dummyuser' }, process.env.JWT_SECRET);
+
+    const response = await request(app)
+      .get('/user/missinguser')
+      .set('Authorization', `Bearer ${token}`);
 
     expect(response.status).toBe(404);
     expect(response.body.error).toBe('User not found');
@@ -277,7 +345,8 @@ describe('User Service', () => {
 
   it('should update the user profile on PUT /user/:username', async () => {
     const hashedPassword = await bcrypt.hash('Admin123##', 10);
-    await new User({
+    
+    const user = await new User({
       username: 'profileuser',
       name: 'Mario',
       surname: 'Trelles',
@@ -285,8 +354,11 @@ describe('User Service', () => {
       password: hashedPassword,
     }).save();
 
+    const token = jwt.sign({ userId: user._id, user: 'profileuser' }, process.env.JWT_SECRET);
+
     const response = await request(app)
       .put('/user/profileuser')
+      .set('Authorization', `Bearer ${token}`) // <-- AÑADIMOS ESTA LÍNEA
       .send({
         name: 'Mario Jose',
         surname: 'Trelles Riestra',
@@ -310,7 +382,7 @@ describe('User Service', () => {
 
   it('should validate empty profile fields on PUT /user/:username', async () => {
     const hashedPassword = await bcrypt.hash('Admin123##', 10);
-    await new User({
+    const user = await new User({
       username: 'profileuser',
       name: 'Mario',
       surname: 'Trelles',
@@ -318,8 +390,11 @@ describe('User Service', () => {
       password: hashedPassword,
     }).save();
 
+    const token = jwt.sign({ userId: user._id, user: 'profileuser' }, process.env.JWT_SECRET);
+
     const response = await request(app)
       .put('/user/profileuser')
+      .set('Authorization', `Bearer ${token}`) 
       .send({
         name: 'Mario',
         surname: 'Trelles',
@@ -385,6 +460,132 @@ describe('Login endpoints', () => {
     });
   });
 
+  describe('POST /user/change-password', () => {
+    it('should change password successfully', async () => {
+      const hashedPassword = await bcrypt.hash('OldPass123', 10);
+      const user = await new User({
+        username: 'changepassuser',
+        name: 'Test',
+        surname: 'User',
+        email: 'test@test.com',
+        password: hashedPassword,
+      }).save();
+
+      // Generamos el token
+      const token = jwt.sign({ userId: user._id, user: 'changepassuser' }, process.env.JWT_SECRET);
+
+      const response = await request(app)
+        .post('/user/change-password')
+        .set('Authorization', `Bearer ${token}`) // <-- AÑADIDO
+        .send({
+          username: 'changepassuser',
+          currentPassword: 'OldPass123',
+          newPassword: 'NewPass123'
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe('Password changed successfully');
+
+      const userInDb = await User.findOne({ username: 'changepassuser' });
+      const isPasswordValid = await bcrypt.compare('NewPass123', userInDb.password);
+      expect(isPasswordValid).toBe(true);
+    });
+
+    it('should return 400 if fields are missing', async () => {
+      const token = jwt.sign({ userId: 'dummyId', user: 'test' }, process.env.JWT_SECRET);
+      
+      const response = await request(app)
+        .post('/user/change-password')
+        .set('Authorization', `Bearer ${token}`) // <-- AÑADIDO
+        .send({ username: 'test' });
+        
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Username, current password and new password are required.');
+    });
+
+    it('should return 404 if user not found', async () => {
+      const token = jwt.sign({ userId: 'dummyId', user: 'nonexistent' }, process.env.JWT_SECRET);
+      
+      const response = await request(app)
+        .post('/user/change-password')
+        .set('Authorization', `Bearer ${token}`) // <-- AÑADIDO
+        .send({
+          username: 'nonexistent',
+          currentPassword: 'any',
+          newPassword: 'any'
+        });
+        
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('User not found');
+    });
+
+    it('should return 401 if current password is incorrect', async () => {
+      const hashedPassword = await bcrypt.hash('CorrectPass', 10);
+      const user = await new User({
+        username: 'wrongpassuser',
+        name: 'Test',
+        surname: 'User',
+        email: 'test@test.com',
+        password: hashedPassword,
+      }).save();
+
+      const token = jwt.sign({ userId: user._id, user: 'wrongpassuser' }, process.env.JWT_SECRET);
+
+      const response = await request(app)
+        .post('/user/change-password')
+        .set('Authorization', `Bearer ${token}`) // <-- AÑADIDO
+        .send({
+          username: 'wrongpassuser',
+          currentPassword: 'WrongPass',
+          newPassword: 'NewPass'
+        });
+        
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBe('Incorrect current password');
+    });
+
+    it('should return 400 if new password is same as current', async () => {
+      const hashedPassword = await bcrypt.hash('SamePass', 10);
+      const user = await new User({
+        username: 'samepassuser',
+        name: 'Test',
+        surname: 'User',
+        email: 'test@test.com',
+        password: hashedPassword,
+      }).save();
+
+      const token = jwt.sign({ userId: user._id, user: 'samepassuser' }, process.env.JWT_SECRET);
+
+      const response = await request(app)
+        .post('/user/change-password')
+        .set('Authorization', `Bearer ${token}`) // <-- AÑADIDO
+        .send({
+          username: 'samepassuser',
+          currentPassword: 'SamePass',
+          newPassword: 'SamePass'
+        });
+        
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('The new password is the same as the current one.');
+    });
+
+    it('should return 500 on internal error', async () => {
+      const token = jwt.sign({ userId: 'dummyId', user: 'any' }, process.env.JWT_SECRET);
+      const findOneSpy = vi.spyOn(User, 'findOne').mockRejectedValue(new Error('DB Error'));
+      
+      const response = await request(app)
+        .post('/user/change-password')
+        .set('Authorization', `Bearer ${token}`) // <-- AÑADIDO
+        .send({
+          username: 'any',
+          currentPassword: 'any',
+          newPassword: 'any'
+        });
+      
+      expect(response.status).toBe(500);
+      expect(response.body.error).toBe('Internal server error.');
+      findOneSpy.mockRestore();
+    });
+  });
+
 })
-
-

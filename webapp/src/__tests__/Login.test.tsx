@@ -31,7 +31,7 @@ describe("Login page", () => {
       </MemoryRouter>
     );
 
-    const title = screen.getByRole("heading", { name: /welcome/i });
+    const title = screen.getByRole("heading", { name: /auth\.welcome/i });
     expect(title).toBeInTheDocument();
   });
 
@@ -58,7 +58,7 @@ describe("Login page", () => {
       await user.type(usernameInput, "miguel1235");
       await user.type(passwordInput, "Miguel1**");
 
-      const loginButton = screen.getByRole("button", { name: /log-in/i });
+      const loginButton = screen.getByRole("button", { name: /auth\.login/i });
       await user.click(loginButton);
     });
 
@@ -85,7 +85,7 @@ describe("Login page", () => {
       // Solo rellenamos el username, dejamos el password vacío
       await user.type(usernameInput, "miguel1235");
 
-      const loginButton = screen.getByRole("button", { name: /log-in/i });
+      const loginButton = screen.getByRole("button", { name: /auth\.login/i });
       await user.click(loginButton);
     });
 
@@ -94,5 +94,39 @@ describe("Login page", () => {
     
     // Verificamos que el input password es inválido por la validación nativa HTML
     expect(passwordInput).toBeInvalid();
+  });
+
+  it("handles network error and logs it", async () => {
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    // Simulamos el fallo de red
+    (global.fetch as any).mockRejectedValue(new Error("Network error"));
+
+    render(
+      <MemoryRouter>
+        <Login />
+      </MemoryRouter>
+    );
+
+    const user = userEvent.setup();
+
+    const usernameInput = screen.getByLabelText(/auth\.user/i);
+    const passwordInput = screen.getByLabelText(/auth\.password/i);
+    const loginButton = screen.getByRole("button", { name: /auth\.login/i });
+
+    await user.type(usernameInput, "miguel1235");
+    await user.type(passwordInput, "Miguel1**");
+    
+    await user.click(loginButton);
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith("Network error");
+      
+      expect(
+        screen.getByText(/errors\.genericConnection/i)
+      ).toBeInTheDocument();
+    });
+
+    consoleSpy.mockRestore();
   });
 });
