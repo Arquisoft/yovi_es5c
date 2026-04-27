@@ -110,7 +110,11 @@ app.put('/user/:username', async (req, res) => {
 app.post('/user/change-password', async (req, res) => {
   try {
     const changePasswordUrl = new URL(`/user/change-password`, userServiceUrl);
-    const response = await axios.post(changePasswordUrl.href, req.body);
+    const response = await axios.post(changePasswordUrl.href, req.body, 
+      {
+        headers: { Authorization: req.headers.authorization }
+      }
+    );
     res.json(response.data);
   } catch (error) {
     handleErrors(res, error);

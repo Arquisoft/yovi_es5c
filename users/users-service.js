@@ -88,7 +88,7 @@ app.post('/user', async (req, res) => {
         }
 }});
 
-app.post('/user/change-password', async (req, res) => {
+app.post('/user/change-password', authMiddleware, async (req, res) => {
     try {
         const { username, currentPassword, newPassword } = req.body;
 
