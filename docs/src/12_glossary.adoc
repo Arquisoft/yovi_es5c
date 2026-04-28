@@ -1,7 +1,7 @@
 ifndef::imagesdir[:imagesdir: ../images]
 
 [[section-glossary]]
-== Glossary
+== Glosario
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -36,9 +36,12 @@ endif::arc42help[]
 |===
 |Term |Definition
 
-|<Term-1>
-|<definition-1>
+|Yen (notación)
+|Formato JSON para representar el estado completo de una partida del juego Y en un instante dado,para poder comunicarse con la aplicación. 
 
-|<Term-2>
-|<definition-2>
+|API Gateway
+|Punto de entrada único del sistema que centraliza todos los endpoints públicos y enruta las peticiones hacia los microservicios internos (servicio de usuarios y servicio de juego). 
+
+|SPA (Single Page Application)
+|Tipo de aplicación web que carga una única página HTML inicial y actualiza el contenido dinámicamente sin recargar el navegador.
 |===
