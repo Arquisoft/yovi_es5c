@@ -40,7 +40,6 @@ See https://docs.arc42.org/section-6/[Runtime View] in the arc42 documentation.
 endif::arc42help[]
 
 
-
 === Ejecución de movimiento en partida
 
 A continuación se muestra el diagrama de secuencia del procesamiento de un movimiento durante una partida a través de la aplicación web, que representa uno de los flujos principales del sistema.
@@ -104,6 +103,7 @@ sequenceDiagram
     Note over U: Tablero actualizado, listo para siguiente movimiento
 ----
 
+
 === Ejecución de ranking de jugadores (caso de éxito)
 
 A continuación se muestra el diagrama de secuencia de la obtención y visualización del ranking de jugadores a través de la aplicación web.
@@ -148,7 +148,7 @@ sequenceDiagram
     
     Note over U: Ranking visible
 ----
-
+ 
 
 === Registro de un usuario
 
@@ -163,7 +163,7 @@ El proceso es el siguiente:
 * Si los datos son válidos se comprueba si el usuario no está ya creado en la base de datos
 * En este caso, se hashea la contraseña introducida por el usuario, y se guardan los datos en la BDD, devolviendo un código exitoso 200 y el JSON con los datos del usuario o token de sesión
 
-[mermaid,"Sequence diagram",png]
+[mermaid,"Sequence diagram register",png]
 ----
 sequenceDiagram
     participant User as Usuario (Jugador)

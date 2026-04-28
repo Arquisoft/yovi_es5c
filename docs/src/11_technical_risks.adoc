@@ -1,8 +1,9 @@
 ifndef::imagesdir[:imagesdir: ../images]
 
 [[section-technical-risks]]
-== Risks and Technical Debts
+== Riesgos y Deuda Técnica
 
+En esta sección se recogen los principales riesgos y deudas técnicas identificados durante el desarrollo del proyecto. Se han ordenado por prioridad y se incluye una breve propuesta de mitigación para cada caso.
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -25,3 +26,48 @@ See https://docs.arc42.org/section-11/[Risks and Technical Debt] in the arc42 do
 
 ****
 endif::arc42help[]
+
+=== 11.1 Riesgos
+
+[cols="2,5,1,4", options="header"]
+|===
+|Nombre |Descripción |Prioridad |Mitigación propuesta
+
+|Falta de tiempo
+|El proyecto debe desarrollarse al mismo tiempo que otras asignaturas y entregas, por lo que existe un riesgo real de no llegar a implementar todas las funcionalidades previstas con la calidad deseada.
+|Alta
+|Priorizar primero las funcionalidades esenciales, trabajar con incrementos pequeños y evitar dedicar demasiado tiempo a mejoras secundarias antes de estabilizar la funcionalidad principal.
+
+|Problemas de coordinación y control de versiones
+|Al tratarse de un proyecto en equipo con varios servicios y documentación compartida, una mala coordinación o una resolución incorrecta de conflictos en GitHub puede sobrescribir trabajo, retrasar integraciones o dejar cambios inconsistentes entre módulos.
+|Media
+|Seguir utilizando issues, pull requests y ramas de corta duración, y revisar cuidadosamente las fusiones antes de integrar cambios en las ramas principales.
+
+|Punto único de fallo en el gateway
+|El API Gateway es el punto principal de entrada para todo el tráfico externo. Si falla, la aplicación web y el acceso de bots quedan indisponibles, ya que el despliegue actual no cuenta con réplicas ni mecanismos de tolerancia a fallos.
+|Media
+|Añadir healthchecks, políticas de reinicio y un despliegue más robusto, y valorar replicación si el entorno de producción crece.
+
+|Experiencia limitada con algunas tecnologías
+|Parte del equipo está trabajando por primera vez con tecnologías como React, despliegue con Docker, documentación Arc42 y separación por servicios, lo que puede ralentizar el desarrollo y provocar errores evitables.
+|Media
+|Compartir conocimiento dentro del equipo, reutilizar ejemplos que ya funcionan en el propio proyecto y documentar las decisiones técnicas principales para reducir el tiempo de aprendizaje.
+|===
+
+=== 11.2 Deuda técnica
+
+[cols="2,5,1,4", options="header"]
+|===
+|Nombre |Descripción |Prioridad |Mitigación propuesta
+
+|Inconsistencia de configuración
+|Algunas variables de entorno y URLs de servicios siguen convenciones distintas según el módulo o el entorno. Esto hace que el despliegue y el mantenimiento sean más frágiles de lo necesario.
+|Media
+|Unificar convenciones de nombres, validar la configuración al arrancar y mantener una única referencia para las variables de despliegue.
+
+|Monitorización básica
+|Prometheus y Grafana están presentes en el proyecto, pero su configuración todavía es básica y se centra sobre todo en el servicio de usuarios. Esto deja una observabilidad limitada para el resto de la arquitectura.
+|Media
+|Extender la recogida de métricas al resto de servicios y mejorar progresivamente dashboards y alertas.
+
+|===

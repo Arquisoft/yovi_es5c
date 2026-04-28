@@ -1,80 +1,107 @@
-ifndef::imagesdir[:imagesdir: ../images]
+﻿ifndef::imagesdir[:imagesdir: ../images]
 
 [[section-context-and-scope]]
-== Context and Scope
+== Contexto y alcance
 
+=== Contexto de negocio
+[mermaid, "business-context", png]
+----
+flowchart LR
+    Jugador["Jugador"] ----> YOVI(("YOVI"))
+    
+    Bot["Bot Externo"] ----> YOVI
+    
+    YOVI ----> Jugador
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contents
-Context and scope - as the name suggests - delimits your system (i.e. your scope) from all its communication partners
-(neighboring systems and users, i.e. the context of your system). It thereby specifies the external interfaces.
+    YOVI ----> Bot
+----
 
-If necessary, differentiate the business context (domain specific inputs and outputs) from the technical context (channels, protocols, hardware).
+[cols="1,3"]
+|===
+|Elemento |Descripción
 
-.Motivation
-The domain interfaces and technical interfaces to communication partners are among your system's most critical aspects. Make sure that you completely understand them.
+|Jugador
+|Usuario humano que interactúa con el sistema YOVI a través de la aplicación web para jugar partidas del juego Y. Se autentica en el sistema y realiza movimientos dentro de partidas iniciadas a través de la aplicación. Después de hacer movimientos recibirá el resultado que eso produce en la partida.
 
-.Form
-Various options:
+|Bot Externo
+|Bot automatizado que utiliza un API para conectarse a YOVI para jugar partidas sin necesidad de interacción humana directa.
 
-* Context diagrams
-* Lists of communication partners and their interfaces.
+| YOVI
+|Sistema completo de juegos tipo Y. Engloba la aplicación web en TypeScript y el módulo de validación en Rust. Gestiona autenticación de usuarios, lógica de juego, validación de partidas y sugerencias de movimientos.
+|===
 
+=== Contexto técnico
 
-.Further Information
+[mermaid, "technical-context", png]
+----
+flowchart LR
+  U[Jugador]
+  W[Aplicación web YOVI]
+  API[Punto de acceso para bots]
+  B[Bot externo]
+  G[Motor de reglas del juego]
+  DB[(Base de datos)]
 
-See https://docs.arc42.org/section-3/[Context and Scope] in the arc42 documentation.
+  U -->|Juega desde el navegador| W
+  B -->|Solicita jugadas| API
+  W -->|Comparte funciones del juego| API
 
-****
-endif::arc42help[]
+  W -->|Pide validar jugadas| G
+  G -->|Devuelve resultado de la jugada| W
 
-=== Business Context
+  W -->|Guarda y consulta información| DB
+----
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contents
-Specification of *all* communication partners (users, IT-systems, ...) with explanations of domain specific inputs and outputs or interfaces.
-Optionally you can add domain specific formats or communication protocols.
+[cols="1,3", options="header"]
+|===
+|Nodo |Descripción
 
-.Motivation
-All stakeholders should understand which data are exchanged with the environment of the system.
+|Jugador
+|Persona que accede a YOVI desde el navegador para registrarse, iniciar sesión y jugar partidas.
 
-.Form
-All kinds of diagrams that show the system as a black box and specify the domain interfaces to communication partners.
+|Aplicación web YOVI
+|Es la parte visible del sistema. Muestra la interfaz al jugador, coordina el flujo de partida y conecta con el resto de componentes.
 
-Alternatively (or additionally) you can use a table.
-The title of the table is the name of your system, the three columns contain the name of the communication partner, the inputs, and the outputs.
+|Punto de acceso para bots
+|Entrada específica para programas automáticos. Permite que bots externos jueguen sin usar la interfaz gráfica.
 
-****
-endif::arc42help[]
+|Bot externo
+|Programa automatizado que se conecta a YOVI para enviar jugadas y recibir respuestas del sistema.
 
-**<Diagram or Table>**
+|Motor de reglas del juego
+|Componente interno que comprueba si una jugada es válida y calcula la respuesta según las reglas de Y.
 
-**<optionally: Explanation of external domain interfaces>**
+|Base de datos
+|Almacena de forma persistente usuarios, partidas y estadísticas para poder consultarlas en cualquier momento.
+|===
 
-=== Technical Context
+==== Mapeo de entradas y salidas a canales
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contents
-Technical interfaces (channels and transmission media) linking your system to its environment. In addition a mapping of domain specific input/output to the channels, i.e. an explanation which I/O uses which channel.
+[cols="1,2,2", options="header"]
+|===
+|Entrada / Salida |Canal |Descripción
 
-.Motivation
-Many stakeholders make architectural decision based on the technical interfaces between the system and its context. Especially infrastructure or hardware designers decide these technical interfaces.
+|Registro/login
+|Jugador → Aplicación web
+|El usuario crea cuenta e inicia sesión desde el navegador.
 
-.Form
-E.g. UML deployment diagram describing channels to neighboring systems,
-together with a mapping table showing the relationships between channels and input/output.
+|Consulta de histórico/estadísticas
+|Jugador → Aplicación web
+|El usuario consulta partidas jugadas, ganadas/perdidas, etc.
 
-****
-endif::arc42help[]
+|Jugada del usuario
+|Jugador → Aplicación web
+|El usuario realiza un movimiento desde la UI.
 
-**<Diagram or Table>**
+|Play (bot)
+|Bot externo → Punto de acceso para bots
+|El bot envía `position` en notación YEN y recibe el siguiente movimiento.
 
-**<optionally: Explanation of technical interfaces>**
+|Siguiente movimiento / validación
+|Aplicación web ↔ Motor de reglas
+|La app pide validar/calcular la jugada y recibe el resultado para continuar la partida.
 
-**<Mapping Input/Output to Channels>**
+|Persistencia
+|Aplicación web → Base de datos
+|Guardar/leer usuarios, partidas y estadísticas.
+|===

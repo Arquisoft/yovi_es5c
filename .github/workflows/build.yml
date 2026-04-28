@@ -8,6 +8,11 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
     steps:
     - uses: actions/checkout@v4
       with:
@@ -21,8 +26,10 @@ jobs:
         node-version: 22
     - run: npm --prefix users ci
     - run: npm --prefix webapp ci
+    - run: npm --prefix gatewayservice ci
     - run: npm --prefix users run test:coverage
     - run: npm --prefix webapp run test:coverage
+    - run: npm --prefix gatewayservice run test:coverage
     - name: Install cargo-llvm-cov
       run: cargo install cargo-llvm-cov --locked
     - name: Generate gamey code coverage
