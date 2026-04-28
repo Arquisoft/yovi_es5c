@@ -52,8 +52,6 @@ endif::arc42help[]
 * Los usuarios podrán registrarse en el sistema.
 * Los usuarios registrados podrán consultar el histórico de sus partidas.
 * La aplicación tendrá una API que permita a los bots interactuar con ella.
-* La API permitirá que un bot juegue contra la aplicación.
-
 
 === Objetivos de calidad
 
@@ -86,7 +84,7 @@ endif::arc42help[]
 | _2_ | _Mantenibilidad_ | _Arquitectura modular con separación clara entre los diferentes módulos. Código siguiendo principios de diseño y convenciones estándar de cada lenguaje. Documentación arquitectónica completa. Diseño extensible que facilite añadir nuevas variantes del juego sin modificar código existente._
 | _3_ | _Usabilidad_ | _La aplicación debe ser intuitiva y fácil de usar para usuarios nuevos y experimentados._
 | _4_ | _Robustez_ | _El sistema debe manejar correctamente errores de comunicación entre módulos web y Rust, entradas inválidas de usuarios, y situaciones excepcionales sin colapsar ni perder datos de partida._
-| _5_ | _Rendimiento_ | _El sistema debe responder en menos de 4 segundos a las solicitudes de los usuarios. Tambien debe soportar al menos 50 usuarios concurrentes._
+| _5_ | _Rendimiento_ | _El sistema debe responder en menos de 3 segundos a las solicitudes de los usuarios. Tambien debe soportar al menos 30 usuarios concurrentes._
 | _6_ | _Seguridad_ | _La aplicación debe cifrar los datos de los usuarios para proteger su privacidad. El sistema debe poder protegerse de ataques de seguridad como SQL injection._
 | _7_ | _Disponibilidad_ | _El sistema debe mantenerse operativo y accesible para los usuarios >90% del tiempo, con interrupciones mínimas durante despliegues o actualizaciones y sin pérdida de datos de partidas activas._
 |===
@@ -117,7 +115,7 @@ endif::arc42help[]
 
 [options="header",cols="1,2,2"]
 |===
-|Role/Name|Contact|Expectations
+|Role/Name|Contacto|Expectativas
 | _Micrati_ | _micratiGames@example.com_ | _Producto funcional que cumpla los requisitos del juego Y. Arquitectura modular que facilite futuras extensiones. Código mantenible y documentación clara para mantener la aplicación en el tiempo._
 | _Jugadores/usuarios finales_ | _(los usuarios podrán dar feedback sobre la aplicación dentro de la misma y usarán sus correos para identificarse)_ | _Aplicación web con interfaz intuitiva para jugar al juego Y. Respuestas rápidas del sistema con actualización visual clara e inmediata tras cada movimiento. Reglas claras y feedback visual preciso del estado de la partida. Sistema estable compatible con principales navegadores. Sitio web seguro._
 | _Profesores de la asignatura_ | _https://github.com/Arquisoft_ | _Aplicación correcta de principios arquitectónicos con separación de módulos y comunicación entre ellos. Documentación clara y código limpio. Trabajo colaborativo y continuo visible en GitHub. Sistema desplegado y funcional._

@@ -72,7 +72,7 @@ Los principales conceptos de dominio son:
 - Random: el sistema juega posiciones aleatorias.
 - Centro: el sistema juega las posiciones más cerca del centro del tablero.
 - Borde: el sistema juega las posiciones más lejanas al centro del tablero.
-- Ansioso: el sistema juega las posiciones más cercanas al resto de sus piezas.
+- Smart: el sistema juega las posiciones más cercanas al resto de sus piezas.
 - Alpha : el sistema juega las posiciones más beneficiosas para conseguir ganar la partida.
 - Mirror: el sistema juega las posiciones espejo a las jugadas previamente.
 ****
