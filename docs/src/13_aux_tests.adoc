@@ -21,17 +21,39 @@ endif::arc42help[]
 
 === Pruebas Unitarias
 
-==== Microservicio de Usuarios (User Service)
-
-==== Microservicio de Juego (Gamey Service)
-
-==== Gateway Service
-
-=== Pruebas de Integración
-
-=== Pruebas de Extremo a Extremo (E2E)
+=== Pruebas de Integración (E2E)
 
 === Pruebas de Carga y Rendimiento
+Se han realizado pruebas de carga sobre la aplicación desplegada en Azure.
+
+El objetivo de las mismas es comprobar la robustez y resiliencia de la infraestructura que será utilizada por los usuarios reales. 
+
+==== Implementación
+Se utiliza Gatling para la ejecución de las pruebas de carga. Para ello se crean como recursos un .csv con los usuarios que serán inyectados para probar, y un escenario donde se especificará la forma de inyectarlos y las acciones que realizarán los mismos. 
+
+Los tests se han ejecutado desde una máquina local con Java 17 y Maven.
+
+Al orquestar las pruebas con Maven, se añaden las dependencias de gatling y otras necesarias a un pom.xml
+
+==== Escenario probado
+El escenario que se prueba es el flujo que siguen los usuarios al interactuar con la web:
+
+1. Inicio de sesión
+2. Se inicia una partida y se hace un movimiento en el tablero
+3. Se consulta el historial de partidas del usuario
+4. Se cierra sesión
+
+Se detalla en SimpleFlowSimulation.scala.
+
+==== Carga probada
+Se ha planteado una carga que se adapte a las restricciones frente a seguridad implementadas en el gateway (máximo de 500 peticiones por usuario en un minuto).
+
+De este modo: 
+- Se cargan 
+
+==== Resultados
+
+=== Pruebas de Usabilidad
 
 ifdef::arc42help[]
 [role="arc42help"]
