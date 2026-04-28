@@ -111,6 +111,50 @@ paths:
         '404':
           description: User not found
 
+  /user/change-password:
+    post:
+      summary: Change user password
+      description: Updates the password for an authenticated user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - currentPassword
+                - newPassword
+              properties:
+                username:
+                  type: string
+                  example: "testuser"
+                currentPassword:
+                  type: string
+                  example: "password123"
+                newPassword:
+                  type: string
+                  example: "newpassword456"
+      responses:
+        '200':
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Password changed successfully"
+        '400':
+          description: Bad request (missing fields or new password same as current)
+        '401':
+          description: Unauthorized (incorrect current password or token issues)
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+
   /user/{username}/history:
     get:
       summary: Gets game history
