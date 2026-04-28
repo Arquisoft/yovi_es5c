@@ -1,0 +1,42 @@
+ifndef::imagesdir[:imagesdir: ../images]
+
+[[section-tests-annex]]
+== Anexo: Pruebas de la aplicación
+
+ifdef::arc42help[]
+[role="arc42help"]
+****
+.Contents
+Descripción general de la estrategia de pruebas y los resultados obtenidos en los distintos niveles de validación (unitarias, integración, E2E y carga).
+
+.Motivation
+Garantizar que el sistema cumple con las especificaciones técnicas, funcionales y los requisitos de calidad definidos previamente.
+
+.Form
+Resúmenes de ejecución, tablas de cobertura o referencias a informes generados por las herramientas de CI/CD.
+****
+endif::arc42help[]
+
+=== Estrategia de Pruebas
+
+=== Pruebas Unitarias
+
+==== Microservicio de Usuarios (User Service)
+
+==== Microservicio de Juego (Gamey Service)
+
+==== Gateway Service
+
+=== Pruebas de Integración
+
+=== Pruebas de Extremo a Extremo (E2E)
+
+=== Pruebas de Carga y Rendimiento
+
+ifdef::arc42help[]
+[role="arc42help"]
+****
+.Nota
+Relacionar esta sección con los escenarios de calidad definidos en la sección 10 (Sección de Requisitos de Calidad).
+****
+endif::arc42help[]
