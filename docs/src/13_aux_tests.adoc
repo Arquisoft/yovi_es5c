@@ -49,9 +49,16 @@ Se detalla en SimpleFlowSimulation.scala.
 Se ha planteado una carga que se adapte a las restricciones frente a seguridad implementadas en el gateway (máximo de 500 peticiones por usuario en un minuto).
 
 De este modo: 
-- Se cargan 
+- Se inyectan 5 usuarios en un primer instante.
+- Se va incrementando de 1 a 3 usuarios por segundo durante los siguientes 30 segundos.
+- Se inyectan 3 usuarios por segundo durante los últimos 30 segundos. 
 
 ==== Resultados
+Los resultados han sido registrados en un informe generado por Gatling.
+
+En el escenario se definen como asertos/restricciones que toda petición se responda en un máximo de 2 segundos, y que el porcentaje de peticiones exitosas sea de al menos, un 60%.
+
+Estos asertos se cumplen de forma holgada, mostrando las estadísticas un 100% de peticiones exitosas, con una carga máxima de aproximadamente 30 usuarios simultáneos en el ecuador de la prueba.
 
 === Pruebas de Usabilidad
 
