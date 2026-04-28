@@ -62,7 +62,7 @@ endif::arc42help[]
 
 _**Diagrama de Despliegue (resumen)**_
 
-Se utiliza el diagrama de la sección "Contexto de negocio" para representar, a alto nivel, los contenedores Docker, la red interna, la base de datos y la pila de monitoreo. El diagrama muestra cómo los bloques de software (Gamey Server, Users Service, Web App, Gateway) se despliegan en contenedores separados y cómo estos consumen servicios infraestructurales (MongoDB, red Docker, Prometheus, Grafana).
+Se utiliza el diagrama de la sección "Contexto de negocio" para representar, a alto nivel, los contenedores Docker, la red interna, la base de datos y la pila de monitoreo. El diagrama muestra cómo los bloques de software (Gamey Server, Users Service, Web App, Gateway) se despliegan en contenedores separados y cómo estos consumen servicios infraestructurales (MongoDB).
 
 Motivación::
 
@@ -96,9 +96,9 @@ Una arquitectura basada en contenedores permite:
 | Gestión de dependencias declaradas (ej. `depends_on`) para asegurar un orden de inicio correcto entre servicios.
 |===
 
-Para entornos:
+Para entornos::
+
 * Desarrollo: despliegue en un único host con contenedores o mediante npm sin replicado y datos locales.
-* Staging: configuración similar a producción pero con tamaños menores y datos de prueba.
 * Producción: orquestador con réplicas, balanceadores y políticas de actualización.
 
 
