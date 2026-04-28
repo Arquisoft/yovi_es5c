@@ -1,7 +1,7 @@
 ifndef::imagesdir[:imagesdir: ../images]
 
 [[section-tests-annex]]
-== Anexo: Pruebas de la aplicación
+== Anexo
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -64,6 +64,41 @@ En cambio, en la tarea de “consultar el historial”, los tiempos fueron signi
 A partir de los resultados obtenidos en las pruebas de usabilidad, se realizaron varias mejoras en la aplicación. En primer lugar, modificó el botón de como jugar, ya que, aunque a nosotros nos parecía bastante intuitivo con el icono "?", los usuarios de prueba no identificaban para que servía.
 
 Además, se mejoró la claridad de la interfaz, aumentando el tamaño de letra y mejorando los contrastes para que le resultase más fácil de leer a aquellos usuarios de mayor edad.
+
+=== Monitorización
+Para la monitorización de la aplicación se han utilizado Prometheus y Grafana, dos herramientas ampliamente usadas en entornos de observabilidad. Prometheus se encarga de recopilar y almacenar métricas relacionadas con el comportamiento del sistema, concretamente información sobre las peticiones que llegan al servicio de users, como el método HTTP y la ruta utilizada.
+
+A partir de estos datos, Grafana permite su visualización mediante dashboards interactivos, facilitando el análisis del estado del sistema en distintos niveles de detalle. Con este enfoque, no solo podemos observar qué está ocurriendo en la aplicación, sino también detectar problemas, analizar tendencias y tomar decisiones basadas en datos reales.
+
+==== Dashboard “Monitoring 24h”
+El dashboard “Monitoring 24h” está diseñado para supervisar el comportamiento durante las últimas 24 horas. Su objetivo principal es ofrecer una visión clara del tráfico, los errores y el rendimiento del sistema.
+
+Incluye un indicador clave que muestra el número total de peticiones recibidas en el último día. Además, presenta una gráfica de tráfico por horas que permite observar la evolución de las peticiones a lo largo del tiempo.
+
+También incorpora un análisis más detallado por endpoint mediante una variable dinámica que permite filtrar por rutas específicas. De esta forma, se puede examinar el comportamiento de endpoints concretos y entender mejor qué partes del sistema reciben más carga.
+
+En cuanto a la estabilidad, el dashboard incluye un panel dedicado a los errores, mostrando el número de respuestas con códigos HTTP 4xx y 5xx por hora. Esto facilita la detección de problemas en el sistema.
+
+Por último, se muestra la latencia media de las peticiones, calculada a partir de las métricas de duración. Este indicador es fundamental para evaluar el rendimiento de la API y detectar posibles degradaciones en los tiempos de respuesta.
+
+==== Dashboard “Monitoring last 15min”
+El dashboard “Monitoring last 15min” tiene como propósito ofrecer una visión rápida y actualizada del rendimiento y la carga del servicio para detectar problemas de forma inmediata.
+
+Incluye un indicador de latencia p95, que representa el tiempo en el que se completan el 95% de las peticiones. Este valor refleja de forma más realista la experiencia de la mayoría de los usuarios, evitando que valores extremos distorsionen la media.
+
+Además, muestra el número de peticiones por segundo, lo que permite entender la carga actual del sistema y detectar rápidamente incrementos o caídas bruscas en el tráfico.
+
+También se incluye una gráfica de la tasa de peticiones a lo largo del tiempo, que permite visualizar su evolución reciente e identificar picos o comportamientos anómalos en periodos cortos.
+
+==== Conclusión
+
+El uso combinado de ambos dashboards responde a la necesidad de cubrir dos perspectivas complementarias en la monitorización del sistema: una visión histórica y otra en tiempo real.
+
+Por un lado, el dashboard “Monitoring 24h” permite analizar el comportamiento del sistema a lo largo del tiempo, identificando patrones de uso, tendencias de tráfico y posibles problemas recurrentes.
+
+Por otro lado, el dashboard “Monitoring last 15min” está orientado a la inmediatez, proporcionando información en tiempo real sobre la carga y el rendimiento del sistema.
+
+En conjunto, ambos dashboards se complementan para ofrecer una monitorización completa: mientras uno permite entender el comportamiento histórico y analizar tendencias, el otro facilita la detección y reacción inmediata ante incidencias. Esta combinación mejora la capacidad de observación del sistema y permite actuar de forma más eficiente.
 
 
 
