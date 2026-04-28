@@ -390,6 +390,74 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /user/change-password:
+    post:
+      summary: Cambia la contraseña del usuario
+      description: >
+        Actualiza la contraseña del usuario autenticado. Requiere proporcionar la contraseña actual
+        y la nueva contraseña para validación. Requiere autenticación JWT.
+      tags:
+        - Usuario
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - currentPassword
+                - newPassword
+              properties:
+                username:
+                  type: string
+                  example: "testuser"
+                currentPassword:
+                  type: string
+                  example: "Admin123##"
+                newPassword:
+                  type: string
+                  minLength: 8
+                  description: Mínimo 8 caracteres, al menos una mayúscula y un número
+                  example: "NuevoPassword123!"
+      responses:
+        '200':
+          description: Contraseña actualizada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Password changed successfully"
+        '400':
+          description: Datos inválidos o contraseña nueva no cumple requisitos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Token JWT ausente/inválido o contraseña actual incorrecta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /logout:
     post:
       summary: Cierra la sesión del usuario
