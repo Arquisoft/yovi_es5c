@@ -170,10 +170,10 @@ Este grupo incluye los servicios relacionados con el monitoreo y la gestión de 
 
 * **Puerto 9090 (Prometheus)**: Responsable de recopilar métricas y datos de los otros contenedores y del entorno Docker.
 
-* **Puerto 3001 (Grafana)**: Se utiliza para la visualización de datos conectandose a Prometheus para mostrar las métricas recopiladas en paneles gráficos.
+* **Puerto 9091 (Grafana)**: Se utiliza para la visualización de datos conectandose a Prometheus para mostrar las métricas recopiladas en paneles gráficos.
 
 ==== _Docker_
 
-Actúa como el entorno de ejecución controla la visibilidad y las listas de control de acceso (ACL) para los contenedores de aplicación y monitoreo.
+Actúa como el entorno de ejecución,  controla la visibilidad y las listas de control de acceso (ACL) para los contenedores de aplicación y monitoreo.
 
 
