@@ -55,6 +55,18 @@ De este modo:
 
 === Pruebas de Usabilidad
 
+Se realizaron pruebas de usabilidad con usuarios de diferentes edades y niveles tecnológicos para evaluar el tiempo que tardaban en completar dos tareas: jugar una partida y consultar el historial.
+
+En la tarea de “jugar una partida”, se observó que los usuarios más jóvenes y con mayor nivel tecnológico completaban la acción más rápidamente (50 segundos), mientras que los usuarios de mayor edad o con menor nivel tecnológico tardan más tiempo (hasta 120 segundos). Esto indicó que la funcionalidad no era igual de intuitiva para todos los perfiles de usuario, especialmente para aquellos menos familiarizados con la tecnología.
+
+En cambio, en la tarea de “consultar el historial”, los tiempos fueron significativamente menores en todos los casos (entre 2 y 12 segundos), lo que sugirió que esta funcionalidad era más clara, accesible y fácil de usar independientemente del perfil del usuario.
+
+A partir de los resultados obtenidos en las pruebas de usabilidad, se realizaron varias mejoras en la aplicación. En primer lugar, modificó el botón de como jugar, ya que, aunque a nosotros nos parecía bastante intuitivo con el icono "?", los usuarios de prueba no identificaban para que servía.
+
+Además, se mejoró la claridad de la interfaz, aumentando el tamaño de letra y mejorando los contrastes para que le resultase más fácil de leer a aquellos usuarios de mayor edad.
+
+
+
 ifdef::arc42help[]
 [role="arc42help"]
 ****
