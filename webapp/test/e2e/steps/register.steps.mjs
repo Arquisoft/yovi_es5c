@@ -1,23 +1,42 @@
 import { Given, When, Then } from '@cucumber/cucumber'
-import assert from 'assert'
 
+const BASE_URL = process.env.BASE_URL || 'http://localhost:5173'
+
+//Caso positivo: registro exitoso
+Given('An unregistered user', async function () {
+  this.username = `user_${Date.now()}`
+  this.password = 'Password123!'
+
+  await this.page.goto(`${BASE_URL}/register`)
+})
+
+When('I fill the data in the form and press submit', async function () {
+  await this.page.fill('input[name="username"]', this.username)
+  await this.page.fill('input[name="name"]', 'Admin')
+  await this.page.fill('input[name="surname"]', 'Admin')
+  await this.page.fill('input[name="email"]', `${this.username}@test.com`)
+  await this.page.fill('input[name="password"]', this.password)
+  await this.page.fill('input[name="confirmPassword"]', this.password)
+
+  await this.page.click('button:has-text("Register")')
+})
+
+Then('I should be redirect to the homepage', async function () {
+  await this.page.waitForURL('**/homepage', { timeout: 15000 })
+  await this.page.waitForSelector('button:has-text("Play")', { timeout: 15000 })
+})
+
+//Caso negativo: intento registrar usuario ya existente
 Given('the register page is open', async function () {
-  const page = this.page
-  if (!page) throw new Error('Page not initialized')
-  await page.goto('http://localhost:5173')
+  await this.page.goto(`${BASE_URL}/register`)
 })
 
-When('I enter {string} as the username and submit', async function (username) {
-  const page = this.page
-  if (!page) throw new Error('Page not initialized')
-  await page.fill('#username', username)
-  await page.click('.submit-button')
-})
-
-Then('I should see a welcome message containing {string}', async function (expected) {
-  const page = this.page
-  if (!page) throw new Error('Page not initialized')
-  await page.waitForSelector('.success-message', { timeout: 5000 })
-  const text = await page.textContent('.success-message')
-  assert.ok(text && text.includes(expected), `Expected success message to include "${expected}", got: "${text}"`)
+When('I fill the form with an already registered username {string} and password {string}', async function (username, password) {
+  await this.page.fill('input[name="username"]', username)
+  await this.page.fill('input[name="name"]', username)
+  await this.page.fill('input[name="surname"]', username)
+  await this.page.fill('input[name="email"]', `${username}@test.com`)
+  await this.page.fill('input[name="password"]', password)
+  await this.page.fill('input[name="confirmPassword"]', password)
+  await this.page.click('button:has-text("Register")')
 })

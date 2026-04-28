@@ -7,18 +7,37 @@ services:
       - "3000:3000"
     networks:
       - monitor-net
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/userdb
+    depends_on:
+      - mongodb
+
+  gatewayservice:
+    build: ./gatewayservice
+    container_name: gatewayservice
+    image: ghcr.io/arquisoft/yovi_es5c-gateway-service:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - USER_SERVICE_URL=http://users:3000
+      - GAMEY_SERVICE_URL=http://gamey:4000
+    depends_on:
+      - users
+      - gamey
+    networks:
+      - monitor-net
 
   webapp:
     build:
       context: ./webapp
       args:
-        - VITE_API_URL=http://localhost:3000
+        - VITE_API_URL=http://localhost:8000 
     container_name: webapp
     image: ghcr.io/arquisoft/yovi_es5c-webapp:latest
     ports:
       - "80:80"
     depends_on:
-      - users
+      - gatewayservice
     networks:
       - monitor-net
 
@@ -51,6 +70,19 @@ services:
     networks:
       - monitor-net
 
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - monitor-net
+
 networks:
   monitor-net:
     driver: bridge
+
+volumes:
+  mongodb_data:
