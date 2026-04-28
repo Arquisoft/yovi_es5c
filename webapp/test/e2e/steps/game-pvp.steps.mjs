@@ -42,7 +42,7 @@ Given('the game setup page is open', async function () {
   const page = this.page
   if (!page) throw new Error('Page not initialized')
 
-  await page.getByRole('button', { name: /Play/i }).click()
+  await page.getByRole('button', { name: 'Play', exact: true }).click()
   await page.getByTestId('start-pvp-game').waitFor({ state: 'visible', timeout: 15000 })
 })
 
