@@ -26,14 +26,14 @@ endif::arc42help[]
 === Pruebas de Carga y Rendimiento
 Se han realizado pruebas de carga sobre la aplicación desplegada en Azure.
 
-El objetivo de las mismas es comprobar la robustez y resiliencia de la infraestructura que será utilizada por los usuarios reales. 
+El objetivo de las mismas es comprobar la robustez y resiliencia de la infraestructura que será utilizada por los usuarios reales, simulando un periodo de alta demanda por parte de los mismos, siempre ajustándonos al contexto académico en el que nos encontramos.
 
 ==== Implementación
 Se utiliza Gatling para la ejecución de las pruebas de carga. Para ello se crean como recursos un .csv con los usuarios que serán inyectados para probar, y un escenario donde se especificará la forma de inyectarlos y las acciones que realizarán los mismos. 
 
-Los tests se han ejecutado desde una máquina local con Java 17 y Maven.
+Los tests se han ejecutado desde una máquina local con Java 17 y Maven contra la máquina Azure de despliegue.
 
-Al orquestar las pruebas con Maven, se añaden las dependencias de gatling y otras necesarias a un pom.xml
+Al orquestar las pruebas con Maven, se añaden las dependencias de Gatling y otras necesarias en un archivo pom.xml
 
 ==== Escenario probado
 El escenario que se prueba es el flujo que siguen los usuarios al interactuar con la web:
@@ -43,22 +43,34 @@ El escenario que se prueba es el flujo que siguen los usuarios al interactuar co
 3. Se consulta el historial de partidas del usuario
 4. Se cierra sesión
 
-Se detalla en SimpleFlowSimulation.scala.
+En este escenario se establecen ciertos asertos, serán comentados en el apartado de "Resultados".
+
+Se detalla en el archivo SimpleFlowSimulation.scala.
 
 ==== Carga probada
-Se ha planteado una carga que se adapte a las restricciones frente a seguridad implementadas en el gateway (máximo de 500 peticiones por usuario en un minuto).
+Se ha planteado una carga que se adapte a las restricciones en materia de seguridad implementadas en el gateway (máximo de 500 peticiones por usuario en un minuto, como prevención ante ataques DDoS).
 
 De este modo: 
-- Se inyectan 5 usuarios en un primer instante.
-- Se va incrementando de 1 a 3 usuarios por segundo durante los siguientes 30 segundos.
-- Se inyectan 3 usuarios por segundo durante los últimos 30 segundos. 
+* Se inyectan 5 usuarios en un primer instante.
+* Se va incrementando de 1 a 3 usuarios por segundo durante los siguientes 30 segundos.
+* Se inyectan 3 usuarios por segundo durante los últimos 30 segundos. 
 
 ==== Resultados
 Los resultados han sido registrados en un informe generado por Gatling.
 
-En el escenario se definen como asertos/restricciones que toda petición se responda en un máximo de 2 segundos, y que el porcentaje de peticiones exitosas sea de al menos, un 60%.
+El informe global puede ser consultado aquí: link:https://github.com/user-attachments/files/26765734/Resultados_test_carga.pdf[Resultados_test_carga.pdf]
 
-Estos asertos se cumplen de forma holgada, mostrando las estadísticas un 100% de peticiones exitosas, con una carga máxima de aproximadamente 30 usuarios simultáneos en el ecuador de la prueba.
+En el escenario se definen como asertos/restricciones para considerar el test "aprobado" que:
+
+* Toda petición se responda en un máximo de 2 segundos
+* El porcentaje de peticiones exitosas sea de al menos, un 60%.
+
+Estos asertos se cumplen de forma holgada, mostrando las estadísticas un 100% de peticiones exitosas, todas ellas con un tiempo de respuesta inferior a 800ms, con una carga máxima de aproximadamente 30 usuarios simultáneos hacia el ecuador de la prueba:
+
+image:requests_gatling.png[Peticiones exitosas con estadísticas de tiempo de respuesta]
+
+image:active_users_gatling.png[Gráfica de usuarios activos simultáneamente durante la ejecución]
+
 
 === Pruebas de Usabilidad
 
