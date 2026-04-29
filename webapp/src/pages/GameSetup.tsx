@@ -26,7 +26,7 @@ const DIFFICULTY_COLOR: Record<Difficulty, string> = {
 };
 
 export const minBoardSize = 3;
-export const maxBoardSize = 15;
+export const maxBoardSize = 10;
 
 // ─── Helpers ─────────────────────────────────────────────────
 export function getInitialBoardSize(): number {
@@ -44,8 +44,6 @@ export function calculatePlayerTimer(boardSize: number, difficulty: Difficulty) 
     boardScaleFactor = 1;
   } else if (boardSize >= 7 && boardSize <= 10) {
     boardScaleFactor = 1.5;
-  } else if (boardSize >= 11 && boardSize <= 15) {
-    boardScaleFactor = 1.75;
   }
 
 // 2. Determinar el Multiplicador de Dificultad (difficultyMultiplier)
