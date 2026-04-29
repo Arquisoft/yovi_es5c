@@ -508,6 +508,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_base_de_datos">9.1. Base de Datos</a></li>
 <li><a href="#_estrategia_de_control_de_versiones">9.2. Estrategia de Control de Versiones</a></li>
 <li><a href="#_centralización_de_endpoints">9.3. Centralización de Endpoints</a></li>
+<li><a href="#_plataforma_de_despliegue">9.4. Plataforma de Despliegue</a></li>
+<li><a href="#_arquitectura_distribuida_en_subsistemas">9.5. Arquitectura Distribuida en Subsistemas</a></li>
+<li><a href="#_contenerización_y_despliegue">9.6. Contenerización y Despliegue</a></li>
+<li><a href="#_documentación_de_api_en_gateway">9.7. Documentación de API en Gateway</a></li>
+<li><a href="#_arquitectura_del_frontend">9.8. Arquitectura del Frontend</a></li>
+<li><a href="#_internacionalización">9.9. Internacionalización</a></li>
+<li><a href="#_autenticación">9.10. Autenticación</a></li>
 </ul>
 </li>
 <li><a href="#section-quality-scenarios">10. Requisitos de Calidad</a>
@@ -2273,6 +2280,272 @@ There you will find links and examples about ADR.</p>
 </tr>
 </tbody>
 </table>
+</div>
+<div class="sect2">
+<h3 id="_plataforma_de_despliegue">9.4. Plataforma de Despliegue</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sección</th>
+<th class="tableblock halign-left valign-top">Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Título</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Selección de Microsoft Azure como plataforma de despliegue</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contexto</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El sistema necesita una integración rápida de los servicios y reducir el tiempo de puesta en producción.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Decisión</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Aceptar el uso de Microsoft Azure.</strong> Se elige como plataforma para desplegar la aplicación por su facilidad de uso y adecuación a las necesidades del proyecto.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Estado</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Aceptado</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Consecuencias</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Beneficios:</strong> Familiaridad del equipo con la plataforma, lo que reduce la curva de aprendizaje, y facilidad para realizar despliegues continuos.</p>
+<p class="tableblock"><strong>Desventajas:</strong> Coste asociado al uso de la plataforma, requiriendo control del gasto pese al saldo proporcionado por la universidad.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_arquitectura_distribuida_en_subsistemas">9.5. Arquitectura Distribuida en Subsistemas</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sección</th>
+<th class="tableblock halign-left valign-top">Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Título</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Selección de arquitectura distribuida para el sistema YOVI</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contexto</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El sistema YOVI debe implementar una aplicación web para jugar al juego Y, separandose backend y frontend. Ambos módulos deben comunicarse mediante mensajes JSON en notación YEN, lo que requiere decidir entre una arquitectura monolítica o distribuida.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Decisión</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Adoptar una arquitectura distribuida basada en subsistemas independientes.</strong> Se separa el sistema en un servicio principal (aplicación web y API en TypeScript) y un servicio de lógica de juego en Rust, comunicados mediante API REST y mensajes JSON (YEN).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Estado</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Aceptado</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Consecuencias</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Beneficios:</strong> Separación clara de responsabilidades, uso de tecnologías óptimas para cada componente, mayor mantenibilidad y modularidad, escalabilidad independiente de los subsistemas y posibilidad de reutilizar el motor de juego en otros clientes.</p>
+<p class="tableblock"><strong>Desventajas:</strong> Mayor complejidad en la comunicación entre servicios, necesidad de gestionar latencia y fallos de red, mayor esfuerzo en despliegue y configuración, y necesidad de definir contratos de comunicación claros y estables.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_contenerización_y_despliegue">9.6. Contenerización y Despliegue</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sección</th>
+<th class="tableblock halign-left valign-top">Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Título</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Selección de Docker como solución de despliegue de servicios</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contexto</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El sistema requiere una forma sencilla y automatizable de desplegar los servicios. Además, es importante garantizar una recuperación rápida ante fallos del sistema.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Decisión</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Aceptar el uso de Docker.</strong> Se elige como tecnología de despliegue para contenerizar los servicios y facilitar su ejecución, gestión y recuperación.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Estado</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Aceptado</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Consecuencias</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Beneficios:</strong> Recuperación rápida ante fallos críticos mediante el reinicio de contenedores desde imágenes limpias, aislamiento entre servicios evitando conflictos de dependencias y facilidad de automatización del despliegue.</p>
+<p class="tableblock"><strong>Desventajas:</strong> Curva de aprendizaje inicial para el equipo, al requerir conocimientos sobre conceptos y herramientas no trabajados previamente.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_documentación_de_api_en_gateway">9.7. Documentación de API en Gateway</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sección</th>
+<th class="tableblock halign-left valign-top">Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Título</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Centralización de la documentación de la API REST mediante Swagger/OpenAPI en el gateway</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contexto</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El sistema YOVI está compuesto por varios subsistemas distribuidos que se comunican mediante API REST. Es necesario que la API pública sea clara, consistente, fácil de validar y accesible sin depender del código fuente. Además, se debe decidir si la documentación reside en cada servicio o se centraliza en el gateway como punto único de entrada.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Decisión</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Adoptar Swagger/OpenAPI en el gateway como documentación oficial de la API.</strong> Se centraliza la documentación en este subsistema, estableciendo un único punto de verdad accesible para frontend y consumidores externos, incluyendo rutas, parámetros, cuerpos de petición, respuestas, códigos de estado y ejemplos.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Estado</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Aceptado</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Consecuencias</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Beneficios:</strong> Existencia de un único punto de verdad para la API pública, evitando duplicidad de documentación, abstracción de la complejidad interna para consumidores externos, mejora en la integración entre subsistemas, reducción de ambigüedades y mayor mantenibilidad. Además, facilita las pruebas de endpoints mediante herramientas compatibles con Swagger/OpenAPI.</p>
+<p class="tableblock"><strong>Desventajas:</strong> Necesidad de mantener la documentación sincronizada con la implementación, esfuerzo adicional en cada cambio de endpoint, dependencia del gateway como punto actualizado y posible ocultación de detalles internos si no se complementa con documentación técnica adicional.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_arquitectura_del_frontend">9.8. Arquitectura del Frontend</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sección</th>
+<th class="tableblock halign-left valign-top">Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Título</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Uso de React con arquitectura basada en componentes para el frontend</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contexto</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El sistema YOVI requiere una interfaz web moderna para funcionalidades como autenticación, configuración de partidas y visualización del tablero. Es necesario un enfoque que permita construir interfaces reutilizables, mantenibles, escalables y bien integradas con la API REST, además de ser compatible con TypeScript. Se consideran alternativas como manipulación manual del DOM, enfoques basados en páginas o librerías como React.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Decisión</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Adoptar React con una arquitectura basada en componentes.</strong> La interfaz se organiza en páginas, componentes reutilizables y utilidades compartidas, fomentando la composición y separación de responsabilidades. Se utiliza junto con TypeScript para mejorar la robustez del código. Aunque la implementación actual no es completamente homogénea, se establece este enfoque como estándar a reforzar progresivamente.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Estado</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Aceptado</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Consecuencias</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Beneficios:</strong> Reutilización de componentes de interfaz, mejora de la mantenibilidad, facilidad para evolucionar la aplicación, buena integración con TypeScript, organización clara de vistas y posibilidad de probar componentes de forma aislada.</p>
+<p class="tableblock"><strong>Desventajas:</strong> Curva de aprendizaje inicial, mayor complejidad frente a soluciones simples, necesidad de definir buenas prácticas para evitar acoplamientos, riesgo de concentrar demasiada lógica en algunas vistas si no se aplica correctamente y posible dificultad de comprensión si existe una fragmentación excesiva de componentes.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_internacionalización">9.9. Internacionalización</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sección</th>
+<th class="tableblock halign-left valign-top">Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Título</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Internacionalización de la aplicación YOVI</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contexto</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Se busca mejorar la accesibilidad de la aplicación para usuarios de distintas regiones geográficas, permitiendo adaptar el contenido a diferentes idiomas.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Decisión</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Adoptar la internacionalización (i18n) de la aplicación.</strong> Se centralizan los textos en recursos configurables que permiten añadir y gestionar múltiples idiomas de forma sencilla.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Estado</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Aceptado</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Consecuencias</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Beneficios:</strong> Mejora de la mantenibilidad al centralizar los textos de la aplicación, facilitando correcciones y la incorporación de nuevos idiomas.</p>
+<p class="tableblock"><strong>Desventajas:</strong> Necesidad de diseñar interfaces flexibles que soporten variaciones en la longitud de textos, lo que puede afectar a la consistencia visual.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_autenticación">9.10. Autenticación</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Sección</th>
+<th class="tableblock halign-left valign-top">Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Título</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Uso de autenticación basada en tokens JWT</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contexto</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El sistema YOVI necesita proteger funcionalidades para usuarios autenticados en una arquitectura con frontend y gateway comunicándose mediante API REST. Se evalúan alternativas como autenticación por sesión, cookies con estado o tokens JWT.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Decisión</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Adoptar autenticación basada en tokens JWT.</strong> Tras el inicio de sesión, el cliente recibe un token que debe incluir en cada petición a recursos protegidos, siendo validado por el gateway antes de conceder acceso.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Estado</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Aceptado</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Consecuencias</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Beneficios:</strong> Encaja con arquitecturas distribuidas, permite autenticar en cada petición, evita dependencia de sesiones en servidor, facilita la protección de endpoints y reduce el estado en el backend.</p>
+<p class="tableblock"><strong>Desventajas:</strong> Necesidad de proteger el token en el cliente, riesgo de uso indebido hasta su expiración si se ve comprometido, mayor complejidad en validación y gestión de expiración, y necesidad de definir cuidadosamente la información contenida en el token.</p></td>
+</tr>
+</tbody>
+</table>
 <div style="page-break-after: always;"></div>
 </div>
 </div>
@@ -2382,10 +2655,10 @@ concrete and measurable.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_escenario_6_disponibilidad_de_la_aplicación_en_mantenimientos">10.2.6. Escenario 6: Disponibilidad de la aplicación en mantenimientos</h4>
+<h4 id="_escenario_6_protección_de_rutas">10.2.6. Escenario 6: Protección de rutas</h4>
 <div class="imageblock">
 <div class="content">
-<img src="./images/escenarioCalidadDisponibilidad1.png" alt="escenarioCalidadDisponibilidad1" width="784" height="206">
+<img src="./images/escenarioCalidadSeguridad2.png" alt="escenarioCalidadSeguridad2" width="784" height="137">
 </div>
 </div>
 <div style="page-break-after: always;"></div>
@@ -2490,12 +2763,6 @@ concrete and measurable.</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Algunas variables de entorno y URLs de servicios siguen convenciones distintas según el módulo o el entorno. Esto hace que el despliegue y el mantenimiento sean más frágiles de lo necesario.</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Media</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Unificar convenciones de nombres, validar la configuración al arrancar y mantener una única referencia para las variables de despliegue.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Monitorización básica</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Prometheus y Grafana están presentes en el proyecto, pero su configuración todavía es básica y se centra sobre todo en el servicio de usuarios. Esto deja una observabilidad limitada para el resto de la arquitectura.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Media</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Extender la recogida de métricas al resto de servicios y mejorar progresivamente dashboards y alertas.</p></td>
 </tr>
 </tbody>
 </table>
