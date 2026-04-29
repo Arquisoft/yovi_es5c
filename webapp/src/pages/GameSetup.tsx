@@ -37,6 +37,10 @@ export function getInitialBoardSize(): number {
   return Math.max(minBoardSize, Math.min(maxBoardSize, parsedSize));
 }
 
+export function isMaxBoardSizeRestricted(selectedBot: BotOption | null, difficulty: Difficulty | null): boolean {
+  return selectedBot?.bot_id === "alpha_bot" && difficulty === "Hard";
+}
+
 export function calculatePlayerTimer(boardSize: number, difficulty: Difficulty) {
   // 1. Determinar el Factor de Escala del Tablero (boardScaleFactor)
   let boardScaleFactor = 0;
@@ -286,6 +290,7 @@ const GameSetup = () => {
 
 
   const isDisabled = isRolling || rollingBot!= null;
+  let restricted = false;
   const navigate = useNavigate();
   const { isLoggedIn } = useSession();
 
@@ -386,6 +391,14 @@ const GameSetup = () => {
 
   const handleDifficultySelect = (difficulty: Difficulty) => {
     if (!selectedBot) return;
+
+
+    if (isMaxBoardSizeRestricted(selectedBot, difficulty) && boardSize > 10) {
+      restricted = true;
+      setBoardSize(10);
+      sessionStorage.setItem("boardSize", "10");
+    }
+
     setBotAnchorEl(null);
     setDiffAnchorEl(null);
     setSelectedBot(null);
@@ -449,7 +462,7 @@ const GameSetup = () => {
           <SpinnerValue>{boardSize}</SpinnerValue>
           <SpinnerBtn
             onClick={handleIncreaseSize}
-            disabled={boardSize >= maxBoardSize || isDisabled}
+            disabled={boardSize >= maxBoardSize || isDisabled || restricted}
             aria-label={t('setup.increaseBoardSize')}
           >
             +
