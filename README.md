@@ -105,7 +105,7 @@ This command will build the Docker images for both the `webapp` and `users` serv
 
 ### Without Docker
 
-To run the project locally without Docker, you will need to run each component in a separate terminal.
+To run the project locally without Docker, you will need to run each component in a separate terminal and a MongoDB running on port 27017 (MongoDB default port).
 
 #### Prerequisites
 
