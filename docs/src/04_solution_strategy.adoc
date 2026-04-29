@@ -37,7 +37,6 @@ endif::arc42help[]
 
 * Backend: 
 ** [.underline]#NodeJS + Express#: Debido a su popularidad, facilidad de uso y amplia comunidad, lo que facilita el desarrollo rápido y la integración con otras tecnologías.
-** [.underline]#Rust#: Para el desarrollo del juego, debido a su alto rendimiento, capacidad para manejar tareas concurrentes, lo que es esencial para una experiencia de juego fluida.
 
 * Frontend:
 ** [.underline]#Vite#: Por su velocidad de arranque, y hot-reload instantáneo, permitiendo un desarrollo rápido y eficiente.
@@ -47,8 +46,6 @@ endif::arc42help[]
 ** [.underline]#MongoDB:# Debido a su flexibilidad para manejar datos no estructurados, lo que es ideal para almacenar información de usuarios, partidas y estadísticas de juego.
 
 * [.underline]#Github:# Lo hemos elegido como plataforma de control de versiones al estar mas familiarizados con él, y su capacidad para gestionar proyectos de software.
-
-* [.underline]#Docker:# Por su capacidad para crear, desplegar y ejecutar aplicaciones en contenedores de manera intuituva.
 
 * [.underline]#Azure:# Debido a que ya estabamos habituados a su uso, su accesibilidad mediante una IP pública y la facilidad de apertura de puertos.
 

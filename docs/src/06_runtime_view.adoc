@@ -39,68 +39,116 @@ See https://docs.arc42.org/section-6/[Runtime View] in the arc42 documentation.
 ****
 endif::arc42help[]
 
-=== Ejecución de partida jugador contra jugador
 
-A continuación se muestra el diagrama de secuencia de una partida entre dos jugadores humanos a través de la terminal, que representa el flujo principal del sistema en su estado actual.
+=== Ejecución de movimiento en partida
+
+A continuación se muestra el diagrama de secuencia del procesamiento de un movimiento durante una partida a través de la aplicación web, que representa uno de los flujos principales del sistema.
+
 El diagrama muestra:
 
-* El ciclo de juego: renderizado → verificación de estado → captura de entrada → procesamiento
-* Cómo se gestionan los turnos alternados entre jugadores hasta que finaliza la partida
+* La captura de entrada: interacción del usuario con el tablero hexagonal
+* El procesamiento en capas: comunicación entre frontend, gateway y servicio GameY
+* La resolución de movimientos: aplicación del movimiento en el juego y ejecución de bot 
+* La actualización de estado: actualización del tablero y turnos según resultado
 
-
-[mermaid,"Sequence diagram Game Y",png]
+[mermaid,"Sequence diagram Game Move",png]
 ----
 sequenceDiagram
     participant U as Usuarios
-    participant Main as Punto de Entrada (GameY)
-    participant CLI as Interfaz CLI (GameY)
-    participant Game as Juego (GameY)
-    participant PI as Procesador de Input (GameY)
+    participant W as Webapp 
+    participant G as Gateway
+    participant GY as Servicio GameY 
+    participant Bot as Bot 
 
-    Note over U,Main: Inicio de la aplicación
-    U->>Main: ejecutar: gamey
-    Main->>CLI: run_cli_game()
+    Note over U,Bot: Usuario hace un movimiento dentro de la página del juego
+    U->>W: click en celda hexagonal del tablero
+    W->>W: validateMove() - verificar estado
     
-    Note over CLI: Inicialización
-    CLI->>Game: GameY::new(args.size)
-
-    Note over CLI,Game: Loop principal del juego
-    loop Hasta que termine el juego
-        CLI->>Game: game.render()
-        Game-->>CLI: representación del tablero
-        CLI->>U: println! tablero
-        
-        CLI->>Game: game.status()
-        Game-->>CLI: GameStatus
-        
-        alt GameStatus::Finished
-            CLI->>U: "Game over! Winner: [ganador]"
-            Note over CLI: break - salir del loop
-        else GameStatus::Ongoing
-            CLI->>U: prompt "Current player: X"
-            U->>CLI: introducir comando por teclado
-            
-            alt Error de entrada
-                CLI->>U: "Error: [detalle]"
-                Note over CLI: continue - siguiente iteración
-            else Input válido
-                CLI->>PI: process_input(comando, game, player, ...)
-                
-                alt Comando válido
-                    PI->>Game: aplicar movimiento/acción
-                    Game-->>PI: actualizar estado
-                    PI-->>CLI: Ok()
-                else Comando inválido
-                    PI->>U: mostrar error/ayuda
-                    PI-->>CLI: Ok() o Error
-                end
-            end
-        end
+    Note over W: Enviar movimiento
+    W->>G: POST /game/move {state, row, col, mode, bot_id, difficulty}
+    
+    Note over G: Validar configuración de bot
+    G->>G: validar parámetros del bot y dificultad
+    G->>GY: POST /v1/game/move
+    
+    Note over GY: Cargar estado del juego
+    GY->>GY: reconstruir tablero
+    GY->>GY: verificar fin de partida
+    
+    Note over GY: Procesar movimiento del jugador
+    GY->>GY: convertir coordenadas
+    GY->>GY: aplicar movimiento 
+    
+    alt Juego terminado
+        GY-->>G: 200 OK + game_over: true, winner
+        G-->>W: 200 OK + {game_over, winner, state}
+        W->>W: mostrar diálogo resultado
+        W->>U: renderizar modal fin de partida
+    else Modo PvP
+        GY-->>G: 200 OK + state actualizado
+        G-->>W: 200 OK + {game_over: false, state}
+        W->>W: cambiar turno a Player 2
+        W->>U: renderizar tablero actualizado
+    else Modo Bot
+        GY->>Bot: ejecutar turno del bot
+        Bot-->>GY: coordenadas del movimiento
+        GY->>GY: aplicar movimiento bot
+        GY->>GY: verificar fin de partida
+        GY-->>G: 200 OK + state actualizado
+        G-->>W: 200 OK + {game_over, state}
+        W->>W: actualizar tablero con movimiento bot
+        W->>U: renderizar tablero actualizado
     end
     
-    CLI-->>Main: Ok()
-    Main-->>U: fin del programa
+    Note over U: Tablero actualizado, listo para siguiente movimiento
 ----
+
+
+=== Ejecución de ranking de jugadores (caso de éxito)
+
+A continuación se muestra el diagrama de secuencia de la obtención y visualización del ranking de jugadores a través de la aplicación web.
+
+El diagrama muestra:
+
+* El flujo de navegación: acceso a la página de ranking desde la webapp
+* La inicialización de datos: carga del ranking con parámetros de ordenamiento personalizados
+* El procesamiento en capas: comunicación entre frontend, gateway y servicio de usuarios
+* La obtención y transformación de datos: consulta a MongoDB
+* La visualización de resultados: renderizado de la tabla
+
+[mermaid,"Sequence diagram Ranking",png]
+----
+sequenceDiagram
+    participant U as Usuarios
+    participant W as Webapp 
+    participant G as Gateway
+    participant S as Servicio Users
+    participant BD as MongoDB 
+
+    Note over U,BD: Usuario navega a /game/ranking
+    U->>W: click en "Ranking"
+    W->>W: GameRanking renderiza
+    
+    Note over W: useEffect - Fetching datos
+    W->>G: GET /game/ranking?sortBy=wins&order=desc
+    
+    Note over G: Construir URL y parámetros
+    G->>S: GET /game/ranking?sortBy=wins&order=desc
+    
+    Note over S: Validar y procesar parámetros
+    S->>BD: solicitar datos
+    
+    BD-->>S: [{username, played, wins, losses, winRate}, ...]
+    
+    S-->>G: 200 OK + JSON ranking[]
+    G-->>W: 200 OK + JSON ranking[]
+    
+    W->>W: almacenar ranking obtenido
+    W->>U: renderizar tabla ranking
+    
+    Note over U: Ranking visible
+----
+ 
 
 === Registro de un usuario
 
