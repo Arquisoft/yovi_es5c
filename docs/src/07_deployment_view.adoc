@@ -62,7 +62,7 @@ endif::arc42help[]
 
 _**Diagrama de Despliegue (resumen)**_
 
-Se utiliza el diagrama de la sección "Contexto de negocio" para representar, a alto nivel, los contenedores Docker, la red interna, la base de datos y la pila de monitoreo. El diagrama muestra cómo los bloques de software (Gamey Server, Users Service, Web App, Gateway) se despliegan en contenedores separados y cómo estos consumen servicios infraestructurales (MongoDB, red Docker, Prometheus, Grafana).
+Se utiliza el diagrama de la sección siguiente para representar, a alto nivel, los contenedores Docker, la red interna, la base de datos y la pila de monitoreo. El diagrama muestra cómo los bloques de software (Gamey Server, Users Service, Web App, Gateway) se despliegan en contenedores separados y cómo estos consumen servicios infraestructurales (MongoDB, red Docker, Prometheus, Grafana).
 
 Motivación::
 
@@ -128,9 +128,11 @@ graph LR
         
         GameY[GameY Service]
         UserS[User Service]
+
+        MongoDb[MongoDb]
     end
 
-    MongoDb[MongoDb]
+   
 
     %% Conexiones principales
     User --> App

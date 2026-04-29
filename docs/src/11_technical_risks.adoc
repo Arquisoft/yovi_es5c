@@ -27,7 +27,7 @@ See https://docs.arc42.org/section-11/[Risks and Technical Debt] in the arc42 do
 ****
 endif::arc42help[]
 
-=== 11.1 Riesgos
+=== Riesgos
 
 [cols="2,5,1,4", options="header"]
 |===
@@ -54,7 +54,7 @@ endif::arc42help[]
 |Compartir conocimiento dentro del equipo, reutilizar ejemplos que ya funcionan en el propio proyecto y documentar las decisiones técnicas principales para reducir el tiempo de aprendizaje.
 |===
 
-=== 11.2 Deuda técnica
+=== Deuda técnica
 
 [cols="2,5,1,4", options="header"]
 |===
