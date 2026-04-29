@@ -346,7 +346,11 @@ app.get('/game/ranking', async (req, res) => {
         { $addFields: {
             winRate: { $round: [{ $multiply: [{ $divide: ["$wins", "$played"] }, 100] }, 0] }
         }},
-        { $sort: { [field]: direction, winRate: -1, played: -1 } },
+        { $sort: {
+            [field]: direction,
+            ...(field !== 'winRate' && { winRate: -1 }),
+            ...(field !== 'played' && { played: -1 }),
+        }},
         { $project: { _id: 0, username: "$_id", played: 1, wins: 1, losses: 1, winRate: 1 } }
     ]
 
