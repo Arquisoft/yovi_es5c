@@ -19,6 +19,8 @@ endif::arc42help[]
 
 === Estrategia de Pruebas
 
+La estrategia de pruebas del sistema combina pruebas unitarias y pruebas end-to-end para validar tanto los módulos individuales como el funcionamiento global de la aplicación. Las pruebas unitarias permiten detectar errores de forma temprana y comprobar la lógica de cada componente de manera aislada. Por su parte, las pruebas end-to-end verifican flujos completos de usuario y aseguran que la integración entre frontend, backend y persistencia funciona correctamente. Con esta combinación se busca aumentar la calidad del sistema y reducir el riesgo de fallos en producción.
+
 === Pruebas Unitarias
 
 Se han realizado pruebas unitarias en los servicios del backend. Con ellas se busca validar la lógica de negocio, el manejo de errores y las funcionalidades de cada servicio.
