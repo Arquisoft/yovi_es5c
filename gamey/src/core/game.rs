@@ -140,7 +140,7 @@ impl GameY {
                 self.handle_placement(*player, *coords)?;
             }
             Movement::Action { player, action } => {
-                self.handle_action(*player, action);
+                self.handle_action(*player, action)?;
             }
         }
         self.history.push(movement);
@@ -203,19 +203,39 @@ impl GameY {
     }
 
     /// Handles non-placement actions (Resign, Swap, etc.)
-    fn handle_action(&mut self, player: PlayerId, action: &GameAction) {
+    fn handle_action(&mut self, player: PlayerId, action: &GameAction) -> Result<()> {
         match action {
             GameAction::Resign => {
                 self.status = GameStatus::Finished {
                     winner: other_player(player),
                 };
+                Ok(())
             }
             GameAction::Swap => {
+                self.apply_swap(player)?;
                 self.status = GameStatus::Ongoing {
-                    next_player: other_player(player),
+                    next_player: player,
                 };
+                Ok(())
             }
         }
+    }
+
+    fn apply_swap(&mut self, player: PlayerId) -> Result<()> {
+        let Some(Movement::Placement { player: opening_player, .. }) = self.history.first() else {
+            return Err(GameYError::ServerError {
+                message: "Swap is only allowed immediately after the opening move".to_string(),
+            });
+        };
+
+        if self.history.len() != 1 || opening_player.id() != 0 || player.id() != 1 {
+            return Err(GameYError::ServerError {
+                message: "Swap is only allowed for player 1 right after player 0 opens"
+                    .to_string(),
+            });
+        }
+
+        Ok(())
     }
 
     /// Handles validation logic (Game Over checks and Occupancy)
@@ -257,8 +277,16 @@ impl GameY {
         self.board_size
     }
 
+    /// Returns the player occupying a given cell, or `None` if the cell is empty.
+    ///
+    /// This is useful for bots that need to inspect the board state, for example
+    /// to count how many friendly pieces surround a candidate cell.
+    pub fn cell_player(&self, coords: &Coordinates) -> Option<PlayerId> {
+        self.board_map.get(coords).map(|(_, player)| *player)
+    }
+
     /// Returns the neighboring coordinates for a given cell.
-    fn get_neighbors(&self, coords: &Coordinates) -> Vec<Coordinates> {
+    pub fn get_neighbors(&self, coords: &Coordinates) -> Vec<Coordinates> {
         let mut neighbors = Vec::new();
         let x = coords.x();
         let y = coords.y();
@@ -306,6 +334,18 @@ impl GameY {
         }
         result
     }
+
+    /// Searches in the history for the last movement that was a piece placement.
+    pub fn last_placement_coords(&self) -> Option<Coordinates> {
+        self.history.iter().rev().find_map(|m| {
+            if let Movement::Placement { coords, .. } = m {
+                Some(*coords)
+            } else {
+                None
+            }
+        })
+    }
+
     /*pub fn render(&self, options: &RenderOptions) -> String {
         let mut result = String::new();
         let coords_size = self.board_size.to_string().len() as u32;
@@ -460,8 +500,9 @@ impl TryFrom<YEN> for GameY {
             });
         }
 
-        let mut b_coords: Vec<Coordinates> = Vec::new();
-        let mut r_coords: Vec<Coordinates> = Vec::new();
+        let mut ygame = GameY::new(size);
+        let mut winner: Option<PlayerId> = None;
+        let mut placed_pieces: Vec<(Coordinates, PlayerId)> = Vec::new();
 
         for (row, row_str) in rows.iter().enumerate() {
             let cells: Vec<char> = row_str.chars().collect();
@@ -477,10 +518,10 @@ impl TryFrom<YEN> for GameY {
                 let y = col as u32;
                 let z = size - 1 - x - y;
                 let coords = Coordinates::new(x, y, z);
-                match cell {
-                    'B' => b_coords.push(coords),
-                    'R' => r_coords.push(coords),
-                    '.' => {}
+                let player = match cell {
+                    'B' => Some(PlayerId::new(0)),
+                    'R' => Some(PlayerId::new(1)),
+                    '.' => None,
                     _ => {
                         return Err(GameYError::InvalidCharInLayout {
                             char: *cell,
@@ -488,48 +529,33 @@ impl TryFrom<YEN> for GameY {
                             col,
                         });
                     }
+                };
+
+                if let Some(player) = player {
+                    placed_pieces.push((coords, player));
+                    let set_idx = ygame.register_piece(player, coords);
+                    if ygame.connect_neighbors_and_check_win(coords, player, set_idx) {
+                        winner = Some(player);
+                    }
                 }
             }
         }
 
-        let mut ygame = GameY::new(size);
-        let mut b_index = 0usize;
-        let mut r_index = 0usize;
-
-        while b_index < b_coords.len() || r_index < r_coords.len() {
-            let next_player = match ygame.next_player() {
-                Some(player) => player.id(),
-                None => break,
+        if let Some(winner) = winner {
+            ygame.status = GameStatus::Finished { winner };
+        } else {
+            ygame.status = GameStatus::Ongoing {
+                next_player: PlayerId::new(game.turn()),
             };
-
-            if next_player == 0 {
-                if b_index >= b_coords.len() {
-                    return Err(GameYError::ServerError {
-                        message: "Invalid board: missing B move for expected turn".to_string(),
-                    });
-                }
-                ygame.add_move(Movement::Placement {
-                    player: PlayerId::new(0),
-                    coords: b_coords[b_index],
-                })?;
-                b_index += 1;
-            } else {
-                if r_index >= r_coords.len() {
-                    return Err(GameYError::ServerError {
-                        message: "Invalid board: missing R move for expected turn".to_string(),
-                    });
-                }
-                ygame.add_move(Movement::Placement {
-                    player: PlayerId::new(1),
-                    coords: r_coords[r_index],
-                })?;
-                r_index += 1;
-            }
         }
 
-        if b_index != b_coords.len() || r_index != r_coords.len() {
-            return Err(GameYError::ServerError {
-                message: "Invalid board: extra moves remain after game end".to_string(),
+        if placed_pieces.len() == 1
+            && game.turn() == 1
+            && placed_pieces[0].1 == PlayerId::new(0)
+        {
+            ygame.history.push(Movement::Placement {
+                player: PlayerId::new(0),
+                coords: placed_pieces[0].0,
             });
         }
 
@@ -815,5 +841,17 @@ mod tests {
             }
             _ => panic!("Game should be ongoing"),
         }
+    }
+
+    #[test]
+    fn test_last_placement_coords_retrieval() {
+        let mut game = GameY::new(5);
+        let p0 = PlayerId::new(0);
+        let coords = Coordinates::new(4, 0, 0);
+        
+        // Add a move
+        game.add_move(Movement::Placement { player: p0, coords }).unwrap();
+        
+        assert_eq!(game.last_placement_coords(), Some(coords));
     }
 }

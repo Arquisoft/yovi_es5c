@@ -9,11 +9,12 @@ const promBundle = require('express-prom-bundle');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('./model/user-model');
+const GameSession = require('./model/gameSession-model');
 
 const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/userdb';
 mongoose.connect(mongoUri);
 
-const metricsMiddleware = promBundle({includeMethod: true});
+const metricsMiddleware = promBundle({includeMethod: true, includePath: true});
 app.use(metricsMiddleware);
 
 try {
@@ -23,9 +24,25 @@ try {
   console.log(e);
 }
 
+const authMiddleware = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Token no proporcionado o inválido' });
+  }
+  
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: 'Token expirado o inválido' });
+  }
+};
+
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
@@ -71,58 +88,163 @@ app.post('/user', async (req, res) => {
         }
 }});
 
+app.post('/user/change-password', authMiddleware, async (req, res) => {
+    try {
+        const { username, currentPassword, newPassword } = req.body;
+
+        if (!username || !currentPassword || !newPassword || typeof newPassword !== 'string') {
+            return res.status(400).json({ error: 'Username, current password and new password are required.' });
+        }
+
+        const query = { username: String(username) }; // Forzado de tipo explícito
+        const user = await User.findOne(query);
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        
+        const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!passwordMatch) {
+            return res.status(401).json({ error: 'Incorrect current password' });
+        }
+        
+        const isSamePassword = await bcrypt.compare(newPassword, user.password);
+        if (isSamePassword) {
+            return res.status(400).json({ error: 'The new password is the same as the current one.'});
+        }
+        
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        await user.save();
+
+        res.status(200).json({ message: 'Password changed successfully' });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal server error.' });
+    }
+});
+
 app.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
 
         //Username and password must be filled
-        if(!username || !password) {
+        if(!username || !password || typeof username !== 'string' || typeof password !== 'string') {
             return res.status(400).json({ error: 'Username and password are required.' });
         }
 
-        const user = await User.findOne({ username });
+        const query = { username: String(username) }; // Forzado de tipo explícito
+        const user = await User.findOne(query);
 
         //Checks user exists in database
         if(!user) {
-            return res.status(401).json({ error: 'Incorrect username' });
+            return res.status(401).json({ error: 'Incorrect username or password' });
         }
 
         //Password match verification
         const passwordMatch = await bcrypt.compare(password, user.password);
 
         if(!passwordMatch) {
-            return res.status(401).json({ error: 'Incorrect password.' });
+            return res.status(401).json({ error: 'Incorrect username or password' });
         }
 
         //Creates JWT token and returns with success code
-        const token = jwt.sign({ userId: user._id, user: username}, "ultratopsecretkey", {expiresIn: '24h'});
+        if(!process.env.JWT_SECRET){
+            throw new Error("Variable de entorno no configurada.");
+        }
+
+        const token = jwt.sign({ userId: user._id, user: username}, process.env.JWT_SECRET, {expiresIn: '24h'});
         res.status(200).json({ token });
 
 
     } catch (error) {
+        if (error instanceof Error) {
+            console.error('Error:', error.message);
+        }
         res.status(500).json({ error: 'Internal server error.' });
     }
 });
 
+app.get('/user/:username', authMiddleware, async (req, res) => {
+    try {
+        const requestedUsername = req.params.username?.trim();
 
-app.post('/logout', async (req, res) => {
+        if (!requestedUsername) {
+            return res.status(400).json({ error: 'Username is required.' });
+        }
+
+        const user = await User.findOne({ username: requestedUsername })
+            .select('username name surname email');
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.status(200).json(user);
+    } catch (error) {
+        if (error instanceof Error) {
+            console.error('Error:', error.message);
+        }
+        res.status(500).json({ error: 'Internal server error.' });
+    }
+});
+
+app.put('/user/:username', authMiddleware, async (req, res) => {
+    try {
+        const requestedUsername = req.params.username?.trim();
+        const { name, surname, email } = req.body;
+
+        if (!requestedUsername) {
+            return res.status(400).json({ error: 'Username is required.' });
+        }
+
+        validateProfileFields(name, surname, email);
+
+        const user = await User.findOne({ username: requestedUsername });
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        user.name = name.trim();
+        user.surname = surname.trim();
+        user.email = email.trim();
+
+        await user.save();
+
+        res.status(200).json({
+            username: user.username,
+            name: user.name,
+            surname: user.surname,
+            email: user.email,
+            _id: user._id,
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+
+app.post('/logout', authMiddleware, async (req, res) => {
   try {
     const { username } = req.body;
-    if (!username || !username.trim()) {
-      return res.status(400).json({ error: 'username is required' });
+
+    //Username and password must be filled
+    if(!username || typeof username !== 'string') {
+        return res.status(400).json({ error: 'username is required' });
     }
 
-    const sanitizedUsername = username.trim().toLowerCase();
-    const user = await User.findOne({ username: sanitizedUsername });
+    const query = { username: String(username) }; // Forzado de tipo explícito
+    const user = await User.findOne(query);
 
     if (!user) {
-      return res.status(404).json({ error: `User ${sanitizedUsername} not found` });
+      return res.status(404).json({ error: `User ${username} not found` });
     }
 
     user.lastLogoutAt = new Date();
     await user.save();
 
-    res.json({ message: `User ${sanitizedUsername} logged out`, user });
+    res.json({ message: `User ${username} logged out`, user });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -149,18 +271,93 @@ function registerValidators(user, username, password, name, surname, email){
         throw new Error('The password must contain at least one uppercase letter');
     }
 
-    // Name validation
-    if (!name.trim()) {
+    validateProfileFields(name, surname, email);
+}
+
+function validateProfileFields(name, surname, email) {
+    if (!name?.trim()) {
         throw new Error('The name cannot be empty or contain only spaces');
     }
-    
-    // Surname validation
-    if (!surname.trim()) {
+
+    if (!surname?.trim()) {
         throw new Error('The surname cannot be empty or contain only spaces');
     }
 
-    // Email validation
-    if (!email.trim()) {
+    if (!email?.trim()) {
         throw new Error('The email cannot be empty or contain only spaces');
     }
 }
+
+app.get('/user/:username/history', authMiddleware, async (req, res) => {
+  try {
+    const { username } = req.params;
+
+    const history = await GameSession
+      .find({ userId: username })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(history);
+
+  } catch (error) {
+    if (error instanceof Error) {
+            console.error('Error:', error.message);
+    }
+    res.status(500).json({ error: "Error obtaining history." });
+  }
+});
+
+app.post('/game/finish', authMiddleware, async (req, res) => {
+  try {
+
+    const { userId, rival, level, duration, result } = req.body;
+
+    const game = await GameSession.create({
+      userId,
+      rival,
+      level,
+      duration,
+      result
+    });
+
+    res.status(201).json(game);
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+app.get('/game/ranking', async (req, res) => {
+
+    const { sortBy = 'wins', order = 'desc', limit } = req.query;
+    const ALLOWED_FIELDS = ['wins', 'winRate', 'played', 'losses'];
+    const field = ALLOWED_FIELDS.includes(sortBy) ? sortBy : 'wins';
+    const direction = order === 'asc' ? 1 : -1;
+    const parsedLimit = Number.parseInt(limit, 10);
+    const hasValidLimit = Number.isInteger(parsedLimit) && parsedLimit > 0;
+
+    const pipeline = [
+        { $group: {
+            _id: "$userId",
+            played:  { $sum: 1 },
+            wins:    { $sum: { $cond: [{ $eq: ["$result", "won"] }, 1, 0] } },
+            losses:  { $sum: { $cond: [{ $eq: ["$result", "lost"] }, 1, 0] } },
+        }},
+        { $addFields: {
+            winRate: { $round: [{ $multiply: [{ $divide: ["$wins", "$played"] }, 100] }, 0] }
+        }},
+        { $sort: {
+            [field]: direction,
+            ...(field !== 'winRate' && { winRate: -1 }),
+            ...(field !== 'played' && { played: -1 }),
+        }},
+        { $project: { _id: 0, username: "$_id", played: 1, wins: 1, losses: 1, winRate: 1 } }
+    ]
+
+    if (hasValidLimit) {
+        pipeline.push({ $limit: parsedLimit });
+    }
+
+    const data = await GameSession.aggregate(pipeline);
+    res.json(data);
+});

@@ -4,19 +4,39 @@ const morgan = require('morgan')
 const helmet = require('helmet')
 const cors = require('cors')
 const rateLimit = require('express-rate-limit')
+const swaggerUi = require('swagger-ui-express')
+const fs = require('node:fs')
+const path = require('node:path')
+const YAML = require('js-yaml')
 const port = process.env.PORT || 8000
+const mongoSanitize = require('express-mongo-sanitize');
 
 const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3000';
 const gameyServiceUrl = process.env.GAMEY_SERVICE_URL || 'http://localhost:4000';
 
 const axios = require('axios');
 const app = express()
-app.use(helmet())
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  crossOriginOpenerPolicy: false,
+  crossOriginResourcePolicy: false
+}))
 app.use(cors())
 app.use(express.json())
 app.use(morgan('combined'))
+app.use(mongoSanitize())
 
-const limiter = rateLimit({ windowMs: 60 * 1000, max: 100 })
+try {
+  const swaggerDocument = YAML.load(
+    fs.readFileSync(path.join(__dirname, 'openapi.yaml'), 'utf8')
+  )
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
+} catch (error) {
+  console.log(error)
+}
+
+const limiter = rateLimit({ windowMs: 60 * 1000, max: 500 })
 app.use(limiter)
 
 const handleErrors = (res, error) => {
@@ -57,6 +77,50 @@ app.post('/login', async (req, res) => {
   }
 });
 
+app.get('/user/:username', async (req, res) => {
+  try {
+    const profileUrl = new URL(`/user/${encodeURIComponent(req.params.username)}`, userServiceUrl);
+    const profileResponse = await axios.get(profileUrl.href, {
+      headers: { Authorization: req.headers.authorization }
+    });
+    res.json(profileResponse.data);
+  } catch (error) {
+    handleErrors(res, error);
+  }
+});
+
+app.put('/user/:username', async (req, res) => {
+  try {
+    const profileUrl = new URL(`/user/${encodeURIComponent(req.params.username)}`, userServiceUrl);
+    
+    const profileResponse = await axios.put(
+      profileUrl.href, 
+      req.body,
+      {
+        headers: { Authorization: req.headers.authorization }
+      }
+    );
+    
+    res.json(profileResponse.data);
+  } catch (error) {
+    handleErrors(res, error);
+  }
+});
+
+app.post('/user/change-password', async (req, res) => {
+  try {
+    const changePasswordUrl = new URL(`/user/change-password`, userServiceUrl);
+    const response = await axios.post(changePasswordUrl.href, req.body, 
+      {
+        headers: { Authorization: req.headers.authorization }
+      }
+    );
+    res.json(response.data);
+  } catch (error) {
+    handleErrors(res, error);
+  }
+});
+
 app.post('/logout', async (req, res) => {
   try {
     const { username } = req.body;
@@ -64,11 +128,16 @@ app.post('/logout', async (req, res) => {
       return res.status(400).json({ error: 'username is required' });
     }
 
-    const usersServiceUrl = process.env.USERS_SERVICE_URL || 'http://users:3000';
+    const logoutUrl = new URL(`/logout`, userServiceUrl);
 
-    const response = await axios.post(`${usersServiceUrl}/logout`, {
-      username: username.trim(),
-    });
+    const response = await axios.post(logoutUrl.href,
+      {
+        username: username.trim(),
+      },
+      {
+        headers: { Authorization: req.headers.authorization }
+      }
+    );
 
     res.status(200).json(response.data);
   } catch (error) {
@@ -76,6 +145,100 @@ app.post('/logout', async (req, res) => {
     const status = error?.response?.status || 500;
     const data = error?.response?.data || { error: error.message || 'Gateway error' };
     res.status(status).json(data);
+  }
+});
+
+app.get('/user/:username/history', async (req, res) => {
+  try {
+
+    const { username } = req.params;
+
+    const historyUrl = new URL(`/user/${username}/history`, userServiceUrl);
+
+    const response = await axios.get(historyUrl.href, {
+      headers: { Authorization: req.headers.authorization }
+    });
+
+    res.status(200).json(response.data);
+
+  } catch (error) {
+    handleErrors(res, error);
+  }
+});
+
+app.post('/game/finish', async (req, res) => {
+  try {
+
+    const finishUrl = new URL('/game/finish', userServiceUrl);
+
+    const response = await axios.post(finishUrl.href, req.body, {
+      headers: { Authorization: req.headers.authorization }
+    });
+
+    res.status(201).json(response.data);
+
+  } catch (error) {
+    handleErrors(res, error);
+  }
+});
+
+// Middleware específico para aceptar peticiones de texto plano de sendBeacon
+const tolerantJsonParser = express.json({ type: ['application/json', 'text/plain'] });
+
+app.post('/game/abandon', express.text({ type: '*/*' }), async (req, res) => {
+  try {
+    const origin = req.headers.origin;
+    if (origin && !origin.includes('localhost')) { 
+      return res.status(403).json({ error: 'Origen no permitido / Posible CSRF' });
+    }
+    
+    let parsedBody = {};
+    if (typeof req.body === 'string' && req.body.trim() !== '') {
+      parsedBody = JSON.parse(req.body);
+    } else if (typeof req.body === 'object' && Object.keys(req.body).length > 0) {
+      parsedBody = req.body;
+    } else {
+      console.error("[Gateway] Abandon error: Body vacío o ilegible.");
+      return res.status(400).json({ error: 'Body is required' });
+    }
+
+    const token = parsedBody.token;
+    delete parsedBody.token;
+    parsedBody.result = 'lost';
+
+    const finishUrl = new URL('/game/finish', userServiceUrl);
+    const response = await axios.post(finishUrl.href, parsedBody, {
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    res.status(201).json(response.data);
+
+  } catch (error) {
+    
+    const errorReal = error.response && error.response.data ? error.response.data : error.message;
+    console.error("[Gateway] Error RECHAZADO por users-service en /abandon:", JSON.stringify(errorReal));
+    handleErrors(res, error);
+  }
+});
+    
+app.get('/game/ranking', async (req, res) => {
+  try {
+
+    const ranking = new URL('/game/ranking', userServiceUrl);
+
+    if (req.query.sortBy) ranking.searchParams.set('sortBy', req.query.sortBy);
+    if (req.query.order)  ranking.searchParams.set('order', req.query.order);
+    if (req.query.limit)  ranking.searchParams.set('limit', req.query.limit);
+
+    const response = await axios.get(ranking.href);
+
+    res.status(200).json(response.data);
+
+  } catch (error) {
+    handleErrors(res, error);
   }
 });
 
@@ -91,8 +254,57 @@ app.get('/game/status', async (req, res) => {
   }
 });
 
+
+const VALID_BOTS        = new Set(['random_bot', 'center_bot', 'edge_bot','smart_bot', 'mirror_bot','alpha_bot']);
+const PUBLIC_TOURNAMENT_BOTS = new Set(['alpha_bot', 'smart_bot']);
+const DEFAULT_PUBLIC_BOT_ID = 'alpha_bot';
+
+function resolvePublicBotConfig(bot_id) {
+  const resolvedBotId = bot_id || DEFAULT_PUBLIC_BOT_ID;
+  if (!PUBLIC_TOURNAMENT_BOTS.has(resolvedBotId)) {
+    return { error: `Unknown bot_id: ${resolvedBotId}` };
+  }
+
+  return {
+    bot_id: resolvedBotId,
+    registry_bot_id: resolvedBotId,
+  };
+}
+
+function resolveGameMoveBotConfig(bot_id, difficulty) {
+  const resolvedBotId = bot_id || 'random_bot';
+  if (!VALID_BOTS.has(resolvedBotId)) {
+    return { error: `Unknown bot_id: ${resolvedBotId}` };
+  }
+
+  const VALID_DIFFICULTIES = new Set(['Easy', 'Medium', 'Hard']);
+  const DIFFICULTY_SUFFIX = { Easy: '_1', Medium: '_2', Hard: '' };
+  const resolvedDifficulty = difficulty || 'Medium';
+  if (!VALID_DIFFICULTIES.has(resolvedDifficulty)) {
+    return { error: `Unknown difficulty: ${resolvedDifficulty}` };
+  }
+
+  return {
+    bot_id: resolvedBotId,
+    difficulty: resolvedDifficulty,
+    registry_bot_id: resolvedBotId + DIFFICULTY_SUFFIX[resolvedDifficulty],
+  };
+}
+
 app.post('/game/move', async (req, res) => {
-  try {
+   try {
+    const { mode, bot_id, difficulty } = req.body;
+ 
+    if (mode === 'bot') {
+      const resolvedBot = resolveGameMoveBotConfig(bot_id, difficulty);
+      if (resolvedBot.error) {
+        return res.status(400).json({ error: resolvedBot.error });
+      }
+ 
+      req.body.bot_id = resolvedBot.registry_bot_id;
+      req.body.difficulty = resolvedBot.difficulty;
+    }
+ 
     const moveUrl = new URL('/v1/game/move', gameyServiceUrl);
     const response = await axios.post(moveUrl.href, req.body);
     res.status(200).json(response.data);
@@ -101,7 +313,59 @@ app.post('/game/move', async (req, res) => {
   }
 });
 
-const server = app.listen(port, () => console.log(`Gateway listening on ${port}`))
+function parseYenPosition(rawPosition) {
+  if (!rawPosition) {
+    return { error: 'YEN position is required' };
+  }
 
-module.exports = { app, server }
+  try {
+    const position = JSON.parse(rawPosition);
+    if (
+      position.size === undefined ||
+      position.turn === undefined ||
+      !position.players ||
+      !position.layout
+    ) {
+      return { error: 'YEN position is required' };
+    }
 
+    return { position };
+  } catch {
+    return { error: 'YEN position must be valid JSON' };
+  }
+}
+
+app.get('/play', async (req, res) => {
+  try {
+    const { bot_id, position: rawPosition } = req.query;
+    const parsed = parseYenPosition(rawPosition);
+    if (parsed.error) {
+      return res.status(400).json({ error: parsed.error });
+    }
+
+    const resolvedBot = resolvePublicBotConfig(bot_id);
+    if (resolvedBot.error) {
+      return res.status(400).json({ error: resolvedBot.error });
+    }
+
+    const playUrl = new URL('/v1/ybot/play', gameyServiceUrl);
+    const response = await axios.get(playUrl.href, {
+      params: {
+        position: JSON.stringify(parsed.position),
+        bot_id: resolvedBot.bot_id,
+      },
+    });
+
+    res.status(200).json(response.data);
+  } catch (error) {
+    handleErrors(res, error);
+  }
+});
+
+
+let server;
+if (require.main === module) {
+  server = app.listen(port, () => console.log(`Gateway listening on ${port}`));
+}
+
+module.exports = { app, server, parseYenPosition, resolveGameMoveBotConfig, resolvePublicBotConfig }

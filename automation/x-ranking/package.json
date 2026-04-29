@@ -1,0 +1,12 @@
+{
+  "name": "x-ranking-automation",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "post-ranking": "node post-ranking-x.js"
+  },
+  "dependencies": {
+    "twitter-api-v2": "^1.23.2"
+  }
+}

@@ -1,0 +1,917 @@
+openapi: 3.0.0
+info:
+  title: API Gateway Service
+  version: 2.0.0
+  description: >
+    API Gateway que actúa como punto de entrada único para la aplicación.
+    Enruta las peticiones a los microservicios de Usuarios (User Service) y Juego (Gamey Service).
+    La mayoría de los endpoints requieren autenticación mediante JWT Bearer token,
+    que se obtiene en el endpoint /login.
+
+servers:
+  - url: http://localhost:8000
+    description: Servidor local de desarrollo
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token JWT obtenido tras el login. Incluirlo en la cabecera Authorization como "Bearer <token>".
+
+  schemas:
+    UserProfile:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "65cfa4b8f1a2c34d56789abc"
+        username:
+          type: string
+          example: "testuser"
+        name:
+          type: string
+          example: "Mario"
+        surname:
+          type: string
+          example: "Trelles"
+        email:
+          type: string
+          example: "mario@uniovi.es"
+
+    UserProfileUpdate:
+      type: object
+      required:
+        - name
+        - surname
+        - email
+      properties:
+        name:
+          type: string
+          example: "Mario"
+        surname:
+          type: string
+          example: "Trelles"
+        email:
+          type: string
+          example: "mario@uniovi.es"
+
+    GameSession:
+      type: object
+      required:
+        - userId
+        - rival
+        - result
+      properties:
+        userId:
+          type: string
+          example: "testuser"
+        rival:
+          type: string
+          enum: [random_bot, center_bot, edge_bot, smart_bot, mirror_bot, alpha_bot, multiplayer]
+          example: "alpha_bot"
+        level:
+          type: string
+          enum: [Easy, Medium, Hard]
+          default: Easy
+          example: "Medium"
+        duration:
+          type: integer
+          description: Duración de la partida en segundos
+          example: 120
+        result:
+          type: string
+          enum: [won, lost]
+          example: "won"
+        createdAt:
+          type: string
+          format: date-time
+
+    RankingEntry:
+      type: object
+      properties:
+        username:
+          type: string
+          example: "miguel"
+        played:
+          type: integer
+          example: 10
+        wins:
+          type: integer
+          example: 8
+        losses:
+          type: integer
+          example: 2
+        winRate:
+          type: integer
+          description: Porcentaje de victorias redondeado al entero más cercano
+          example: 80
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Mensaje de error"
+
+paths:
+
+  # ──────────────────────────────────────────────
+  # Health
+  # ──────────────────────────────────────────────
+  /health:
+    get:
+      summary: Estado de salud del Gateway
+      description: Comprueba que el servicio Gateway está funcionando correctamente. No requiere autenticación.
+      tags:
+        - Health
+      responses:
+        '200':
+          description: El servicio está activo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  service:
+                    type: string
+                    example: gateway
+
+  # ──────────────────────────────────────────────
+  # Autenticación (sin token requerido)
+  # ──────────────────────────────────────────────
+  /user:
+    post:
+      summary: Registro de un nuevo usuario
+      description: >
+        Crea una nueva cuenta de usuario. No requiere autenticación.
+        Validaciones aplicadas: username ≥ 4 caracteres, contraseña ≥ 8 caracteres
+        con al menos una mayúscula y un número, nombre, apellido y email no pueden
+        estar vacíos.
+      tags:
+        - Autenticación
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - name
+                - surname
+                - email
+                - password
+              properties:
+                username:
+                  type: string
+                  minLength: 4
+                  example: "testuser"
+                name:
+                  type: string
+                  example: "Mario"
+                surname:
+                  type: string
+                  example: "Trelles"
+                email:
+                  type: string
+                  format: email
+                  example: "mario@uniovi.es"
+                password:
+                  type: string
+                  minLength: 8
+                  description: Mínimo 8 caracteres, al menos una mayúscula y un número
+                  example: "Admin123##"
+      responses:
+        '200':
+          description: Usuario registrado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: Datos de registro inválidos (username duplicado, contraseña débil, campos vacíos, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                usernameDuplicado:
+                  value: { error: "Invalid username" }
+                usernameCorto:
+                  value: { error: "The username must be at least 4 characters long" }
+                passwordCorta:
+                  value: { error: "The password must be at least 8 characters long" }
+                passwordSinNumero:
+                  value: { error: "The password must contain at least one numeric character" }
+                passwordSinMayuscula:
+                  value: { error: "The password must contain at least one uppercase letter" }
+        '500':
+          description: Error interno del servidor o del User Service
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /login:
+    post:
+      summary: Inicio de sesión
+      description: >
+        Autentica al usuario con sus credenciales y devuelve un JWT token válido durante 24 horas.
+        Este token debe incluirse en la cabecera Authorization de todas las peticiones protegidas.
+        No requiere autenticación previa.
+      tags:
+        - Autenticación
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: "testuser"
+                password:
+                  type: string
+                  example: "Admin123##"
+      responses:
+        '200':
+          description: Login exitoso. Devuelve el token JWT y datos básicos del usuario.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT token para usar en peticiones autenticadas
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  username:
+                    type: string
+                    example: "testuser"
+        '400':
+          description: Faltan campos obligatorios (username o password)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Username and password are required."
+        '401':
+          description: Credenciales incorrectas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Incorrect username or password"
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ──────────────────────────────────────────────
+  # Perfil de usuario (requieren token JWT)
+  # ──────────────────────────────────────────────
+  /user/{username}:
+    get:
+      summary: Obtiene el perfil de un usuario
+      description: Devuelve los datos públicos del perfil del usuario indicado. Requiere autenticación JWT.
+      tags:
+        - Usuario
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+          description: Nombre de usuario
+          example: "testuser"
+      responses:
+        '200':
+          description: Perfil obtenido correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Token JWT ausente o inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Unauthorized"
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "User not found"
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Actualiza el perfil de un usuario
+      description: >
+        Modifica el nombre, apellido y email del usuario indicado. Requiere autenticación JWT.
+        El token debe corresponder al mismo usuario que se va a actualizar.
+      tags:
+        - Usuario
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+          description: Nombre de usuario
+          example: "testuser"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdate'
+      responses:
+        '200':
+          description: Perfil actualizado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: Datos de actualización inválidos (campos vacíos o email inválido)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "The email cannot be empty or contain only spaces"
+        '401':
+          description: Token JWT ausente o inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Unauthorized"
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "User not found"
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /user/change-password:
+    post:
+      summary: Cambia la contraseña del usuario
+      description: >
+        Actualiza la contraseña del usuario autenticado. Requiere proporcionar la contraseña actual
+        y la nueva contraseña para validación. Requiere autenticación JWT.
+      tags:
+        - Usuario
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - currentPassword
+                - newPassword
+              properties:
+                username:
+                  type: string
+                  example: "testuser"
+                currentPassword:
+                  type: string
+                  example: "Admin123##"
+                newPassword:
+                  type: string
+                  minLength: 8
+                  description: Mínimo 8 caracteres, al menos una mayúscula y un número
+                  example: "NuevoPassword123!"
+      responses:
+        '200':
+          description: Contraseña actualizada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Password changed successfully"
+        '400':
+          description: Datos inválidos o contraseña nueva no cumple requisitos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Token JWT ausente/inválido o contraseña actual incorrecta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /logout:
+    post:
+      summary: Cierra la sesión del usuario
+      description: >
+        Actualiza el campo lastLogoutAt del usuario y cierra su sesión activa.
+        Requiere autenticación JWT.
+      tags:
+        - Usuario
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+              properties:
+                username:
+                  type: string
+                  description: Nombre de usuario obligatorio para cerrar sesión
+                  example: "testuser"
+      responses:
+        '200':
+          description: Sesión cerrada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User testuser logged out"
+        '400':
+          description: Falta el campo username o está vacío
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "username is required"
+        '401':
+          description: Token JWT ausente o inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Unauthorized"
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "User not found"
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ──────────────────────────────────────────────
+  # Historial y sesiones de juego (requieren token JWT)
+  # ──────────────────────────────────────────────
+  /user/{username}/history:
+    get:
+      summary: Obtiene el historial de partidas de un usuario
+      description: Devuelve la lista de partidas jugadas por el usuario indicado. Requiere autenticación JWT.
+      tags:
+        - Juego
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+          description: Nombre del usuario
+          example: "testuser"
+      responses:
+        '200':
+          description: Historial de partidas recuperado correctamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GameSession'
+        '401':
+          description: Token JWT ausente o inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Unauthorized"
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "User not found"
+        '500':
+          description: Error al obtener el historial
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /game/finish:
+    post:
+      summary: Guarda el resultado de una partida finalizada
+      description: >
+        Registra los detalles de una partida completada en la base de datos.
+        Requiere autenticación JWT.
+      tags:
+        - Juego
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameSession'
+      responses:
+        '201':
+          description: Partida registrada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameSession'
+        '401':
+          description: Token JWT ausente o inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Unauthorized"
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /game/abandon:
+    post:
+      summary: Registra el abandono de una partida en curso
+      description: >
+        Endpoint especial para registrar el abandono de una partida cuando el usuario cierra el navegador
+        o la pestaña (utiliza sendBeacon). Acepta body en formato JSON o texto plano.
+        El token JWT debe incluirse en el campo `token` del body (no en la cabecera, ya que
+        sendBeacon no permite cabeceras personalizadas).
+        El resultado se registra automáticamente como 'lost'.
+        Solo se aceptan peticiones desde localhost (protección CSRF).
+      tags:
+        - Juego
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+                - userId
+                - rival
+                - level
+                - duration
+              properties:
+                token:
+                  type: string
+                  description: JWT token del usuario (incluido en el body porque sendBeacon no permite cabeceras personalizadas)
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                userId:
+                  type: string
+                  example: "testuser"
+                rival:
+                  type: string
+                  enum: [random_bot, center_bot, edge_bot, smart_bot, mirror_bot, alpha_bot, multiplayer]
+                  example: "alpha_bot"
+                level:
+                  type: string
+                  enum: [Easy, Medium, Hard]
+                  example: "Medium"
+                duration:
+                  type: integer
+                  description: Segundos jugados hasta el abandono
+                  example: 45
+          text/plain:
+            schema:
+              type: string
+              description: Body JSON serializado como texto plano (para sendBeacon)
+      responses:
+        '201':
+          description: Abandono registrado exitosamente (result=lost)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameSession'
+        '400':
+          description: Body vacío o ilegible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Body is required"
+        '403':
+          description: Origen no permitido (posible CSRF)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Origen no permitido / Posible CSRF"
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /game/ranking:
+    get:
+      summary: Obtiene el ranking global actual
+      description: Enruta la petición al Users Service y devuelve el ranking global ordenado, con límite opcional para automatizaciones.
+      tags:
+        - User Service
+      parameters:
+        - in: query
+          name: sortBy
+          required: false
+          schema:
+            type: string
+            enum:
+              - wins
+              - winRate
+              - played
+              - losses
+            default: wins
+          description: Campo por el que ordenar el ranking
+        - in: query
+          name: order
+          required: false
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: desc
+          description: Dirección de ordenación
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            example: 5
+          description: Número máximo de entradas devueltas
+      responses:
+        '200':
+          description: Ranking recuperado correctamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    username:
+                      type: string
+                      example: alice
+                    played:
+                      type: integer
+                      example: 10
+                    wins:
+                      type: integer
+                      example: 8
+                    losses:
+                      type: integer
+                      example: 2
+                    winRate:
+                      type: integer
+                      example: 80
+              examples:
+                topThree:
+                  summary: Top 3 players by wins
+                  value:
+                    - username: alice
+                      played: 10
+                      wins: 8
+                      losses: 2
+                      winRate: 80
+                    - username: bob
+                      played: 9
+                      wins: 7
+                      losses: 2
+                      winRate: 78
+                    - username: carol
+                      played: 12
+                      wins: 7
+                      losses: 5
+                      winRate: 58
+        '500':
+          description: Error interno del servidor
+
+  /game/status:
+    get:
+      summary: Estado del servicio Gamey
+      description: Comprueba que el servicio de juego (Gamey) está disponible. No requiere autenticación.
+      tags:
+        - Gamey Service
+      responses:
+        '200':
+          description: El servicio Gamey está activo
+        '500':
+          description: El servicio Gamey no está disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /game/move:
+    post:
+      summary: Realiza un movimiento en la partida
+      description: >
+        Envía un movimiento al Gamey Service. Si el modo es 'bot', el Gateway valida y resuelve
+        el bot_id y la dificultad antes de reenviar la petición.
+        El bot_id se transforma internamente añadiendo un sufijo según la dificultad:
+        Easy → _1, Medium → _2, Hard → sin sufijo.
+        No requiere autenticación.
+      tags:
+        - Gamey Service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - mode
+              properties:
+                mode:
+                  type: string
+                  description: Modo de juego
+                  example: "bot"
+                bot_id:
+                  type: string
+                  enum: [random_bot, center_bot, smart_bot, edge_bot, mirror_bot, alpha_bot]
+                  default: random_bot
+                  description: Identificador del bot (obligatorio y validado si mode es 'bot')
+                difficulty:
+                  type: string
+                  enum: [Easy, Medium, Hard]
+                  default: Medium
+                  description: Dificultad del bot
+      responses:
+        '200':
+          description: Movimiento procesado correctamente
+        '400':
+          description: bot_id o difficulty desconocidos/inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                botInvalido:
+                  value: { error: "Unknown bot_id: invalid_bot" }
+                difficultyInvalida:
+                  value: { error: "Unknown difficulty: Extreme" }
+        '500':
+          description: Error interno del servidor o del Gamey Service
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ──────────────────────────────────────────────
+  # Bot API pública (torneo)
+  # ──────────────────────────────────────────────
+  /play:
+    get:
+      summary: Siguiente jugada del bot para una posición YEN (API pública de torneo)
+      description: >
+        API pública estándar para el torneo. Recibe la posición actual del tablero serializada
+        en formato YEN como query parameter y devuelve las coordenadas del siguiente movimiento.
+        Por defecto usa alpha_bot. Solo están disponibles los bots públicos: alpha_bot y smart_bot.
+        No requiere autenticación.
+      tags:
+        - Bot API (Torneo)
+      parameters:
+        - in: query
+          name: position
+          required: true
+          schema:
+            type: string
+          description: >
+            Posición del tablero en formato YEN serializada como JSON.
+            Debe incluir los campos: size, turn, players y layout.
+          example: '{"size":3,"turn":0,"players":["B","R"],"layout":"./../..."}'
+        - in: query
+          name: bot_id
+          required: false
+          schema:
+            type: string
+            enum: [alpha_bot, smart_bot]
+            default: alpha_bot
+          description: Identificador del bot público a utilizar
+      responses:
+        '200':
+          description: Coordenadas del siguiente movimiento del bot
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  coords:
+                    type: object
+                    properties:
+                      x:
+                        type: integer
+                        example: 1
+                      y:
+                        type: integer
+                        example: 1
+                      z:
+                        type: integer
+                        example: 0
+        '400':
+          description: Petición inválida (posición YEN mal formada o bot_id no público)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                posicionRequerida:
+                  value: { error: "YEN position is required" }
+                posicionInvalidaJson:
+                  value: { error: "YEN position must be valid JSON" }
+                botNoPublico:
+                  value: { error: "Unknown bot_id: random_bot" }
+        '500':
+          description: Error interno del servidor o del Gamey Service
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
