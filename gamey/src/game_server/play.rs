@@ -1,6 +1,11 @@
 use crate::{
-    Coordinates, GameStatus, GameY, Movement, YEN,
-    bot_server::{check_api_version, error::ErrorResponse, state::AppState},
+    Coordinates, GameAction, GameY, Movement, YEN,
+    bot_server::{
+        check_api_version,
+        error::ErrorResponse,
+        service::{apply_bot_turn, find_registered_bot, load_game_from_yen, winner_char},
+        state::AppState,
+    },
 };
 use axum::{
     Json,
@@ -16,8 +21,9 @@ pub struct MoveParams {
 #[derive(Deserialize)]
 pub struct MoveRequest {
     pub state: YEN,
-    pub row: u32,
-    pub col: u32,
+    pub row: Option<u32>,
+    pub col: Option<u32>,
+    pub action: Option<String>,
     pub bot_id: Option<String>,
     pub mode: Option<String>,
 }
@@ -37,41 +43,62 @@ pub async fn move_turn(
     Path(params): Path<MoveParams>,
     Json(request): Json<MoveRequest>,
 ) -> Result<Json<MoveTurnResponse>, Json<ErrorResponse>> {
-    check_api_version(&params.api_version)?;
+    check_api_version(&params.api_version).map_err(Json)?;
     let is_bot_mode = request.mode.as_deref().unwrap_or("bot") == "bot";
 
-    let mut game = match GameY::try_from(request.state.clone()) {
-        Ok(game) => game,
-        Err(err) => {
-            return err_response(
-                &format!("Invalid YEN format: {}", err),
-                &params.api_version,
-                None,
-            );
-        }
-    };
-
-    let size = game.board_size();
-    if request.row >= size || request.col > request.row {
-        return err_response(
-            "Invalid row/col for board size",
-            &params.api_version,
-            request.bot_id.clone(),
-        );
-    }
+    let mut game =
+        load_game_from_yen(request.state.clone(), &params.api_version, None).map_err(Json)?;
 
     if game.check_game_over() {
         return ok_response(&game, &params.api_version, None);
     }
 
-    let player_coords = row_col_to_coords(size, request.row, request.col);
     let moving_player = match game.next_player() {
         Some(player) => player,
         None => return ok_response(&game, &params.api_version, None),
     };
-    let player_move = Movement::Placement {
-        player: moving_player,
-        coords: player_coords,
+
+    let player_move = if let Some(action) = request.action.as_deref() {
+        match action.to_ascii_lowercase().as_str() {
+            "swap" => Movement::Action {
+                player: moving_player,
+                action: GameAction::Swap,
+            },
+            "resign" => Movement::Action {
+                player: moving_player,
+                action: GameAction::Resign,
+            },
+            _ => {
+                return err_response(
+                    "Unsupported action",
+                    &params.api_version,
+                    request.bot_id.clone(),
+                );
+            }
+        }
+    } else {
+        let (Some(row), Some(col)) = (request.row, request.col) else {
+            return err_response(
+                "row and col are required for placement moves",
+                &params.api_version,
+                request.bot_id.clone(),
+            );
+        };
+
+        let size = game.board_size();
+        if row >= size || col > row {
+            return err_response(
+                "Invalid row/col for board size",
+                &params.api_version,
+                request.bot_id.clone(),
+            );
+        }
+
+        let player_coords = row_col_to_coords(size, row, col);
+        Movement::Placement {
+            player: moving_player,
+            coords: player_coords,
+        }
     };
 
     if let Err(err) = game.add_move(player_move) {
@@ -101,44 +128,11 @@ pub async fn move_turn(
         }
     };
 
-    let bot = match state.bots().find(&bot_id) {
-        Some(bot) => bot,
-        None => {
-            let available_bots = state.bots().names().join(", ");
-            return err_response(
-                &format!(
-                    "Bot not found: {}, available bots: [{}]",
-                    bot_id, available_bots
-                ),
-                &params.api_version,
-                Some(bot_id),
-            );
-        }
-    };
+    let bot = find_registered_bot(&state, &params.api_version, &bot_id).map_err(Json)?;
+    let bot_coords =
+        apply_bot_turn(bot.as_ref(), &mut game, &params.api_version, &bot_id).map_err(Json)?;
 
-    let bot_coords = match bot.choose_move(&game) {
-        Some(coords) => coords,
-        None => return ok_response(&game, &params.api_version, None),
-    };
-
-    let bot_player = match game.next_player() {
-        Some(player) => player,
-        None => return ok_response(&game, &params.api_version, None),
-    };
-
-    let bot_move = Movement::Placement {
-        player: bot_player,
-        coords: bot_coords,
-    };
-    if let Err(err) = game.add_move(bot_move) {
-        return err_response(
-            &format!("Invalid bot move: {}", err),
-            &params.api_version,
-            None,
-        );
-    }
-
-    ok_response(&game, &params.api_version, Some(bot_coords))
+    ok_response(&game, &params.api_version, bot_coords)
 }
 
 fn row_col_to_coords(size: u32, row: u32, col: u32) -> Coordinates {
@@ -146,13 +140,6 @@ fn row_col_to_coords(size: u32, row: u32, col: u32) -> Coordinates {
     let y = col;
     let z = row - col;
     Coordinates::new(x, y, z)
-}
-
-fn winner_char(game: &GameY) -> Option<char> {
-    match game.status() {
-        GameStatus::Finished { winner } => Some(if winner.id() == 0 { 'B' } else { 'R' }),
-        GameStatus::Ongoing { .. } => None,
-    }
 }
 
 fn ok_response(

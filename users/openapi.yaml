@@ -5,7 +5,7 @@ info:
   description: API for managing users
 
 paths:
-  /createuser:
+  /user:
     post:
       summary: Creates a new user
       description: Creates a new user with the given username.
@@ -38,6 +38,158 @@ paths:
           description: Bad request
         '409':
           description: User already exists
+
+  /login:
+    post:
+      summary: User Login
+      description: Authenticates a user and returns a JWT token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: "testuser"
+                password:
+                  type: string
+                  example: "password123"
+      responses:
+        '200':
+          description: Login successful
+        '401':
+          description: Incorrect username or password
+
+  /user/{username}:
+    get:
+      summary: Gets a user profile
+      description: Returns the public account data for the given user.
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '404':
+          description: User not found
+    put:
+      summary: Updates a user profile
+      description: Updates name, surname and email for the given user.
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdate'
+      responses:
+        '200':
+          description: User profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: Invalid profile data
+        '404':
+          description: User not found
+
+  /user/change-password:
+    post:
+      summary: Change user password
+      description: Updates the password for an authenticated user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - currentPassword
+                - newPassword
+              properties:
+                username:
+                  type: string
+                  example: "testuser"
+                currentPassword:
+                  type: string
+                  example: "password123"
+                newPassword:
+                  type: string
+                  example: "newpassword456"
+      responses:
+        '200':
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Password changed successfully"
+        '400':
+          description: Bad request (missing fields or new password same as current)
+        '401':
+          description: Unauthorized (incorrect current password or token issues)
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+
+  /user/{username}/history:
+    get:
+      summary: Gets game history
+      description: Returns the list of games played by a specific user.
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Game history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GameSession'
+        '404':
+          description: User not found
+
+  /game/finish:
+    post:
+      summary: Saves a game session
+      description: Records the details of a finished game in the database.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameSession'
+      responses:
+        '201':
+          description: Game recorded successfully
 
   /logout:
     post:
@@ -73,6 +225,61 @@ paths:
         '404':
           description: User not found
 
+  /game/ranking:
+    get:
+      summary: Get global ranking
+      description: Returns all users aggregated stats sorted by the specified field, optionally limited to the top N entries.
+      parameters:
+        - in: query
+          name: sortBy
+          required: false
+          schema:
+            type: string
+            enum: [wins, winRate, played, losses]
+            default: wins
+          description: Field to sort by
+        - in: query
+          name: order
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort direction
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            example: 5
+          description: Maximum number of ranking entries to return
+      responses:
+        '200':
+          description: Ranking retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RankingEntry'
+              examples:
+                topFive:
+                  summary: Top five players by wins
+                  value:
+                    - username: "alice"
+                      played: 10
+                      wins: 8
+                      losses: 2
+                      winRate: 80
+                    - username: "bob"
+                      played: 8
+                      wins: 6
+                      losses: 2
+                      winRate: 75
+        '500':
+          description: Internal server error
+
 components:
   schemas:
     User:
@@ -93,3 +300,84 @@ components:
           format: date-time
           nullable: true
           example: "2026-02-24T19:00:12.321Z"
+    UserProfile:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "65cfa4b8f1a2c34d56789abc"
+        username:
+          type: string
+          example: "testuser"
+        name:
+          type: string
+          example: "Mario"
+        surname:
+          type: string
+          example: "Trelles"
+        email:
+          type: string
+          example: "mario@uniovi.es"
+    GameSession:
+      type: object
+      required:
+        - userId
+        - rival
+        - level
+        - duration
+        - result
+      properties:
+        userId:
+          type: string
+          example: "testuser"
+        rival:
+          type: string
+          example: "bot"
+        level:
+          type: string
+          example: "Medium"
+        duration:
+          type: integer
+          description: Duration in seconds
+          example: 120
+        result:
+          type: string
+          example: "won"
+        createdAt:
+          type: string
+          format: date-time
+    UserProfileUpdate:
+      type: object
+      required:
+        - name
+        - surname
+        - email
+      properties:
+        name:
+          type: string
+          example: "Mario"
+        surname:
+          type: string
+          example: "Trelles"
+        email:
+          type: string
+          example: "mario@uniovi.es"
+    RankingEntry:
+      type: object
+      properties:
+        username:
+          type: string
+          example: "miguel"
+        played:
+          type: integer
+          example: 10
+        wins:
+          type: integer
+          example: 8
+        losses:
+          type: integer
+          example: 2
+        winRate:
+          type: integer
+          description: Win percentage rounded to nearest integer
+          example: 80

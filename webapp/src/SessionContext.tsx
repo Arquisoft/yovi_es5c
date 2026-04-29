@@ -1,11 +1,11 @@
-import React, { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import React, { createContext, useState, useEffect, useContext, useMemo, useCallback, type ReactNode } from 'react';
 
 interface SessionContextType {
   sessionId: string;
   username: string;
   isLoggedIn: boolean;
-  createSession: (username: string) => void;
+  isReady: boolean;
+  createSession: (username: string, token: string) => void;
   destroySession: () => void;
 }
 
@@ -19,39 +19,88 @@ const SessionProvider: React.FC<SessionProviderProps> = ({ children }) => {
   const [sessionId, setSessionId] = useState<string>('');
   const [username, setUsername] = useState<string>('');
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isReady, setIsReady] = useState<boolean>(false);
 
-  // Retrieves data from localstorage on startup
-  useEffect(() => {
-    const storedSessionId = localStorage.getItem('sessionId');
-    const storedUsername = localStorage.getItem('username');
-
-    if (storedSessionId && storedUsername) {
-      setSessionId(storedSessionId);
-      setUsername(storedUsername);
-      setIsLoggedIn(true);
-    }
-  }, []);
-
-  const createSession = (user: string): void => {
-    const newSessionId = uuidv4();
-    setSessionId(newSessionId);
-    setUsername(user);
-    setIsLoggedIn(true);
-
-    localStorage.setItem('sessionId', newSessionId);
-    localStorage.setItem('username', user);
-  };
-
-  const destroySession = (): void => {
+  const destroySession = useCallback((): void => {
     localStorage.removeItem('sessionId');
     localStorage.removeItem('username');
     setSessionId('');
     setUsername('');
     setIsLoggedIn(false);
-  };
+  }, []);
+
+
+  useEffect(() => {
+    const validateSession = async () => {
+      const storedSessionId = localStorage.getItem('sessionId');
+      const storedUsername = localStorage.getItem('username');
+
+      if (storedSessionId && storedUsername) {
+        const usernameRegex = /^[a-zA-Z0-9_-]+$/; 
+        
+        if (!usernameRegex.test(storedUsername)) {
+          console.error('Formato de usuario inválido en localStorage.');
+          destroySession();
+          setIsReady(true);
+          return;
+        }
+
+        try {
+          const safeUsername = encodeURIComponent(storedUsername);
+          
+          const response = await fetch(`http://localhost:8000/user/${safeUsername}`, {
+            headers: {
+              'Authorization': `Bearer ${storedSessionId}`
+            }
+          });
+
+          if (response.ok) {
+            setSessionId(storedSessionId);
+            setUsername(storedUsername);
+            setIsLoggedIn(true);
+          } else {
+            // El token es falso o expiró: destruimos la sesión
+            destroySession();
+          }
+        } catch (error) {
+          console.error('Error al validar la sesión:', error);
+          destroySession();
+        }
+      }
+      setIsReady(true); // Validación completada
+    };
+
+    validateSession();
+  }, []);
+
+  const createSession = useCallback((username: string, token: string): void => {
+    const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+    const tokenRegex = /^[a-zA-Z0-9-_.]+$/;
+
+    if (!usernameRegex.test(username) || !tokenRegex.test(token)) {
+      console.error('Intento de guardar datos inválidos o potencialmente maliciosos en la sesión.');
+      return; 
+    }
+
+    setSessionId(token);
+    setUsername(username);
+    setIsLoggedIn(true);
+
+    localStorage.setItem('sessionId', token);
+    localStorage.setItem('username', username);
+  }, []);
+
+  const contextValue = useMemo(() => ({
+    sessionId,
+    username,
+    isLoggedIn,
+    isReady,
+    createSession,
+    destroySession,
+  }), [sessionId, username, isLoggedIn, isReady, createSession, destroySession]);
 
   return (
-    <SessionContext.Provider value={{ sessionId, username, isLoggedIn, createSession, destroySession }}>
+    <SessionContext.Provider value={contextValue}>
       {children}
     </SessionContext.Provider>
   );

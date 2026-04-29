@@ -1,8 +1,13 @@
 # Yovi_es5c - Game Y at UniOvi
 
+![Logo](./webapp/public/logo.png)
+
 [![Release — Test, Build, Publish, Deploy](https://github.com/arquisoft/yovi_es5c/actions/workflows/release-deploy.yml/badge.svg)](https://github.com/arquisoft/yovi_es5c/actions/workflows/release-deploy.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Arquisoft_yovi_es5c&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Arquisoft_yovi_es5c)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Arquisoft_yovi_es5c&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Arquisoft_yovi_es5c)
+
+Application url: http://4.233.210.164 <br>
+Documentation url: https://arquisoft.github.io/yovi_es5c/
 
 This project is a template with some basic functionality for the ASW labs.
 
@@ -20,6 +25,7 @@ This project is a template with some basic functionality for the ASW labs.
 
 The project is divided into three main components, each in its own directory:
 
+- `gatewayservice/`: A frontend gateway service that serves as the main entry point of the application.
 - `webapp/`: A frontend application built with React, Vite, and TypeScript.
 - `users/`: A backend service for managing users, built with Node.js and Express.
 - `gamey/`: A Rust game engine and bot service.
@@ -34,6 +40,14 @@ Each component has its own `package.json` file with the necessary scripts to run
 - **GameY**: A basic Game engine which only chooses a random piece.
 
 ## Components
+
+### GatewayService
+
+It acts as the entry point for users, providing the interface to interact with backend services such as the users service.
+
+- `src/App.tsx` The main component of the application, responsible for routing and overall layout.
+- `package.json`: Contains scripts to run, build, and preview the application.
+- `Dockerfile`: Defines the Docker image for the user service.
 
 ### Webapp
 
@@ -85,6 +99,7 @@ This command will build the Docker images for both the `webapp` and `users` serv
 
 2.**Access the application:**
 - Web application: [http://localhost](http://localhost)
+- Gateway service API: [http://localhost:8000](http://localhost:8000)
 - User service API: [http://localhost:3000](http://localhost:3000)
 - Gamey API: [http://localhost:4000](http://localhost:4000)
 
@@ -95,6 +110,9 @@ To run the project locally without Docker, you will need to run each component i
 #### Prerequisites
 
 * [Node.js](https://nodejs.org/) and npm installed.
+* [Docker](https://www.docker.com/) available if you run the end-to-end tests locally.
+* A `JWT_SECRET` value configured in the environment for local login flows.
+* On Windows, if `gamey` fails with `dlltool.exe: program not found`, use the MSVC Rust toolchain or install the GNU binutils that provide `dlltool.exe`.
 
 #### 1. Running the User Service
 
@@ -152,8 +170,15 @@ Each component has its own set of scripts defined in its `package.json`. Here ar
 
 - `npm run dev`: Starts the development server for the webapp.
 - `npm test`: Runs the unit tests.
-- `npm run test:e2e`: Runs the end-to-end tests.
-- `npm run start:all`: A convenience script to start both the `webapp` and the `users` service concurrently.
+- `npm run test:e2e:services`: Starts MongoDB and `gamey` with Docker Compose for end-to-end tests.
+- `npm run test:e2e`: Starts MongoDB and `gamey` with Docker Compose, starts the app services, and runs the end-to-end tests.
+- `npm run test:e2e:run`: Runs only the Cucumber end-to-end tests against already running services.
+- `npm run start:all`: A convenience script to start the `webapp`, `users`, `gatewayservice`, and `gamey` services concurrently.
+
+### Gateway (`gatewayservice/package.json`)
+
+- `npm start`: Starts the gateway service.
+- `npm test`: Runs the tests for the service.
 
 ### Users (`users/package.json`)
 

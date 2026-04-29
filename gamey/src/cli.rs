@@ -7,7 +7,7 @@
 //! - Server: Run as an HTTP server for bot API
 
 use crate::{
-    Coordinates, GameAction, Movement, RandomBot, RenderOptions, YBot, YBotRegistry, game,
+    Coordinates, GameAction, Movement, EdgeBot, CenterBot, AlphaBot, SmartBot, MirrorBot, RandomBot, RenderOptions, YBot, YBotRegistry, game,
 };
 use crate::{GameStatus, GameY, PlayerId};
 use anyhow::Result;
@@ -69,7 +69,26 @@ pub fn run_cli_game() -> Result<()> {
     let args = CliArgs::parse();
     let mut render_options = crate::RenderOptions::default();
     let mut rl = DefaultEditor::new()?;
-    let bots_registry = YBotRegistry::new().with_bot(Arc::new(RandomBot));
+    let bots_registry = YBotRegistry::new()
+        .with_bot(Arc::new(RandomBot { level: 1 }))
+        .with_bot(Arc::new(RandomBot { level: 2 }))
+        .with_bot(Arc::new(RandomBot { level: 3 }))
+        .with_bot(Arc::new(CenterBot { level: 1 }))
+        .with_bot(Arc::new(CenterBot { level: 2 }))
+        .with_bot(Arc::new(CenterBot { level: 3 }))
+        .with_bot(Arc::new(EdgeBot { level: 1 }))
+        .with_bot(Arc::new(EdgeBot { level: 2 }))
+        .with_bot(Arc::new(EdgeBot { level: 3 }))
+        .with_bot(Arc::new(SmartBot { level: 1 }))
+        .with_bot(Arc::new(SmartBot { level: 2 }))
+        .with_bot(Arc::new(SmartBot { level: 3 }))
+        .with_bot(Arc::new(AlphaBot { level: 1 }))
+        .with_bot(Arc::new(AlphaBot { level: 2 }))
+        .with_bot(Arc::new(AlphaBot { level: 3 }))
+        .with_bot(Arc::new(MirrorBot { level: 1 }))
+        .with_bot(Arc::new(MirrorBot { level: 2 }))
+        .with_bot(Arc::new(MirrorBot { level: 3 }));
+
     let bot: Arc<dyn YBot> = match bots_registry.find(&args.bot) {
         Some(b) => b,
         None => {

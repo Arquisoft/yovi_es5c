@@ -1,25 +1,25 @@
 import React, { useState } from "react";
 import { Box, Paper, Typography, TextField, Button, Link as MuiLink, Container, Alert } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
-import { useSession } from "../SessionContext"; // Ajusta la ruta si es necesario
+import { useTranslation } from "react-i18next";
+import { useSession } from "../SessionContext";
+import { translateBackendError } from "../utils/translateBackendError";
 
 const LoginForm = () => {
-  // Estados para capturar las entradas del usuario y manejar errores
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  // Hook para crear la sesión y hook para redirigir
   const { createSession } = useSession();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Evita que la página se recargue
-    setError(""); // Reiniciamos los errores previos
+    setError("");
 
     try {
-      // Petición POST al Gateway (usualmente puerto 8000 en base a tu archivo gateway-service.js)
-      const gatewayUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'; // O usa import.meta.env.VITE_GATEWAY_URL si usas Vite
+      const gatewayUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
       const response = await fetch(`${gatewayUrl}/login`, {
         method: "POST",
@@ -32,20 +32,19 @@ const LoginForm = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Si el login es exitoso (código 200), creamos la sesión
-        createSession(username);
-        
-        // Opcional: Si necesitas guardar el token JWT (data.token) devuelto por el users-service, puedes hacerlo aquí
-        // localStorage.setItem("jwtToken", data.token);
 
-        // Redirigir a la vista principal
+        createSession(username, data.token);
         navigate("/"); 
+
       } else {
         // En caso de credenciales incorrectas, capturamos el mensaje de tu backend
-        setError(data.error || "Error al iniciar sesión");
+        setError(translateBackendError(data.error, t) || t("errors.genericLogin"));
       }
-    } catch (err) {
-      setError("Error de conexión con el servidor");
+    } catch (e:unknown) {
+          if (e instanceof Error) {
+            console.log(e.message)
+          }
+      setError(t("errors.genericConnection"));
     }
   };
 
@@ -53,7 +52,7 @@ const LoginForm = () => {
     <Container className="uiContainer"> 
       <Paper className="uiCard" elevation={0} >
         <Typography component="h1" variant="h4" align="center" gutterBottom>
-          Welcome
+          {t("auth.welcome")}
         </Typography>
 
         {/* Mostramos el error de forma visual usando Alert de MUI */}
@@ -64,7 +63,7 @@ const LoginForm = () => {
           <TextField 
             required 
             fullWidth 
-            label="User" 
+            label={t("auth.user")} 
             name="username" 
             autoFocus
             margin="normal" // Agregado para que no se peguen
@@ -75,7 +74,7 @@ const LoginForm = () => {
             required 
             fullWidth 
             name="password" 
-            label="Password" 
+            label={t("auth.password")} 
             type="password"
             margin="normal"
             value={password}
@@ -90,15 +89,15 @@ const LoginForm = () => {
             size="large"
             sx={{ mt: 2 }} // Un poco de margen superior
           >
-            Log-In
+            {t("auth.login")}
           </Button>
         </form>
 
         <Box className="formFooter" sx={{ mt: 3 }}>
           <Typography variant="body1">
-            You don't have an account yet?{" "}
+            {t("auth.noAccountYet")}{" "}
             <MuiLink component={Link} to="/register" underline="always">
-              Sign-up
+              {t("auth.signUp")}
             </MuiLink>
           </Typography>
         </Box>
