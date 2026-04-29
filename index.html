@@ -523,6 +523,16 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </li>
 <li><a href="#section-glossary">12. Glosario</a></li>
+<li><a href="#section-tests-annex">13. Anexo</a>
+<ul class="sectlevel2">
+<li><a href="#_estrategia_de_pruebas">13.1. Estrategia de Pruebas</a></li>
+<li><a href="#_pruebas_unitarias">13.2. Pruebas Unitarias</a></li>
+<li><a href="#_pruebas_end_to_end_e2e">13.3. Pruebas end to end (E2E)</a></li>
+<li><a href="#_pruebas_de_carga_y_rendimiento">13.4. Pruebas de Carga y Rendimiento</a></li>
+<li><a href="#_pruebas_de_usabilidad">13.5. Pruebas de Usabilidad</a></li>
+<li><a href="#_monitorización">13.6. Monitorización</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
@@ -2558,13 +2568,242 @@ concrete and measurable.</p>
 </tr>
 </tbody>
 </table>
+<div style="page-break-after: always;"></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="section-tests-annex">13. Anexo</h2>
+<div class="sectionbody">
+<div class="sidebarblock arc42help">
+<div class="content">
+<div class="paragraph">
+<div class="title">Contents</div>
+<p>Descripción general de la estrategia de pruebas y los resultados obtenidos en los distintos niveles de validación (unitarias, integración, E2E y carga).</p>
+</div>
+<div class="paragraph">
+<div class="title">Motivation</div>
+<p>Garantizar que el sistema cumple con las especificaciones técnicas, funcionales y los requisitos de calidad definidos previamente.</p>
+</div>
+<div class="paragraph">
+<div class="title">Form</div>
+<p>Resúmenes de ejecución, tablas de cobertura o referencias a informes generados por las herramientas de CI/CD.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_estrategia_de_pruebas">13.1. Estrategia de Pruebas</h3>
+
+</div>
+<div class="sect2">
+<h3 id="_pruebas_unitarias">13.2. Pruebas Unitarias</h3>
+<div class="paragraph">
+<p>Se han realizado pruebas unitarias en los servicios del backend. Con ellas se busca validar la lógica de negocio, el manejo de errores y las funcionalidades de cada servicio.</p>
+</div>
+<div class="paragraph">
+<p>Para ello, entre otras cosas se ha utilizado:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Vitest: un framework de pruebas en JavaScript, empleado para la estructura de los tests.</p>
+</li>
+<li>
+<p>Supertest: librería para simular y realizar peticiones HTTP directamente sobre la aplicación en Node.js, validando las respuestas de los endpoints.</p>
+</li>
+<li>
+<p>MongoDB Memory Server: herramienta que levanta una instancia de base de datos en memoria temporal</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_pruebas_end_to_end_e2e">13.3. Pruebas end to end (E2E)</h3>
+<div class="paragraph">
+<p>Se han realizado pruebas E2E para validar el correcto funcionamiento de la aplicación en su conjunto, desde la perspectiva del usuario final. Estas pruebas se han centrado en el flujo de inicio y registro de sesión y jugar una partida.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_pruebas_de_carga_y_rendimiento">13.4. Pruebas de Carga y Rendimiento</h3>
+<div class="paragraph">
+<p>Se han realizado pruebas de carga sobre la aplicación desplegada en Azure.</p>
+</div>
+<div class="paragraph">
+<p>El objetivo de las mismas es comprobar la robustez y resiliencia de la infraestructura que será utilizada por los usuarios reales, simulando un periodo de alta demanda por parte de los mismos, siempre ajustándonos al contexto académico en el que nos encontramos.</p>
+</div>
+<div class="sect3">
+<h4 id="_implementación">13.4.1. Implementación</h4>
+<div class="paragraph">
+<p>Se utiliza Gatling para la ejecución de las pruebas de carga. Para ello se crean como recursos un .csv con los usuarios que serán inyectados para probar, y un escenario donde se especificará la forma de inyectarlos y las acciones que realizarán los mismos.</p>
+</div>
+<div class="paragraph">
+<p>Los tests se han ejecutado desde una máquina local con Java 17 y Maven contra la máquina Azure de despliegue.</p>
+</div>
+<div class="paragraph">
+<p>Al orquestar las pruebas con Maven, se añaden las dependencias de Gatling y otras necesarias en un archivo pom.xml</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_escenario_probado">13.4.2. Escenario probado</h4>
+<div class="paragraph">
+<p>El escenario que se prueba es el flujo que siguen los usuarios al interactuar con la web:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Inicio de sesión</p>
+</li>
+<li>
+<p>Se inicia una partida y se hace un movimiento en el tablero</p>
+</li>
+<li>
+<p>Se consulta el historial de partidas del usuario</p>
+</li>
+<li>
+<p>Se cierra sesión</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>En este escenario se establecen ciertos asertos, serán comentados en el apartado de "Resultados".</p>
+</div>
+<div class="paragraph">
+<p>Se detalla en el archivo SimpleFlowSimulation.scala.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_carga_probada">13.4.3. Carga probada</h4>
+<div class="paragraph">
+<p>Se ha planteado una carga que se adapte a las restricciones en materia de seguridad implementadas en el gateway (máximo de 500 peticiones por usuario en un minuto, como prevención ante ataques DDoS).</p>
+</div>
+<div class="paragraph">
+<p>De este modo:
+* Se inyectan 5 usuarios en un primer instante.
+* Se va incrementando de 1 a 3 usuarios por segundo durante los siguientes 30 segundos.
+* Se inyectan 3 usuarios por segundo durante los últimos 30 segundos.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_resultados">13.4.4. Resultados</h4>
+<div class="paragraph">
+<p>Los resultados han sido registrados en un informe generado por Gatling.</p>
+</div>
+<div class="paragraph">
+<p>El informe global puede ser consultado aquí: <a href="https://github.com/user-attachments/files/26765734/Resultados_test_carga.pdf">Resultados_test_carga.pdf</a></p>
+</div>
+<div class="paragraph">
+<p>En el escenario se definen como asertos/restricciones para considerar el test "aprobado" que:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Toda petición se responda en un máximo de 2 segundos</p>
+</li>
+<li>
+<p>El porcentaje de peticiones exitosas sea de al menos, un 60%.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Estos asertos se cumplen de forma holgada, mostrando las estadísticas un 100% de peticiones exitosas, todas ellas con un tiempo de respuesta inferior a 800ms, con una carga máxima de aproximadamente 30 usuarios simultáneos hacia el ecuador de la prueba:</p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img src="./images/requests_gatling.png" alt="Peticiones exitosas con estadísticas de tiempo de respuesta"></span></p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img src="./images/active_users_gatling.png" alt="Gráfica de usuarios activos simultáneamente durante la ejecución"></span></p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_pruebas_de_usabilidad">13.5. Pruebas de Usabilidad</h3>
+<div class="paragraph">
+<p>Se realizaron pruebas de usabilidad con usuarios de diferentes edades y niveles tecnológicos para evaluar el tiempo que tardaban en completar dos tareas: jugar una partida y consultar el historial.</p>
+</div>
+<div class="paragraph">
+<p>En la tarea de “jugar una partida”, se observó que los usuarios más jóvenes y con mayor nivel tecnológico completaban la acción más rápidamente (50 segundos), mientras que los usuarios de mayor edad o con menor nivel tecnológico tardan más tiempo (hasta 120 segundos). Esto indicó que la funcionalidad no era igual de intuitiva para todos los perfiles de usuario, especialmente para aquellos menos familiarizados con la tecnología.</p>
+</div>
+<div class="paragraph">
+<p>En cambio, en la tarea de “consultar el historial”, los tiempos fueron significativamente menores en todos los casos (entre 2 y 12 segundos), lo que sugirió que esta funcionalidad era más clara, accesible y fácil de usar independientemente del perfil del usuario.</p>
+</div>
+<div class="paragraph">
+<p>A partir de los resultados obtenidos en las pruebas de usabilidad, se realizaron varias mejoras en la aplicación. En primer lugar, modificó el botón de como jugar, ya que, aunque a nosotros nos parecía bastante intuitivo con el icono "?", los usuarios de prueba no identificaban para que servía.</p>
+</div>
+<div class="paragraph">
+<p>Además, se mejoró la claridad de la interfaz, aumentando el tamaño de letra y mejorando los contrastes para que le resultase más fácil de leer a aquellos usuarios de mayor edad.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_monitorización">13.6. Monitorización</h3>
+<div class="paragraph">
+<p>Para la monitorización de la aplicación se han utilizado Prometheus y Grafana, dos herramientas ampliamente usadas en entornos de observabilidad. Prometheus se encarga de recopilar y almacenar métricas relacionadas con el comportamiento del sistema, concretamente información sobre las peticiones que llegan al servicio de users, como el método HTTP y la ruta utilizada.</p>
+</div>
+<div class="paragraph">
+<p>A partir de estos datos, Grafana permite su visualización mediante dashboards interactivos, facilitando el análisis del estado del sistema en distintos niveles de detalle. Con este enfoque, no solo podemos observar qué está ocurriendo en la aplicación, sino también detectar problemas, analizar tendencias y tomar decisiones basadas en datos reales.</p>
+</div>
+<div class="sect3">
+<h4 id="_dashboard_monitoring_24h">13.6.1. Dashboard “Monitoring 24h”</h4>
+<div class="paragraph">
+<p>El dashboard “Monitoring 24h” está diseñado para supervisar el comportamiento durante las últimas 24 horas. Su objetivo principal es ofrecer una visión clara del tráfico, los errores y el rendimiento del sistema.</p>
+</div>
+<div class="paragraph">
+<p>Incluye un indicador clave que muestra el número total de peticiones recibidas en el último día. Además, presenta una gráfica de tráfico por horas que permite observar la evolución de las peticiones a lo largo del tiempo.</p>
+</div>
+<div class="paragraph">
+<p>También incorpora un análisis más detallado por endpoint mediante una variable dinámica que permite filtrar por rutas específicas. De esta forma, se puede examinar el comportamiento de endpoints concretos y entender mejor qué partes del sistema reciben más carga.</p>
+</div>
+<div class="paragraph">
+<p>En cuanto a la estabilidad, el dashboard incluye un panel dedicado a los errores, mostrando el número de respuestas con códigos HTTP 4xx y 5xx por hora. Esto facilita la detección de problemas en el sistema.</p>
+</div>
+<div class="paragraph">
+<p>Por último, se muestra la latencia media de las peticiones, calculada a partir de las métricas de duración. Este indicador es fundamental para evaluar el rendimiento de la API y detectar posibles degradaciones en los tiempos de respuesta.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_dashboard_monitoring_last_15min">13.6.2. Dashboard “Monitoring last 15min”</h4>
+<div class="paragraph">
+<p>El dashboard “Monitoring last 15min” tiene como propósito ofrecer una visión rápida y actualizada del rendimiento y la carga del servicio para detectar problemas de forma inmediata.</p>
+</div>
+<div class="paragraph">
+<p>Incluye un indicador de latencia p95, que representa el tiempo en el que se completan el 95% de las peticiones. Este valor refleja de forma más realista la experiencia de la mayoría de los usuarios, evitando que valores extremos distorsionen la media.</p>
+</div>
+<div class="paragraph">
+<p>Además, muestra el número de peticiones por segundo, lo que permite entender la carga actual del sistema y detectar rápidamente incrementos o caídas bruscas en el tráfico.</p>
+</div>
+<div class="paragraph">
+<p>También se incluye una gráfica de la tasa de peticiones a lo largo del tiempo, que permite visualizar su evolución reciente e identificar picos o comportamientos anómalos en periodos cortos.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_conclusión">13.6.3. Conclusión</h4>
+<div class="paragraph">
+<p>El uso combinado de ambos dashboards responde a la necesidad de cubrir dos perspectivas complementarias en la monitorización del sistema: una visión histórica y otra en tiempo real.</p>
+</div>
+<div class="paragraph">
+<p>Por un lado, el dashboard “Monitoring 24h” permite analizar el comportamiento del sistema a lo largo del tiempo, identificando patrones de uso, tendencias de tráfico y posibles problemas recurrentes.</p>
+</div>
+<div class="paragraph">
+<p>Por otro lado, el dashboard “Monitoring last 15min” está orientado a la inmediatez, proporcionando información en tiempo real sobre la carga y el rendimiento del sistema.</p>
+</div>
+<div class="paragraph">
+<p>En conjunto, ambos dashboards se complementan para ofrecer una monitorización completa: mientras uno permite entender el comportamiento histórico y analizar tendencias, el otro facilita la detección y reacción inmediata ante incidencias. Esta combinación mejora la capacidad de observación del sistema y permite actuar de forma más eficiente.</p>
+</div>
+<div class="sidebarblock arc42help">
+<div class="content">
+<div class="paragraph">
+<div class="title">Nota</div>
+<p>Relacionar esta sección con los escenarios de calidad definidos en la sección 10 (Sección de Requisitos de Calidad).</p>
+</div>
+</div>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
 Version 8.2 EN<br>
-Last updated 2026-02-04 18:03:09 +0100
+Last updated 2026-04-29 09:45:39 +0200
 </div>
 </div>
 </body>
