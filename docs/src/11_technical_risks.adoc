@@ -65,9 +65,4 @@ endif::arc42help[]
 |Media
 |Unificar convenciones de nombres, validar la configuración al arrancar y mantener una única referencia para las variables de despliegue.
 
-|Monitorización básica
-|Prometheus y Grafana están presentes en el proyecto, pero su configuración todavía es básica y se centra sobre todo en el servicio de usuarios. Esto deja una observabilidad limitada para el resto de la arquitectura.
-|Media
-|Extender la recogida de métricas al resto de servicios y mejorar progresivamente dashboards y alertas.
-
 |===
