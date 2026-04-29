@@ -223,7 +223,7 @@ export default function HomePage() {
                 <Divider sx={{ my: 2, borderColor: 'rgba(255,255,255,0.15)' }} />
 
                 <Typography variant="overline" sx={{ color: 'rgba(255,255,255,0.5)' }}>
-                  {t('home.difficulties.easy')}
+                  {t('home.difficultiesTitle')}
                 </Typography>
                 <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
                   {[t('home.difficulties.easy'), t('home.difficulties.medium'), t('home.difficulties.hard')].map(d => (

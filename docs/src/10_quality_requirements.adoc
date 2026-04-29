@@ -230,36 +230,31 @@ usa consultas parametrizadas y valida
 el token de autenticación antes de operar"| Medida
 ----
 
-==== Escenario 6: Disponibilidad de la aplicación en mantenimientos
+==== Escenario 6: Protección de rutas
 
-[mermaid, "escenarioCalidadDisponibilidad1", png]
+[mermaid, "escenarioCalidadSeguridad2", png]
 ----
 flowchart LR
 
-Fuente[" FUENTE
-Equipo de operaciones
-realizando despliegue o
-actualización del sistema"]
+Fuente["FUENTE  
+Usuario no autenticado"]
 
-Artefacto[" ARTEFACTO
-Infraestructura de despliegue:
-App Web + Módulo Rust + Base de datos
+Artefacto["ARTEFACTO  
+App Web  
 
- ENTORNO
-Partidas activas en curso durante
-una ventana de mantenimiento
-planificada o despliegue continuo"]
+ENTORNO  
+Aplicación en ejecución"]
 
-Medida[" MEDIDA DE RESPUESTA
-0 partidas activas perdidas durante
-el mantenimiento. El sistema recupera
-el estado completo de todas las partidas
-en menos poco tiempo tras el reinicio"]
+Medida["MEDIDA DE RESPUESTA  
+El 100% de los accesos a rutas protegidas  
+sin autenticación son bloqueados y  
+redirigidos al login sin exponer información."]
 
-Fuente -->|"Estímulo: Se inicia un despliegue
-o actualización con partidas activas
-en curso en el sistema"| Artefacto
-Artefacto -->|"Respuesta: El sistema persiste el estado
-de todas las partidas activas antes del
-reinicio y lo restaura automáticamente"| Medida
+Fuente -->|"Estímulo: El usuario intenta acceder  
+a una ruta protegida sin estar autenticado"| Artefacto
+
+Artefacto -->|"Respuesta: El sistema verifica  
+la autenticación.  
+Si no es válida, deniega el acceso y  
+redirige al login"| Medida
 ----

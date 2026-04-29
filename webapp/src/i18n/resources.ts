@@ -75,6 +75,7 @@ export const resources = {
         tipDescription:
           "Controlling the center is powerful, but it makes your strategy predictable. Balance expansion with defense.",
         chooseOpponent: "Choose your opponent",
+        difficultiesTitle: "Difficulties",
         difficulties: {
           easy: "Easy",
           medium: "Medium",
@@ -349,6 +350,7 @@ export const resources = {
         tipDescription:
           "Controlar el centro es poderoso, pero vuelve tu estrategia predecible. Equilibra expansión y defensa.",
         chooseOpponent: "Elige oponente",
+        difficultiesTitle: "Dificultades",
         difficulties: {
           easy: "Fácil",
           medium: "Medio",
