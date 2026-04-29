@@ -21,7 +21,17 @@ endif::arc42help[]
 
 === Pruebas Unitarias
 
-=== Pruebas de Integración (E2E)
+Se han realizado pruebas unitarias en los servicios del backend. Con ellas se busca validar la lógica de negocio, el manejo de errores y las funcionalidades de cada servicio.
+
+Para ello, entre otras cosas se ha utilizado:
+
+* Vitest: un framework de pruebas en JavaScript, empleado para la estructura de los tests.
+* Supertest: librería para simular y realizar peticiones HTTP directamente sobre la aplicación en Node.js, validando las respuestas de los endpoints.
+* MongoDB Memory Server: herramienta que levanta una instancia de base de datos en memoria temporal
+
+=== Pruebas end to end (E2E)
+
+Se han realizado pruebas E2E para validar el correcto funcionamiento de la aplicación en su conjunto, desde la perspectiva del usuario final. Estas pruebas se han centrado en el flujo de inicio y registro de sesión y jugar una partida.
 
 === Pruebas de Carga y Rendimiento
 Se han realizado pruebas de carga sobre la aplicación desplegada en Azure.
