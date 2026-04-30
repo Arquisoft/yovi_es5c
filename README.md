@@ -113,6 +113,7 @@ To run the project locally without Docker, you will need to run each component i
 * [Docker](https://www.docker.com/) available if you run the end-to-end tests locally.
 * A `JWT_SECRET` value configured in the environment for local login flows.
 * On Windows, if `gamey` fails with `dlltool.exe: program not found`, use the MSVC Rust toolchain or install the GNU binutils that provide `dlltool.exe`.
+* An instance of MongoDB running on port 27017.
 
 #### 1. Running the User Service
 
